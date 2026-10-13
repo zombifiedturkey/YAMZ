@@ -1,0 +1,17 @@
+# YAMZ — docker compose example
+services:
+  yamz:
+    image: ghcr.io/zombifiedturkey/yamz:latest
+    container_name: yamz
+    restart: unless-stopped
+    ports:
+      - "7979:7979"
+    volumes:
+      - ./config:/config
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Australia/Brisbane
+      # - YAMZ_TRUST_PROXY=true        # set when YAMZ sits behind a reverse proxy
+      # - YAMZ_ALLOW_SELF_SIGNED=true  # if your Plex/Jellyfin/*arr use self-signed https
+      # - YAMZ_AUTH=none               # only if your reverse proxy handles sign-in

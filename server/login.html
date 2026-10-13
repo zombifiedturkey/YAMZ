@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>YAMZ · Sign in</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0c0d10">
+<style>
+  :root{--bg:#0c0d10;--panel:#15171c;--line:#2a2d35;--text:#ecebe6;--muted:#9b9890;--dim:#6d6a63;--accent:#e8b04b;--z:#94c35c;--bad:#e07a6e}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:radial-gradient(ellipse at 50% -10%,#1c1830 0%,var(--bg) 60%);color:var(--text);font:15px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:grid;place-items:center;padding:20px}
+  .card{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:30px 28px 24px;box-shadow:0 30px 80px rgba(0,0,0,.55)}
+  .brand{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:20px}
+  .brand svg{width:86px;height:86px;filter:drop-shadow(0 0 18px rgba(148,195,92,.35))}
+  h1{margin:0;font:400 46px/1 "Bebas Neue",Impact,"Arial Narrow",sans-serif;letter-spacing:.04em;color:var(--accent)}
+  h1 span{color:var(--z)}
+  .tag{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-top:-4px}
+  p.lead{color:var(--muted);text-align:center;margin:0 0 18px;font-size:14px}
+  label{display:block;font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+  input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:11px 13px;color:var(--text);font:inherit;outline:none}
+  input:focus{border-color:var(--accent)}
+  button{width:100%;margin-top:20px;border:0;border-radius:10px;padding:12px;background:var(--accent);color:#16120a;font:inherit;font-weight:700;cursor:pointer}
+  button:disabled{opacity:.6;cursor:default}
+  .err{display:none;margin-top:14px;background:rgba(224,122,110,.1);border:1px solid rgba(224,122,110,.4);color:var(--bad);border-radius:10px;padding:9px 12px;font-size:13.5px}
+  .foot{margin-top:18px;text-align:center;font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="brand">{{ICON}}<h1>YAM<span>Z</span></h1><div class="tag">Yet Another Media Zombie</div></div>
+  <p class="lead" id="lead"></p>
+  <form id="f" autocomplete="on" novalidate>
+    <label for="u">Username</label><input id="u" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+    <label for="p">Password</label><input id="p" name="password" type="password" required>
+    <div id="p2wrap" hidden><label for="p2">Repeat password</label><input id="p2" type="password" autocomplete="new-password"></div>
+    <div class="err" id="err" role="alert"></div>
+    <button id="go" type="submit"></button>
+  </form>
+  <div class="foot">YAMZ {{VERSION}}</div>
+</main>
+<script>
+  const MODE = '{{MODE}}', $ = id => document.getElementById(id);
+  const setup = MODE === 'setup';
+  $('lead').textContent = setup ? 'Welcome! Create the account you’ll use to sign in to this YAMZ server.' : 'Sign in to your YAMZ server.';
+  $('go').textContent = setup ? 'Create account' : 'Sign in';
+  $('p2wrap').hidden = !setup;
+  $('p').autocomplete = setup ? 'new-password' : 'current-password';
+  $('u').focus();
+  const err = m => { $('err').textContent = m; $('err').style.display = m ? 'block' : 'none'; };
+  $('f').addEventListener('submit', async e => {
+    e.preventDefault(); err('');
+    const username = $('u').value.trim(), password = $('p').value;
+    if(!username || !password) return err('Enter a username and password.');
+    if(setup && password.length < 8) return err('Use a password of at least 8 characters.');
+    if(setup && password !== $('p2').value) return err('The passwords don’t match.');
+    $('go').disabled = true;
+    try{
+      const r = await fetch(setup ? 'api/auth/setup' : 'api/auth/login', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json', 'X-YAMZ':'1'}, body:JSON.stringify({username, password})});
+      const j = await r.json().catch(() => ({}));
+      if(!r.ok) throw new Error(j.error || 'Something went wrong (HTTP ' + r.status + ').');
+      location.reload();
+    }catch(e2){ err(e2.message === 'Failed to fetch' ? 'Can’t reach the YAMZ server.' : e2.message); $('go').disabled = false; }
+  });
+</script>
+</body>
+</html>

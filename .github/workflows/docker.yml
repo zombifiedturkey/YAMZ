@@ -1,0 +1,78 @@
+name: Build and publish Docker image
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Image name (lower-case)
+        run: echo "IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/yamz" >> "$GITHUB_ENV"
+
+      - name: Check server syntax
+        run: node --check server/server.js
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build test image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: yamz:test
+
+      - name: Smoke test
+        run: |
+          docker run -d --name yamz -p 7979:7979 -e YAMZ_USER=ci -e YAMZ_PASSWORD=ci-password-123 yamz:test
+          for i in $(seq 1 30); do curl -fsS http://localhost:7979/healthz && break; sleep 1; done
+          curl -fsS http://localhost:7979/ | grep -q 'YAMZ'
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:7979/api/state)" = "401"
+          curl -fsS -c jar -X POST -H 'X-YAMZ: 1' -H 'Content-Type: application/json' \
+            -d '{"username":"ci","password":"ci-password-123"}' http://localhost:7979/api/auth/login
+          curl -fsS -b jar http://localhost:7979/ | grep -q '__YAMZ_SERVER__'
+          docker exec yamz sh -c 'ls -ln /config && test -s /config/auth.json'
+          docker logs yamz
+
+      - name: Docker tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=edge,branch=main
+            type=sha,format=short
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push (amd64 + arm64)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: VERSION=${{ steps.meta.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

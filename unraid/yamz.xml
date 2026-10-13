@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>YAMZ</Name>
+  <Repository>ghcr.io/zombifiedturkey/yamz:latest</Repository>
+  <Registry>https://github.com/zombifiedturkey/YAMZ/pkgs/container/yamz</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/zombifiedturkey/YAMZ/issues</Support>
+  <Project>https://github.com/zombifiedturkey/YAMZ</Project>
+  <Overview>YAMZ (Yet Another Media Zombie) is a good-looking browser for your movie and TV collection. Connect Plex or Jellyfin and get a poster wall with ratings, cast and photos, a Missing page that finds gaps in your franchises and TV seasons, Discover (popular, upcoming, last 12 months and The GOAT by genre and decade), your own Lists, a release Calendar, Plex Watchlist sync, and one-click adding to Radarr and Sonarr. Everything is stored in /config and protected by its own sign-in. Open the WebUI and create your account on first run.</Overview>
+  <Category>MediaApp:Video Tools:Utilities</Category>
+  <WebUI>http://[IP]:[PORT:7979]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/zombifiedturkey/YAMZ/main/unraid/yamz.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/zombifiedturkey/YAMZ/main/unraid/yamz-icon.png</Icon>
+  <ExtraParams/>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="WebUI port" Target="7979" Default="7979" Mode="tcp" Description="Port for the YAMZ web interface." Type="Port" Display="always" Required="true" Mask="false">7979</Config>
+  <Config Name="Appdata" Target="/config" Default="/mnt/user/appdata/yamz" Mode="rw" Description="Where YAMZ keeps its settings, lists, account and cache." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/yamz</Config>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="User ID YAMZ runs as (Unraid default: 99 = nobody)." Type="Variable" Display="advanced" Required="false" Mask="false">99</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="Group ID YAMZ runs as (Unraid default: 100 = users)." Type="Variable" Display="advanced" Required="false" Mask="false">100</Config>
+  <Config Name="Sign-in" Target="YAMZ_AUTH" Default="on|none" Mode="" Description="Keep 'on'. Choose 'none' ONLY if a reverse proxy in front of YAMZ already requires a login (Authelia, Authentik, etc.)." Type="Variable" Display="advanced" Required="false" Mask="false">on</Config>
+  <Config Name="Behind a reverse proxy" Target="YAMZ_TRUST_PROXY" Default="false|true" Mode="" Description="Set to true when you reach YAMZ through a reverse proxy (SWAG, Nginx Proxy Manager, Traefik, Caddy). Enables secure cookies over https and correct client addresses for sign-in protection." Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
+  <Config Name="Allow self-signed certificates" Target="YAMZ_ALLOW_SELF_SIGNED" Default="false|true" Mode="" Description="Set to true if your Plex, Jellyfin, Radarr or Sonarr use https with a self-signed certificate." Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
+  <Config Name="Base path" Target="YAMZ_BASE_PATH" Default="" Mode="" Description="Only needed if your reverse proxy serves YAMZ under a sub-folder (e.g. /yamz) WITHOUT stripping it. Leave empty otherwise." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="Initial username" Target="YAMZ_USER" Default="" Mode="" Description="Optional. Creates this account on first start instead of the in-browser setup screen." Type="Variable" Display="advanced" Required="false" Mask="false"/>
+  <Config Name="Initial password" Target="YAMZ_PASSWORD" Default="" Mode="" Description="Optional. Password for the initial account (at least 8 characters). You can remove it after the first start." Type="Variable" Display="advanced" Required="false" Mask="true"/>
+</Container>
