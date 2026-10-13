@@ -8,7 +8,7 @@ The requirements change from time to time — check the current guidance pinned 
    Then on GitHub go to your profile → **Packages → yamz → Package settings** and set visibility to **Public**
    (new GHCR packages are private, and Unraid can't pull private images without a login).
 2. **Check the template.** `unraid/yamz.xml` must point at the public image, the icon URL and the template URL
-   (already set up for zombifiedturkey/YAMZ). Test it on your own server through *Docker → Template repositories*.
+   (already set up for zombifiedturkey/YAMZ). Test it on your own server by copying it to `/boot/config/plugins/dockerMan/templates-user/my-YAMZ.xml` and choosing it under *Docker → Add Container*.
 3. **Create a support thread** in the Unraid forums (*Docker Containers* section). Put its URL in the
    template's `<Support>` tag — CA expects a support link users can reach.
 4. **Submit the template repository** (`https://github.com/zombifiedturkey/YAMZ`) using the submission method

@@ -46,11 +46,14 @@ Or with Compose — see [`docker-compose.yml`](docker-compose.yml).
 
 ### Unraid
 
-Until YAMZ is listed in Community Applications, add the template manually:
+Until YAMZ is listed in Community Applications, add the template by hand. (Unraid 6.10 and later no longer have a *Template repositories* box.)
 
-1. **Docker** tab → **Template repositories** (at the bottom), add
-   `https://github.com/zombifiedturkey/YAMZ` and **Save**.
-2. **Add Container** → choose **YAMZ** from the template list → **Apply**.
+1. Open a terminal (the **>_** icon at the top right of the Unraid web UI) and run:
+   ```bash
+   wget -O /boot/config/plugins/dockerMan/templates-user/my-YAMZ.xml \
+     https://raw.githubusercontent.com/zombifiedturkey/YAMZ/main/unraid/yamz.xml
+   ```
+2. **Docker** tab → **Add Container** → in the **Template** dropdown pick **YAMZ** (under *User templates*) → **Apply**.
 3. Click the YAMZ icon → **WebUI**, and create your account.
 
 Appdata defaults to `/mnt/user/appdata/yamz`, running as `99:100` (nobody:users).
