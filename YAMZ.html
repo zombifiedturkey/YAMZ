@@ -441,6 +441,15 @@ button.sc:hover{transform:translateY(-1px);box-shadow:0 0 0 2px var(--accent)}
 .side-sel select{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;cursor:pointer}
 .side-sel select:focus{border-color:var(--accent-t)}
 .cat.goat{color:var(--accent-t);font-weight:600}
+#side .cat + .cat,#side .cat + .catgrp,#side .catgrp + .cat{margin-top:2px}
+.catgrp{margin:2px 0;border-radius:10px;background:var(--bg3);box-shadow:inset 3px 0 0 var(--accent)}
+.catgrp .cat.on,.catgrp .cat.on:hover{background:none;box-shadow:none}
+.catopts{padding:2px 12px 12px 15px}
+.catopts .side-sel{margin:0}
+.catopts .side-sel label{margin-bottom:6px}
+:root[data-theme="glass"] .catgrp{background:rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.18),inset 3px 0 0 var(--accent)}
+:root[data-theme="glass"] .catgrp .cat.on{background:none;box-shadow:none}
+:root[data-theme="glass"] .catopts .side-sel select{background-color:rgba(0,0,0,.25)}
 .cat .gico{margin-right:7px;font-size:14px;font-style:normal}
 .badge.score{background:rgba(0,0,0,.78);color:#fff}
 .own-t{color:#5fb57d;font-weight:600}
@@ -3243,14 +3252,18 @@ function renderDiscoverSide(){
   $('#side').innerHTML = `<h4>Discover</h4>
     <div class="side-seg"><div class="seg"><button data-dkind="movie" class="${DISC.kind==='movie'?'on':''}">Movies</button><button data-dkind="tv" class="${DISC.kind==='tv'?'on':''}">TV</button></div></div>
     <div class="side-sel"><label for="dGenre">Genre</label><select id="dGenre"><option value="">All genres</option>${G.map(g => `<option ${g===DISC.genre?'selected':''}>${g}</option>`).join('')}</select></div>` +
-    dsecs().map(s => `<button class="cat ${state.c===s?'on':''} ${s===GOAT?'goat':''}" data-c="${s}"><em class="wlname">${s===GOAT ? `<i class="gico">${ESS_ICO}</i>` : ''}${s}</em><span>${n(s) ?? '–'}</span></button>`).join('') +
-    (state.c === 'Recent' ? `<div class="side-sel rsel"><label for="dMonths">Released within <b id="dMonthsV">${monthsLabel(DISC.months)}</b></label>
-      <input type="range" id="dMonths" min="0" max="${RMONTHS.length - 1}" step="1" value="${RMONTHS.indexOf(DISC.months)}" aria-valuetext="${monthsLabel(DISC.months)}">
-      <div class="rticks">${RMONTHS.map(m => `<span class="${m === DISC.months ? 'on' : ''}">${m}m</span>`).join('')}</div></div>` : '') +
-    (state.c === GOAT ? `<div class="side-sel"><label for="dDec">Decade</label><select id="dDec"><option value="">All time</option>${DECADES.map(d => `<option value="${d}" ${String(d)===String(DISC.dec)?'selected':''}>${d}s</option>`).join('')}</select></div>` : '') +
+    dsecs().map(s => {
+      const btn = `<button class="cat ${state.c===s?'on':''} ${s===GOAT?'goat':''}" data-c="${s}"><em class="wlname">${s===GOAT ? `<i class="gico">${ESS_ICO}</i>` : ''}${s}</em><span>${n(s) ?? '–'}</span></button>`;
+      const opts = state.c !== s ? '' : s === 'Recent'
+        ? `<div class="side-sel rsel"><label for="dMonths">Released within <b id="dMonthsV">${monthsLabel(DISC.months)}</b></label>
+            <input type="range" id="dMonths" min="0" max="${RMONTHS.length - 1}" step="1" value="${RMONTHS.indexOf(DISC.months)}" aria-valuetext="${monthsLabel(DISC.months)}">
+            <div class="rticks">${RMONTHS.map(m => `<span class="${m === DISC.months ? 'on' : ''}">${m}m</span>`).join('')}</div></div>`
+        : s === GOAT ? `<div class="side-sel"><label for="dDec">Decade</label><select id="dDec"><option value="">All time</option>${DECADES.map(d => `<option value="${d}" ${String(d)===String(DISC.dec)?'selected':''}>${d}s</option>`).join('')}</select></div>` : '';
+      return opts ? `<div class="catgrp">${btn}<div class="catopts">${opts}</div></div>` : btn;
+    }).join('') +
     `<div class="side-foot">${state.c === GOAT
       ? `Essentials ranks every ${DISC.genre.toLowerCase()} ${DISC.kind==='movie'?'film':'series'} on Wikidata by critic scores (Rotten Tomatoes and Metacritic) blended with how widely it's covered around the world.`
-      : `Popular is what's trending on Wikipedia right now. Upcoming and Recent come from Wikidata, ranked by how widely covered each title is.${DISC.genre ? ' Pick a genre to unlock Essentials.' : ''}`}
+      : `Popular is what's trending on Wikipedia right now. Upcoming and Recent come from Wikidata, ranked by how widely covered each title is.${DISC.genre ? '' : ' Pick a genre to unlock Essentials.'}`}
       <button class="btn" data-drefresh>↻ Refresh</button></div>`;
 }
 function renderDiscover(){
