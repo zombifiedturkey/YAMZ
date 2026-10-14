@@ -23,6 +23,9 @@
 - *Last 12 Months* is now **Recent**, with a slider underneath to choose how far back to look: 1, 3, 6, 9 or 12 months. Cards show the release month.
 - *The GOAT* is now **Essentials** — the must-see titles in a genre, all time or by decade (e.g. *Essential Horror Movies of the 1980s*).
 
+**Fixes**
+- Plex Watchlist sync failing with "HTTP 400": Plex now limits how many titles can be requested at once. YAMZ asks in smaller pages and steps down automatically if Plex objects.
+
 **Discover uses TMDB when you have a key**
 - With a TMDB key in Settings, Discover's lists come from TMDB: **Popular** is TMDB's trending-this-week, **Upcoming** and **Recent** use TMDB release dates ranked by popularity, and **Essentials** ranks by TMDB audience rating (only titles with plenty of votes). Cards show the TMDB rating.
 - **Gaps → Search & add** searches TMDB too (add a year, e.g. "alien 1979", to narrow it).

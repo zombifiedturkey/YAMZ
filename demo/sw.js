@@ -119,6 +119,7 @@ function plexServer(u){
   return J({}, 404);
 }
 function plexDiscover(u, req){
+  if(u.pathname.includes('/watchlist/') && +(u.searchParams.get('X-Plex-Container-Size') || 0) > 50) return J({error:'Invalid value provided for x-plex-container-size!'}, 400);   // like real Plex
   if(u.pathname.includes('/watchlist/')) return J({MediaContainer:{totalSize:WL.length, Metadata:WL.map(([t, y, k, ty]) => ({title:t, year:y, type:ty || 'movie', ratingKey:k, guid:'plex://movie/' + k, thumb:P_(t, y), addedAt:Math.floor(Date.now() / 1000)}))}});
   if(u.pathname === '/library/search'){ const q = u.searchParams.get('query'); return J({MediaContainer:{SearchResults:[{SearchResult:[{Metadata:{title:q, year:DEMOY[q], type:'movie', ratingKey:'7' + hash(q) % 9999, guid:'plex://movie/x'}}]}]}}); }
   if(u.pathname.startsWith('/actions/')) return new Response('', {status:200, headers:{'Access-Control-Allow-Origin':'*'}});

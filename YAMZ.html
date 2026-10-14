@@ -3462,11 +3462,19 @@ async function pwLoad(force){
   if(PW.busy) return; PW.tried = Date.now(); PW.busy = true; PW.err = null;
   try{
     const keys = {}, items = []; let start = 0;
-    for(;;){
-      const mc = (await pwReq('/library/sections/watchlist/all', {includeCollections:1, includeExternalMedia:1, includeGuids:1, 'X-Plex-Container-Start':start, 'X-Plex-Container-Size':300})).MediaContainer || {};
-      const md = mc.Metadata || [];
+    // Plex limits the page size on this endpoint (larger values get "HTTP 400 Invalid value for x-plex-container-size"),
+    // so ask in small pages and step down if it still objects.
+    const SIZES = [100, 50, 20, 10]; let si = PW.pageSize ? Math.max(0, SIZES.indexOf(PW.pageSize)) : 0;
+    for(let pages = 0; pages < 200; pages++){
+      let mc;
+      for(;;){
+        try{ mc = (await pwReq('/library/sections/watchlist/all', {includeCollections:1, includeExternalMedia:1, includeGuids:1, 'X-Plex-Container-Start':start, 'X-Plex-Container-Size':SIZES[si]})).MediaContainer || {}; break; }
+        catch(e){ if(e.status === 400 && si < SIZES.length - 1){ si++; continue; } throw e; }
+      }
+      PW.pageSize = SIZES[si];
+      const md = Array.isArray(mc.Metadata) ? mc.Metadata : [];
       md.forEach(m => { const rk = String(m.ratingKey || m.guid || m.key || '').split('/').filter(Boolean).pop(); if(!rk || !m.title) return; keys[pwKey(m.title, m.year, m.type==='show' ? 'tv' : 'movie')] = rk; keys['t|'+pwKey(m.title, '', m.type==='show' ? 'tv' : 'movie')] = rk; items.push(pwItem(m, rk)); });
-      start += md.length; if(!md.length || md.length < 300 || start >= (mc.totalSize || 0)) break;
+      start += md.length; if(!md.length || md.length < SIZES[si] || (mc.totalSize && start >= mc.totalSize)) break;
     }
     PW.keys = keys; PW.items = items; PW.at = Date.now(); pwSave(); pwMarks();
     if(force === 'user') toast(`✓ Plex Watchlist synced — ${items.length} title${items.length===1?'':'s'}.`);
