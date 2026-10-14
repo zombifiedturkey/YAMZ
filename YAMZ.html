@@ -3099,6 +3099,7 @@ const monthsLabel = m => m === 1 ? '1 month' : `${m} months`;
 const DMAP = new Map();
 const DSECS = ['Popular','Upcoming','Recent'];
 const GOAT = 'Essentials';
+const DISC_MAX = 100;   // titles shown per Discover list
 if(DISC.sec === 'The GOAT') DISC.sec = GOAT;
 const ESS_ICO = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z"/></svg>';
 const dsecs = () => DISC.genre ? [...DSECS, GOAT] : DSECS;
@@ -3164,22 +3165,22 @@ async function discTmdb(kind, sec, genre, dec){
   const d0 = kind === 'movie' ? 'primary_release_date' : 'first_air_date', today = isoDay(new Date());
   const base = `/discover/${kind}`, map = rs => rs.map(r => tmdbItem(r, kind));
   if(sec === 'Popular'){
-    const rs = genre ? await tmdbPages(base, {...gp, sort_by:'popularity.desc', 'vote_count.gte':kind === 'movie' ? 20 : 10}, 3) : await tmdbPages(`/trending/${kind}/week`, {}, 3);
+    const rs = genre ? await tmdbPages(base, {...gp, sort_by:'popularity.desc', 'vote_count.gte':kind === 'movie' ? 20 : 10}, 7) : await tmdbPages(`/trending/${kind}/week`, {}, 7);
     return map(rs).map((x, i) => ({...x, rank:i + 1}));
   }
   if(sec === 'Upcoming'){
-    const rs = await tmdbPages(base, {...gp, sort_by:'popularity.desc', [d0 + '.gte']:isoDay(shiftDays(1)), [d0 + '.lte']:isoDay(shiftDays(400))}, 3);
+    const rs = await tmdbPages(base, {...gp, sort_by:'popularity.desc', [d0 + '.gte']:isoDay(shiftDays(1)), [d0 + '.lte']:isoDay(shiftDays(400))}, 7);
     return map(rs).filter(x => x.date).sort((a, b) => a.date.localeCompare(b.date));
   }
   if(sec === 'Recent'){
-    const rs = await tmdbPages(base, {...gp, sort_by:'popularity.desc', [d0 + '.gte']:isoDay(shiftDays(-365)), [d0 + '.lte']:today, 'vote_count.gte':kind === 'movie' ? 5 : 3}, 5);
+    const rs = await tmdbPages(base, {...gp, sort_by:'popularity.desc', [d0 + '.gte']:isoDay(shiftDays(-365)), [d0 + '.lte']:today, 'vote_count.gte':kind === 'movie' ? 5 : 3}, 12);
     return map(rs);   // most popular first; the slider trims by date
   }
   if(sec === GOAT){
     const minV = dec ? (kind === 'movie' ? 250 : 120) : (kind === 'movie' ? 1200 : 400);
     const range = dec ? {[d0 + '.gte']:`${dec}-01-01`, [d0 + '.lte']:`${+dec + 9}-12-31`} : {[d0 + '.lte']:today};
-    const rs = await tmdbPages(base, {...gp, ...range, sort_by:'vote_average.desc', 'vote_count.gte':minV, without_genres:kind === 'movie' && genre !== 'Documentary' ? '99' : ''}, 5);
-    return map(rs).slice(0, 100).map((x, i) => ({...x, rank:i + 1}));
+    const rs = await tmdbPages(base, {...gp, ...range, sort_by:'vote_average.desc', 'vote_count.gte':minV, without_genres:kind === 'movie' && genre !== 'Documentary' ? '99' : ''}, 7);
+    return map(rs).slice(0, 140).map((x, i) => ({...x, rank:i + 1}));
   }
   return null;
 }
@@ -3205,7 +3206,7 @@ async function discQuery(kind, sec, genre){
     FILTER(?s >= ${minSl}) ${range}
     ${genre ? genreClause(kind, genre) : ''}
     ?a schema:about ?f ; schema:isPartOf <https://en.wikipedia.org/> .
-  } GROUP BY ?f ORDER BY DESC(?sl) LIMIT ${genre ? 120 : 90}`);
+  } GROUP BY ?f ORDER BY DESC(?sl) LIMIT ${genre ? 300 : 250}`);
   return rows.map(r => {
     const art = artTitle(r.art.value), date = (r.date?.value || '').slice(0,10);
     return {q:qidOf(r.f.value), t:cleanArt(art), y:+date.slice(0,4) || null, date, art, s:kind, sl:+r.sl?.value || 0};
@@ -3282,7 +3283,7 @@ async function discGoat(kind, genre, dec){
     const crit = critics.length ? critics.reduce((a, b) => a + b, 0) / critics.length : null;
     x.score = crit != null ? crit * 0.6 + pop * 0.4 : pop * 0.75;   // titles without critic scores rank lower
   });
-  return items.sort((a, b) => b.score - a.score).slice(0, 100).map((x, i) => ({...x, rank:i+1}));
+  return items.sort((a, b) => b.score - a.score).slice(0, 140).map((x, i) => ({...x, rank:i+1}));
 }
 const discMaxAge = sec => sec === 'Popular' ? 6*3600e3 : sec === GOAT ? 7*24*3600e3 : 24*3600e3;
 async function loadDiscover(force){
@@ -3306,7 +3307,7 @@ async function loadDiscover(force){
   finally{ DISC.busy[key] = false; if(state.s==='discover'){ renderSide(); render(); } }
 }
 function renderDiscoverSide(){
-  const n = s => { const it = store.get(dkey(DISC.kind, s))?.items; return it ? (s === 'Popular' && !DISC.genre ? Math.min(it.length, 60) : s === 'Recent' ? recentItems(it).length : it.length) : null; };
+  const n = s => { const it = store.get(dkey(DISC.kind, s))?.items; return it ? Math.min(DISC_MAX, s === 'Recent' ? recentItems(it).length : it.length) : null; };
   const G = Object.keys(DGEN);
   $('#side').innerHTML = `<h4>Discover</h4>
     <div class="side-seg"><div class="seg"><button data-dkind="movie" class="${DISC.kind==='movie'?'on':''}">Movies</button><button data-dkind="tv" class="${DISC.kind==='tv'?'on':''}">TV</button></div></div>
@@ -3349,7 +3350,7 @@ function renderDiscover(){
     if(pool.some(x => x.lang === undefined) && !DISC.langBusy[key]) discLangs(key);
     const before = pool.length; pool = pool.filter(x => !isForeign(x)); nForeign = before - pool.length;
   }
-  let items = (sec === 'Popular' && !genre ? pool.slice(0, 60) : pool).map(x => ({...x, have: owned(x)}));
+  let items = pool.slice(0, DISC_MAX).map((x, i) => ({...x, have: owned(x), rank: x.rank ? i + 1 : undefined}));
   const nHave = items.filter(x => x.have).length;
   if(DISC.hideOwn) items = items.filter(x => !x.have);
   $('#count').textContent = `${items.length} title${items.length===1?'':'s'}${sec === 'Recent' ? ` · released within ${monthsLabel(DISC.months)}` : ''}${sec === GOAT && nHave ? ` · you own ${nHave}` : ''}${nForeign ? ` · ${nForeign} foreign-language hidden` : DISC.noForeign && DISC.langBusy[key] ? ' · checking languages…' : ''}`;

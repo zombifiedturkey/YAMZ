@@ -29,6 +29,9 @@
 - Titles found on TMDB go to Radarr by their exact TMDB id.
 - No key? Everything keeps working from Wikipedia/Wikidata as before. TV genres TMDB doesn't have (e.g. Horror) also fall back automatically.
 
+**100 titles per list**
+- Popular, Upcoming, Recent and Essentials now show up to 100 titles each (was 60 for Popular). YAMZ fetches a few extra behind the scenes so lists stay full when foreign-language titles are hidden, and rank numbers stay 1–100 with no gaps.
+
 **Hide foreign-language titles**
 - New Discover switch next to *Hide titles I already have*. Hides anything whose original language isn't English (from TMDB, or from Wikidata's original-language field without a key). Titles with no language recorded are kept. Remembered per device.
 
