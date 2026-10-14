@@ -432,6 +432,11 @@ button.sc:hover{transform:translateY(-1px);box-shadow:0 0 0 2px var(--accent)}
 .dsrc{font-size:12px;color:var(--dim);margin:-6px 0 16px}
 .side-sel{margin:0 12px 12px}
 .cat + .side-sel{margin-top:12px}
+.rsel label{display:flex!important;align-items:baseline;gap:8px;white-space:nowrap}
+.rsel label b{color:var(--accent-t);text-transform:none;letter-spacing:0;font-size:12.5px;margin-left:auto}
+.rsel input[type=range]{width:100%;accent-color:var(--accent);height:22px;cursor:pointer;margin:2px 0 0}
+.rticks{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin:0 2px;font-variant-numeric:tabular-nums}
+.rticks span.on{color:var(--accent-t);font-weight:700}
 .side-sel label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin:0 0 6px}
 .side-sel select{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;cursor:pointer}
 .side-sel select:focus{border-color:var(--accent-t)}
@@ -3064,11 +3069,17 @@ $('#grid').addEventListener('click', e => {
 $('#grid').addEventListener('change', e => { if(e.target.id==='lsort'){ LSORT = e.target.value; render(); } });
 
 
-/* ================= DISCOVER: popular, upcoming, last 12 months, the GOAT ================= */
+/* ================= DISCOVER: popular, upcoming, recent, the GOAT ================= */
 const DISC = {kind: store.get('zn:dkind') || 'movie', sec: store.get('zn:dsec') || 'Popular', genre: store.get('zn:dgenre') || '', dec: store.get('zn:ddec') || '', hideOwn: store.get('zn:dhide') ?? false, busy:{}, err:{}};
-if(DISC.sec === 'New Releases') DISC.sec = 'Last 12 Months';
+if(DISC.sec === 'New Releases' || DISC.sec === 'Last 12 Months') DISC.sec = 'Recent';
+/* Recent: how far back to look — 1, 3, 6, 9 or 12 months (one 12-month list is fetched, then trimmed) */
+const RMONTHS = [1, 3, 6, 9, 12];
+DISC.months = RMONTHS.includes(store.get('zn:dmonths')) ? store.get('zn:dmonths') : 12;
+const recentCut = () => { const d = new Date(); d.setMonth(d.getMonth() - DISC.months); return isoDay(d); };
+const recentItems = items => { const cut = recentCut(); return items.filter(x => !x.date || x.date >= cut); };
+const monthsLabel = m => m === 1 ? '1 month' : `${m} months`;
 const DMAP = new Map();
-const DSECS = ['Popular','Upcoming','Last 12 Months'];
+const DSECS = ['Popular','Upcoming','Recent'];
 const GOAT = 'The GOAT';
 const dsecs = () => DISC.genre ? [...DSECS, GOAT] : DSECS;
 const DECADES = [2020, 2010, 2000, 1990, 1980, 1970, 1960, 1950];
@@ -3225,16 +3236,19 @@ async function loadDiscover(force){
   finally{ DISC.busy[key] = false; if(state.s==='discover'){ renderSide(); render(); } }
 }
 function renderDiscoverSide(){
-  const n = s => { const it = store.get(dkey(DISC.kind, s))?.items; return it ? (s === 'Popular' && !DISC.genre ? Math.min(it.length, 60) : it.length) : null; };
+  const n = s => { const it = store.get(dkey(DISC.kind, s))?.items; return it ? (s === 'Popular' && !DISC.genre ? Math.min(it.length, 60) : s === 'Recent' ? recentItems(it).length : it.length) : null; };
   const G = Object.keys(DGEN);
   $('#side').innerHTML = `<h4>Discover</h4>
     <div class="side-seg"><div class="seg"><button data-dkind="movie" class="${DISC.kind==='movie'?'on':''}">Movies</button><button data-dkind="tv" class="${DISC.kind==='tv'?'on':''}">TV</button></div></div>
     <div class="side-sel"><label for="dGenre">Genre</label><select id="dGenre"><option value="">All genres</option>${G.map(g => `<option ${g===DISC.genre?'selected':''}>${g}</option>`).join('')}</select></div>` +
     dsecs().map(s => `<button class="cat ${state.c===s?'on':''} ${s===GOAT?'goat':''}" data-c="${s}"><em class="wlname">${s===GOAT ? '<i class="gico">🐐</i>' : ''}${s}</em><span>${n(s) ?? '–'}</span></button>`).join('') +
+    (state.c === 'Recent' ? `<div class="side-sel rsel"><label for="dMonths">Released within <b id="dMonthsV">${monthsLabel(DISC.months)}</b></label>
+      <input type="range" id="dMonths" min="0" max="${RMONTHS.length - 1}" step="1" value="${RMONTHS.indexOf(DISC.months)}" aria-valuetext="${monthsLabel(DISC.months)}">
+      <div class="rticks">${RMONTHS.map(m => `<span class="${m === DISC.months ? 'on' : ''}">${m}m</span>`).join('')}</div></div>` : '') +
     (state.c === GOAT ? `<div class="side-sel"><label for="dDec">Decade</label><select id="dDec"><option value="">All time</option>${DECADES.map(d => `<option value="${d}" ${String(d)===String(DISC.dec)?'selected':''}>${d}s</option>`).join('')}</select></div>` : '') +
     `<div class="side-foot">${state.c === GOAT
       ? `The GOAT ranks every ${DISC.genre.toLowerCase()} ${DISC.kind==='movie'?'film':'series'} on Wikidata by critic scores (Rotten Tomatoes and Metacritic) blended with how widely it's covered around the world.`
-      : `Popular is what's trending on Wikipedia right now. Upcoming and Last 12 Months come from Wikidata, ranked by how widely covered each title is.${DISC.genre ? ' Pick a genre to unlock The GOAT.' : ''}`}
+      : `Popular is what's trending on Wikipedia right now. Upcoming and Recent come from Wikidata, ranked by how widely covered each title is.${DISC.genre ? ' Pick a genre to unlock The GOAT.' : ''}`}
       <button class="btn" data-drefresh>↻ Refresh</button></div>`;
 }
 function renderDiscover(){
@@ -3254,10 +3268,10 @@ function renderDiscover(){
   }
   const own = new Map(); DATA.filter(d => d.s===kind).forEach(d => { const k = fold(d.t); if(!own.has(k)) own.set(k, []); own.get(k).push(d.y); });
   const owned = x => { const ys = own.get(fold(x.t)); return !!ys && (!x.y || ys.some(y => !y || Math.abs(y - x.y) <= 1)); };
-  let items = (sec === 'Popular' && !genre ? c.items.slice(0, 60) : c.items).map(x => ({...x, have: owned(x)}));
+  let items = (sec === 'Popular' && !genre ? c.items.slice(0, 60) : sec === 'Recent' ? recentItems(c.items) : c.items).map(x => ({...x, have: owned(x)}));
   const nHave = items.filter(x => x.have).length;
   if(DISC.hideOwn) items = items.filter(x => !x.have);
-  $('#count').textContent = `${items.length} title${items.length===1?'':'s'}${sec === GOAT && nHave ? ` · you own ${nHave}` : ''}`;
+  $('#count').textContent = `${items.length} title${items.length===1?'':'s'}${sec === 'Recent' ? ` · released within ${monthsLabel(DISC.months)}` : ''}${sec === GOAT && nHave ? ` · you own ${nHave}` : ''}`;
   const LS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/><path class="pl" d="M12 7.5v6M9 10.5h6"/></svg>';
   const crit = x => x.rt != null ? `🍅 ${x.rt}%` : x.mc != null ? `MC ${x.mc}` : '';
   g.innerHTML = `<div class="mtools"><label class="tog"><input type="checkbox" id="dhide" ${DISC.hideOwn?'checked':''}> Hide titles I already have</label>
@@ -3271,8 +3285,8 @@ function renderDiscover(){
         ${x.rank ? `<span class="rank">${x.rank}</span>` : ''}
         <span class="lbtn ${listed?'in':''}" role="button" tabindex="0" data-adddisc="${x.q}" title="Add to a list">${LS}</span>
         ${x.have ? '' : (pb => pb + arrBtn({t:x.t, y:x.y, s:x.s, q:x.q}, pb ? 2 : 1, `data-pwq="d:${x.q}"`))(pwBtn({t:x.t, y:x.y, s:x.s}, `data-pwq="d:${x.q}"`))}</div>
-        <div class="ct">${esc(x.t)}</div><div class="cy">${sec==='Upcoming' ? esc(fmtWhen(x.date)) || 'TBA' : x.y || '&nbsp;'}${sec===GOAT && x.have ? ' · <b class="own-t">Owned</b>' : ''}</div></button>`; }).join('')}</div>`
-      : `<div class="empty">${DISC.hideOwn && c.items.length ? 'You already have everything here!' : genre ? `No ${genre.toLowerCase()} titles here right now${sec === 'Popular' ? ' — try Last 12 Months or The GOAT' : ''}.` : 'Nothing found right now.'}</div>`}`;
+        <div class="ct">${esc(x.t)}</div><div class="cy">${sec==='Upcoming' || sec==='Recent' ? esc(fmtWhen(x.date)) || (sec==='Upcoming' ? 'TBA' : x.y || '&nbsp;') : x.y || '&nbsp;'}${sec===GOAT && x.have ? ' · <b class="own-t">Owned</b>' : ''}</div></button>`; }).join('')}</div>`
+      : `<div class="empty">${DISC.hideOwn && c.items.length ? 'You already have everything here!' : genre ? `No ${genre.toLowerCase()} titles here right now${sec === 'Popular' ? ' — try Recent or The GOAT' : ''}.` : 'Nothing found right now.'}</div>`}`;
   loadPosters(g, '.dcard');
   if(Date.now() - c.at > discMaxAge(sec)) loadDiscover();
 }
@@ -3287,6 +3301,15 @@ $('#side').addEventListener('change', e => {
 });
 $('#grid').addEventListener('change', e => { if(e.target.id==='dhide'){ DISC.hideOwn = e.target.checked; store.set('zn:dhide', DISC.hideOwn); render(); } });
 
+
+document.addEventListener('input', e => {
+  if(e.target.id !== 'dMonths') return;
+  DISC.months = RMONTHS[+e.target.value] || 12; store.set('zn:dmonths', DISC.months);
+  $('#dMonthsV').textContent = monthsLabel(DISC.months); e.target.setAttribute('aria-valuetext', monthsLabel(DISC.months));
+  document.querySelectorAll('.rticks span').forEach((t, i) => t.classList.toggle('on', RMONTHS[i] === DISC.months));
+  const cnt = document.querySelector('#side .cat[data-c="Recent"] span'), it = store.get(dkey(DISC.kind, 'Recent'))?.items; if(cnt && it) cnt.textContent = recentItems(it).length;
+  if(state.s === 'discover' && state.c === 'Recent') render();
+});
 
 /* ================= PLEX WATCHLIST ================= */
 const PWD = 'https://discover.provider.plex.tv';
