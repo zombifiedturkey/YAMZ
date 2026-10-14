@@ -171,6 +171,17 @@ function tvmaze(u){
   return J({}, 404);
 }
 const E = 'http://www.wikidata.org/entity/', WK = 'https://en.wikipedia.org/wiki/';
+/* Missing → Search & add: a small catalogue the demo can "find" (title, year or days-from-now, kind) */
+const QID = t => 'Q' + (7000 + hash(t) % 9999);
+const CATALOG = (() => {
+  const seen = new Set(), out = [], add = (t, y, k, date) => { if(seen.has(t + k)) return; seen.add(t + k); out.push({t, y, k, date: date || (y ? y + '-06-01' : '')}); };
+  [...GOAT80, ...GOATALL, ...MOV, ...WL.filter(w => !w[3])].forEach(([t, y]) => add(t, y, 'movie'));
+  [...UPC, ...LAST].forEach(([t, n]) => { const d = daysFromNow(n); add(t, +d.slice(0, 4), 'movie', d); });
+  TVS.forEach(([t, y]) => add(t, y, 'tv'));
+  [['Severance', 2022], ['The Crypt Keepers', 2026], ['Deadwater County', 2025]].forEach(([t, y]) => add(t, y, 'tv'));
+  return out;
+})();
+const catFind = q => { const w = String(q || '').toLowerCase().replace(/\b(film|television series)\b/g, '').split(/\s+/).filter(Boolean); return w.length ? CATALOG.filter(c => w.every(x => c.t.toLowerCase().includes(x) || String(c.y) === x)) : []; };
 const B = o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, {value:v}]));
 async function sparql(req){
   const body = req.method === 'POST' ? await req.text() : new URL(req.url).search;
@@ -181,10 +192,18 @@ async function sparql(req){
     return J({results:{bindings:L.map(([t, y, rt, mc], i) => B({f:E + 'Q' + (8000 + hash(t) % 9999), date:`${y}-06-01T00:00:00Z`, art:WK + t.replace(/ /g, '_'), sl:String(120 - i * 3), rts:rt + '%', mcs:mc ? mc + '/100' : ''}))}});
   }
   if(q.includes('ORDER BY DESC(?sl)')){ const L = q.includes('?d >') ? UPC : LAST; return J({results:{bindings:L.map(([t, n], i) => B({f:E + 'Q' + (7000 + hash(t) % 9999), date:daysFromNow(n) + 'T00:00:00Z', art:WK + t.replace(/ /g, '_'), sl:String(40 - i)}))}}); }
+  if(q.includes('#yamz:search')){
+    const ids = new Set([...q.matchAll(/wd:(Q\d+)/g)].map(m => m[1])), tv = q.includes('Q5398426');
+    return J({results:{bindings:CATALOG.filter(c => ids.has(QID(c.t)) && (c.k === 'tv') === tv).map(c => B({f:E + QID(c.t), date:c.date + 'T00:00:00Z'}))}});
+  }
   if(q.includes('SELECT DISTINCT ?f')){ const ids = [...q.matchAll(/wd:(Q\d+)/g)].map(m => m[1]); return J({results:{bindings:ids.filter((_, i) => i % 3 === 1).map(id => B({f:E + id}))}}); }
   return J({results:{bindings:[]}});
 }
 function wikipedia(u){
+  if(u.searchParams.get('gsrsearch')){
+    const hits = catFind(u.searchParams.get('gsrsearch')).slice(0, 20);
+    return J({batchcomplete:true, query:{pages:hits.map((c, i) => ({pageid:5000 + i, index:i + 1, title:c.t, pageprops:{wikibase_item:QID(c.t)}}))}});
+  }
   const titles = (u.searchParams.get('titles') || '').split('|').filter(Boolean);
   return J({batchcomplete:true, query:{pages:titles.map((t, i) => { const c = t.replace(/ \(.*\)$/, ''); return {pageid:i + 1, title:t, extract:`${c} is one of the titles in the YAMZ live demo. In the real app, the description, cast and photos come from Wikipedia and Wikidata.`, thumbnail:{source:P_(c, DEMOY[c] || ''), width:300, height:450}, pageprops:{wikibase_item:'Q' + (7000 + hash(c) % 9999)}}; })}});
 }

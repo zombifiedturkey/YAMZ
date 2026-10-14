@@ -19,7 +19,7 @@ Run it as a **Docker container** (Unraid, Synology, any Linux box) and use it fr
 
 - **Library** — Plex and/or Jellyfin (or plain folders), merged and de-duplicated. Posters, genres, ratings from several sources, cast, photos and a *Play in Plex/Jellyfin* button.
 - **TV** — seasons and episodes you have vs. what exists, with episode lists and descriptions (via TVmaze).
-- **Missing** — incomplete franchises/collections, your most-watched actors and the films of theirs you don't own, and TV shows with missing seasons or episodes.
+- **Missing** — search for any movie or show and add it to a list, Plex Watchlist, Radarr or Sonarr; incomplete franchises/collections (missing films first), your most-watched actors and the films of theirs you don't own, and TV shows with missing seasons or episodes.
 - **Discover** — Popular, Upcoming and Last 12 Months for movies or TV, filterable by genre. Pick a genre to unlock **The GOAT**: the greatest titles in that genre, all time or by decade.
 - **Lists** — your own lists (marathons, shopping lists, films to lend a mate), plus your **Plex Watchlist** synced alongside.
 - **Calendar** — month or agenda view of upcoming releases for everything in Radarr, Sonarr, your lists and your Plex Watchlist, labelled *Theatres*, *Streaming* or *Physical media* (episodes for TV).

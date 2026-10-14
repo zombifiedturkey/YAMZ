@@ -8,6 +8,10 @@
 - **Glass strength**: Subtle, Balanced (default) or Frosted.
 - Falls back to solid panels when the device asks for reduced transparency, and drops the animations for reduced motion.
 
+**Missing**
+- New **Search & add** at the top of Missing: search for any movie or TV show and add it to a list, your Plex Watchlist, or Radarr / Sonarr. Titles you already own are marked, and unreleased ones show their release date.
+- Collections now show the films you're missing first, then upcoming ones, then the ones you own.
+
 **Side menu**
 - New **Auto-hide** option (Settings → Appearance → Side menu, or the arrow at the top of the menu). The menu tucks away and ☰ at the top left brings it back as a drawer that closes once you pick something.
 
