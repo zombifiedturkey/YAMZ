@@ -3312,7 +3312,7 @@ function renderDiscoverSide(){
     <div class="side-seg"><div class="seg"><button data-dkind="movie" class="${DISC.kind==='movie'?'on':''}">Movies</button><button data-dkind="tv" class="${DISC.kind==='tv'?'on':''}">TV</button></div></div>
     <div class="side-sel"><label for="dGenre">Genre</label><select id="dGenre"><option value="">All genres</option>${G.map(g => `<option ${g===DISC.genre?'selected':''}>${g}</option>`).join('')}</select></div>` +
     dsecs().map(s => {
-      const btn = `<button class="cat ${state.c===s?'on':''} ${s===GOAT?'goat':''}" data-c="${s}"><em class="wlname">${s===GOAT ? `<i class="gico">${ESS_ICO}</i>` : ''}${s}</em><span>${n(s) ?? '–'}</span></button>`;
+      const btn = `<button class="cat ${state.c===s?'on':''}" data-c="${s}">${s}<span>${n(s) ?? '–'}</span></button>`;
       const opts = state.c !== s ? '' : s === 'Recent'
         ? `<div class="side-sel rsel"><label for="dMonths">Released within <b id="dMonthsV">${monthsLabel(DISC.months)}</b></label>
             <input type="range" id="dMonths" min="0" max="${RMONTHS.length - 1}" step="1" value="${RMONTHS.indexOf(DISC.months)}" aria-valuetext="${monthsLabel(DISC.months)}">
