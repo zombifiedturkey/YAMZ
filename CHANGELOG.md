@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+**Appearance**
+- New **Glass** theme (Settings → Appearance → Theme): a floating frosted header, glass side menu, pop-ups and menus, with your posters showing through.
+- **Ambient colour**: in Glass, the background glows with the colours of the poster you're on. Can be turned off.
+- **Glass strength**: Subtle, Balanced (default) or Frosted.
+- Falls back to solid panels when the device asks for reduced transparency, and drops the animations for reduced motion.
+
+**Side menu**
+- New **Auto-hide** option (Settings → Appearance → Side menu, or the arrow at the top of the menu). The menu tucks away and ☰ at the top left brings it back as a drawer that closes once you pick something.
+
 ## 1.0.0 — first release
 
 **Server / Docker (new)**

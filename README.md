@@ -24,7 +24,7 @@ Run it as a **Docker container** (Unraid, Synology, any Linux box) and use it fr
 - **Lists** — your own lists (marathons, shopping lists, films to lend a mate), plus your **Plex Watchlist** synced alongside.
 - **Calendar** — month or agenda view of upcoming releases for everything in Radarr, Sonarr, your lists and your Plex Watchlist, labelled *Theatres*, *Streaming* or *Physical media* (episodes for TV).
 - **Connections** — Plex Watchlist, Radarr and Sonarr (documented v3 API only: look up and add titles with your root folder, quality profile, tags and monitoring options).
-- **Make it yours** — dark/light/auto theme, 9 accent colours, 5 poster sizes, rounded or square corners.
+- **Make it yours** — dark, light, auto or **Glass** theme (frosted panels with an ambient glow that follows the poster you're on), 9 accent colours, 5 poster sizes, rounded or square corners, and a side menu that can auto-hide.
 - **Server mode** — built-in sign-in, settings shared across every device, backups, and requests to your LAN servers relayed by YAMZ (no CORS or mixed-content problems behind https).
 
 No API keys are required. Metadata comes from Wikipedia/Wikidata and TVmaze; a free **TMDB** key gives richer data and theatrical/digital/physical release dates.

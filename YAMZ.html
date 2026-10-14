@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>YAMZ · Yet Another Media Zombie</title>
-<script>try{var L=JSON.parse(localStorage.getItem('zn:look')||'{}'),th=L.theme||'dark';if(th==='auto')th=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.dataset.theme=th;if(L.accent)document.documentElement.style.setProperty('--accent',L.accent);var S=[.8,1,1.33,1.67,2][(L.psize||2)-1]||1;document.documentElement.style.setProperty('--ps',S);if(L.corner==='square'){document.documentElement.style.setProperty('--pr','0px');document.documentElement.style.setProperty('--prs','0px');}}catch(e){}</script>
+<script>try{var L=JSON.parse(localStorage.getItem('zn:look')||'{}'),th=L.theme||'dark';if(th==='auto')th=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';var RT=matchMedia('(prefers-reduced-transparency: reduce)').matches;if(th==='glass'&&RT)th='dark';document.documentElement.dataset.theme=th;document.documentElement.dataset.frost=L.frost||2;document.documentElement.dataset.amb=L.amb===false?'off':'on';document.documentElement.dataset.side=L.side==='auto'?'auto':'show';if(L.accent)document.documentElement.style.setProperty('--accent',L.accent);var S=[.8,1,1.33,1.67,2][(L.psize||2)-1]||1;document.documentElement.style.setProperty('--ps',S);if(L.corner==='square'){document.documentElement.style.setProperty('--pr','0px');document.documentElement.style.setProperty('--prs','0px');}}catch(e){}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3CclipPath%20id%3D%22zc%22%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2230%22/%3E%3C/clipPath%3E%3CradialGradient%20id%3D%22zbg%22%20cx%3D%22.35%22%20cy%3D%22.3%22%20r%3D%22.9%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234a2f6b%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23160d24%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2230%22%20fill%3D%22url%28%23zbg%29%22/%3E%3Cg%20clip-path%3D%22url%28%23zc%29%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2213%22%20r%3D%226.5%22%20fill%3D%22%23f4e7b0%22%20opacity%3D%22.92%22/%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%2211.5%22%20r%3D%221.3%22%20fill%3D%22%23d9c98a%22/%3E%3Cpath%20d%3D%22M11%2066%20Q13%2050%2032%2049%20Q51%2050%2053%2066Z%22%20fill%3D%22%235b3f2a%22%20stroke%3D%22%2324160c%22%20stroke-width%3D%221.4%22/%3E%3Cpath%20d%3D%22M26%2050%20L32%2058%20L38%2050%22%20fill%3D%22%233d2a1c%22/%3E%3Cpath%20d%3D%22M20%2060%20l3%20-4%20l2%205%20M42%2058%20l3%203%20l1%20-5%22%20stroke%3D%22%2324160c%22%20stroke-width%3D%221.3%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M16.5%2030%20Q15.5%2012%2032%2011%20Q48.5%2012%2047.5%2030%20Q47.5%2044%2040%2049%20Q32%2053.5%2024%2049%20Q16.5%2044%2016.5%2030Z%22%20fill%3D%22%2394c35c%22%20stroke%3D%22%2324331a%22%20stroke-width%3D%221.6%22/%3E%3Cpath%20d%3D%22M16%2027%20Q11.5%2028.5%2013.5%2034%20Q15%2036.5%2017.5%2035.5%22%20fill%3D%22%237fae4a%22%20stroke%3D%22%2324331a%22%20stroke-width%3D%221.4%22/%3E%3Cpath%20d%3D%22M15.5%2025%20Q17%209.5%2032%209.5%20Q47%209.5%2048.5%2022%20L45%2017.5%20L42%2022%20L38.5%2015%20L34.5%2020.5%20L30.5%2014%20L26.5%2020.5%20L23%2015.5%20L20.5%2021.5%20L18%2019Z%22%20fill%3D%22%232e2018%22/%3E%3Cpath%20d%3D%22M23%2024.5%20L33.5%2027.5%22%20stroke%3D%22%2324331a%22%20stroke-width%3D%221.5%22/%3E%3Cpath%20d%3D%22M25%2022.5%20L24.2%2026.2%20M28.2%2023.4%20L27.4%2027.1%20M31.4%2024.3%20L30.6%2028%22%20stroke%3D%22%2324331a%22%20stroke-width%3D%221.2%22/%3E%3Ccircle%20cx%3D%2225.5%22%20cy%3D%2232.5%22%20r%3D%225.6%22%20fill%3D%22%23f7f3dc%22%20stroke%3D%22%2324331a%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%2226.8%22%20cy%3D%2233.3%22%20r%3D%222%22%20fill%3D%22%23d0402b%22/%3E%3Ccircle%20cx%3D%2226.3%22%20cy%3D%2232.7%22%20r%3D%22.6%22%20fill%3D%22%23fff%22/%3E%3Cellipse%20cx%3D%2239.6%22%20cy%3D%2233%22%20rx%3D%224.3%22%20ry%3D%223.4%22%20fill%3D%22%23f7f3dc%22%20stroke%3D%22%2324331a%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%2239%22%20cy%3D%2233.8%22%20r%3D%221.4%22%20fill%3D%22%231b1b1b%22/%3E%3Cpath%20d%3D%22M35%2031.6%20Q39.6%2028.4%2044.2%2031.6%20L44%2033%20Q39.6%2030.6%2035.2%2033Z%22%20fill%3D%22%237aa845%22%20stroke%3D%22%2324331a%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M20.5%2038.2%20Q25.5%2040.6%2030.5%2038.2%22%20stroke%3D%22%23678f3a%22%20stroke-width%3D%221.3%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M31.5%2035.5%20L33%2039.3%20L30.4%2039.3%22%20stroke%3D%22%2324331a%22%20stroke-width%3D%221.3%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M23.5%2042.5%20Q32%2048.5%2041.5%2041.5%20Q37%2047%2032%2047%20Q26.5%2047%2023.5%2042.5Z%22%20fill%3D%22%234a1616%22%20stroke%3D%22%2324331a%22%20stroke-width%3D%221.3%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M27.6%2043.6%20h2.8%20v2.6%20h-2.8z%20M32.6%2044%20h2.6%20v2.4%20h-2.6z%22%20fill%3D%22%23f1e9c8%22/%3E%3Cpath%20d%3D%22M42.5%2037.5%20l3.2%20-1.2%20l-1%203.4z%22%20fill%3D%22%237a1e1e%22/%3E%3Cpath%20d%3D%22M19%2045%20q1.5%201.5%203%200%22%20stroke%3D%22%235f8a34%22%20stroke-width%3D%221.1%22%20fill%3D%22none%22/%3E%3C/g%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2230%22%20fill%3D%22none%22%20stroke%3D%22%23e8b04b%22%20stroke-width%3D%222.6%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -309,6 +309,8 @@ button.sc:hover{transform:translateY(-1px);box-shadow:0 0 0 2px var(--accent)}
 .sw:hover{transform:scale(1.12)}
 .sw.on{box-shadow:0 0 0 3px var(--bg2),0 0 0 5px var(--c)}
 .sw.on::after{content:"";position:absolute;left:50%;top:46%;width:7px;height:12px;border:solid var(--on);border-width:0 2.5px 2.5px 0;transform:translate(-50%,-50%) rotate(45deg)}
+.gnote{font-size:12.5px;color:var(--muted);margin-top:8px;max-width:440px;line-height:1.5}
+.gnote:empty{display:none}
 .swname{font-size:12.5px;color:var(--muted);margin-left:8px;text-transform:none;letter-spacing:0;font-weight:500}
 @media (max-width:480px){ .swatches{grid-template-columns:repeat(5,32px)} }
 
@@ -554,9 +556,90 @@ details.manual summary{cursor:pointer;color:var(--text)}
   header{gap:10px;padding:10px 14px}
   .search{max-width:none}
 }
+/* ---------- side menu: docked or auto-hide ---------- */
+.sidepin{position:absolute;top:12px;right:8px;z-index:2;width:30px;height:30px;border-radius:9px;border:0;background:transparent;color:var(--dim);display:grid;place-items:center;cursor:pointer}
+.sidepin:hover{background:var(--bg3);color:var(--text)}
+.sidepin svg{width:16px;height:16px}
+aside > h4:first-of-type{padding-right:34px}
+@media (min-width:861px){
+  :root[data-side="auto"] aside{position:fixed;left:0;top:0;z-index:40;background:var(--bg);transform:translateX(-100%);transition:transform .22s ease;height:100vh;padding-top:20px;border-right:1px solid var(--line)}
+  :root[data-side="auto"] aside.open{transform:none;box-shadow:20px 0 40px rgba(0,0,0,.6)}
+  :root[data-side="auto"] .menu-btn{display:flex}
+}
+@media (max-width:860px){ .sidepin{display:none} }
+
+/* ---------- Liquid glass theme ---------- */
+@property --a1{syntax:'<color>';inherits:false;initial-value:#1a1030}
+@property --a2{syntax:'<color>';inherits:false;initial-value:#102030}
+@property --a3{syntax:'<color>';inherits:false;initial-value:#201810}
+#amb{display:none}
+:root[data-theme="glass"]{
+  --bg:#07080b; --bg2:rgba(255,255,255,.06); --bg3:rgba(255,255,255,.1); --line:rgba(255,255,255,.13);
+  --text2:#dfe2e8; --muted:#aeb4bf; --dim:#8e95a1;
+  --hdr:transparent; --shadow:rgba(0,0,0,.5);
+  --gt:.40; --gbl:24px;
+  --glass:rgba(18,20,30,var(--gt));
+  --glass2:rgba(16,18,27,calc(var(--gt) + .24));
+  --gfx:blur(var(--gbl)) saturate(170%);
+  --ghi:inset 0 1px 0 rgba(255,255,255,.16), inset 0 -1px 0 rgba(255,255,255,.03);
+}
+:root[data-theme="glass"][data-frost="1"]{--gt:.28; --gbl:14px}
+:root[data-theme="glass"][data-frost="3"]{--gt:.58; --gbl:40px}
+:root[data-theme="glass"] body{background:transparent}
+:root[data-theme="glass"] #amb{display:block;position:fixed;inset:-8%;z-index:-1;pointer-events:none;opacity:.85;
+  background:radial-gradient(55% 50% at 12% 8%,var(--a1),transparent 72%),radial-gradient(50% 60% at 92% 28%,var(--a2),transparent 72%),radial-gradient(70% 50% at 45% 104%,var(--a3),transparent 72%);
+  transition:--a1 1.4s ease,--a2 1.4s ease,--a3 1.4s ease}
+:root[data-theme="glass"][data-amb="off"] #amb{opacity:.4}
+/* header: a floating frosted bar */
+:root[data-theme="glass"] header{top:12px;margin:12px 12px 0;border:1px solid var(--line);border-radius:24px;background:var(--glass);-webkit-backdrop-filter:var(--gfx);backdrop-filter:var(--gfx);box-shadow:var(--ghi),0 12px 40px rgba(0,0,0,.35)}
+:root[data-theme="glass"] .tabs{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.09)}
+:root[data-theme="glass"] .tabs button{transition:background .2s,color .2s}
+:root[data-theme="glass"] .tabs button:hover{color:var(--text)}
+:root[data-theme="glass"] .tabs button.on{background:rgba(255,255,255,.18);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 2px 10px rgba(0,0,0,.25)}
+:root[data-theme="glass"] .search input,:root[data-theme="glass"] .hbtn{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12)}
+:root[data-theme="glass"] .hbtn:hover{background:rgba(255,255,255,.14);color:var(--text);border-color:rgba(255,255,255,.22)}
+:root[data-theme="glass"] .hbtn.attn.on{background:var(--accent);color:var(--on-accent)}
+/* side menu: a glass panel */
+:root[data-theme="glass"] .wrap{padding-top:12px}
+:root[data-theme="glass"] aside{top:86px;height:calc(100vh - 98px);margin:0 0 12px 12px;border:1px solid var(--line);border-radius:22px;background:var(--glass);-webkit-backdrop-filter:var(--gfx);backdrop-filter:var(--gfx);box-shadow:var(--ghi),0 12px 40px rgba(0,0,0,.3);scrollbar-width:thin}
+:root[data-theme="glass"] .cat:hover{background:rgba(255,255,255,.07)}
+:root[data-theme="glass"] .cat.on{background:rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.18),inset 3px 0 0 var(--accent)}
+:root[data-theme="glass"] .sidepin:hover{background:rgba(255,255,255,.1)}
+/* posters stay solid; a light sheen on hover */
+:root[data-theme="glass"] .card .poster::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.22) 48%,transparent 62%);transform:translateX(-130%);transition:transform .7s ease}
+:root[data-theme="glass"] .card:hover .poster::after,:root[data-theme="glass"] .card:focus-visible .poster::after{transform:translateX(130%)}
+:root[data-theme="glass"] .card:hover .poster,:root[data-theme="glass"] .card:focus-visible .poster{box-shadow:0 20px 40px rgba(0,0,0,.6),0 0 0 1.5px rgba(255,255,255,.4)}
+/* pop-ups */
+:root[data-theme="glass"] .ov{background:rgba(4,5,8,.42);-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%)}
+:root[data-theme="glass"] .modal{background:var(--glass2);border-color:rgba(255,255,255,.15);border-radius:26px;box-shadow:var(--ghi),0 40px 100px rgba(0,0,0,.6)}
+:root[data-theme="glass"] .seg{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)}
+:root[data-theme="glass"] .field input[type=text],:root[data-theme="glass"] .field input[type=password]{background:rgba(255,255,255,.06)}
+:root[data-theme="glass"] .btn:not(.pri):not(.play){background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16)}
+:root[data-theme="glass"] .hero{-webkit-mask-image:linear-gradient(180deg,#000 45%,transparent);mask-image:linear-gradient(180deg,#000 45%,transparent)}
+:root[data-theme="glass"] .hero::after{background:linear-gradient(180deg,transparent 40%,rgba(10,11,16,.35))}
+:root[data-theme="glass"] .btn.pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+:root[data-theme="glass"] .x{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+:root[data-theme="glass"] .lpop,:root[data-theme="glass"] .toast{background:var(--glass2);border-color:rgba(255,255,255,.15);-webkit-backdrop-filter:var(--gfx);backdrop-filter:var(--gfx);box-shadow:var(--ghi),0 18px 50px rgba(0,0,0,.5)}
+:root[data-theme="glass"] .bar select{background:rgba(255,255,255,.07)}
+:root[data-theme="glass"] .bar select option{background:#14161b}
+/* glass drawer: auto-hide on desktop, and always on small screens */
+@media (min-width:861px){
+  :root[data-theme="glass"][data-side="auto"] aside{left:12px;top:12px;height:calc(100vh - 24px);margin:0;background:var(--glass2);transform:translateX(calc(-100% - 24px))}
+  :root[data-theme="glass"][data-side="auto"] aside.open{transform:none;box-shadow:var(--ghi),0 30px 80px rgba(0,0,0,.6)}
+}
+@media (max-width:860px){
+  :root[data-theme="glass"] header{margin:8px 8px 0;top:8px;border-radius:20px}
+  :root[data-theme="glass"] aside{left:8px;top:8px;height:calc(100vh - 16px);margin:0;background:var(--glass2);transform:translateX(calc(-100% - 16px))}
+  :root[data-theme="glass"] aside.open{transform:none}
+}
+@media (prefers-reduced-motion:reduce){
+  :root[data-theme="glass"] #amb{transition:none}
+  :root[data-theme="glass"] .card .poster::after{display:none}
+}
 </style>
 </head>
 <body>
+<div id="amb" aria-hidden="true"></div>
 <header>
   <button class="hbtn menu-btn" id="menuBtn" aria-label="Categories">☰</button>
   <div class="logo"><svg class="zicon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><clipPath id="zc1"><circle cx="32" cy="32" r="30"/></clipPath><radialGradient id="zbg1" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#4a2f6b"/><stop offset="1" stop-color="#160d24"/></radialGradient></defs><circle cx="32" cy="32" r="30" fill="url(#zbg1)"/><g clip-path="url(#zc1)"><circle cx="50" cy="13" r="6.5" fill="#f4e7b0" opacity=".92"/><circle cx="48" cy="11.5" r="1.3" fill="#d9c98a"/><path d="M11 66 Q13 50 32 49 Q51 50 53 66Z" fill="#5b3f2a" stroke="#24160c" stroke-width="1.4"/><path d="M26 50 L32 58 L38 50" fill="#3d2a1c"/><path d="M20 60 l3 -4 l2 5 M42 58 l3 3 l1 -5" stroke="#24160c" stroke-width="1.3" fill="none"/><path d="M16.5 30 Q15.5 12 32 11 Q48.5 12 47.5 30 Q47.5 44 40 49 Q32 53.5 24 49 Q16.5 44 16.5 30Z" fill="#94c35c" stroke="#24331a" stroke-width="1.6"/><path d="M16 27 Q11.5 28.5 13.5 34 Q15 36.5 17.5 35.5" fill="#7fae4a" stroke="#24331a" stroke-width="1.4"/><path d="M15.5 25 Q17 9.5 32 9.5 Q47 9.5 48.5 22 L45 17.5 L42 22 L38.5 15 L34.5 20.5 L30.5 14 L26.5 20.5 L23 15.5 L20.5 21.5 L18 19Z" fill="#2e2018"/><path d="M23 24.5 L33.5 27.5" stroke="#24331a" stroke-width="1.5"/><path d="M25 22.5 L24.2 26.2 M28.2 23.4 L27.4 27.1 M31.4 24.3 L30.6 28" stroke="#24331a" stroke-width="1.2"/><circle cx="25.5" cy="32.5" r="5.6" fill="#f7f3dc" stroke="#24331a" stroke-width="1.4"/><circle cx="26.8" cy="33.3" r="2" fill="#d0402b"/><circle cx="26.3" cy="32.7" r=".6" fill="#fff"/><ellipse cx="39.6" cy="33" rx="4.3" ry="3.4" fill="#f7f3dc" stroke="#24331a" stroke-width="1.4"/><circle cx="39" cy="33.8" r="1.4" fill="#1b1b1b"/><path d="M35 31.6 Q39.6 28.4 44.2 31.6 L44 33 Q39.6 30.6 35.2 33Z" fill="#7aa845" stroke="#24331a" stroke-width="1.2"/><path d="M20.5 38.2 Q25.5 40.6 30.5 38.2" stroke="#678f3a" stroke-width="1.3" fill="none"/><path d="M31.5 35.5 L33 39.3 L30.4 39.3" stroke="#24331a" stroke-width="1.3" fill="none" stroke-linejoin="round"/><path d="M23.5 42.5 Q32 48.5 41.5 41.5 Q37 47 32 47 Q26.5 47 23.5 42.5Z" fill="#4a1616" stroke="#24331a" stroke-width="1.3" stroke-linejoin="round"/><path d="M27.6 43.6 h2.8 v2.6 h-2.8z M32.6 44 h2.6 v2.4 h-2.6z" fill="#f1e9c8"/><path d="M42.5 37.5 l3.2 -1.2 l-1 3.4z" fill="#7a1e1e"/><path d="M19 45 q1.5 1.5 3 0" stroke="#5f8a34" stroke-width="1.1" fill="none"/></g><circle cx="32" cy="32" r="30" fill="none" style="stroke:var(--accent)" stroke-width="2.6"/></svg><span class="lockup"><span class="bebas">YAM<span class="net">Z</span></span><small>Yet Another Media Zombie</small></span></div>
@@ -603,12 +686,20 @@ details.manual summary{cursor:pointer;color:var(--text)}
     <h2 class="bebas">Settings</h2>
     <h4>Appearance</h4>
     <div class="field"><label>Theme</label>
-      <div class="seg" id="themeSeg"><button data-theme="dark">☾ Dark</button><button data-theme="light">☀ Light</button><button data-theme="auto">Auto</button></div></div>
+      <div class="seg" id="themeSeg"><button data-theme="dark">☾ Dark</button><button data-theme="light">☀ Light</button><button data-theme="auto">Auto</button><button data-theme="glass">✦ Glass</button></div><div class="gnote" id="glassNote"></div></div>
+    <div id="glassOpts">
+    <div class="field"><label>Glass strength</label>
+      <div class="seg" id="frostSeg"><button data-frost="1">Subtle</button><button data-frost="2">Balanced</button><button data-frost="3">Frosted</button></div></div>
+    <div class="field"><label>Ambient colour <span class="swname">— the background glows with the poster you’re on</span></label>
+      <div class="seg" id="ambSeg"><button data-amb="on">On</button><button data-amb="off">Off</button></div></div>
+    </div>
     <div class="field"><label>Accent colour <span class="swname" id="swName"></span></label><div class="swatches" id="swatches"></div></div>
     <div class="field"><label>Poster size <span class="swname" id="psName"></span></label>
       <div class="psize"><div style="flex:1"><input type="range" id="psRange" min="1" max="5" step="1" aria-label="Poster size" style="width:100%"><div class="pticks" id="psTicks"></div></div><div class="pprev" id="psPrev"><i></i></div></div></div>
     <div class="field"><label>Poster corners</label>
       <div class="seg" id="cornerSeg"><button data-corner="round"><span class="cshape" style="border-radius:4px"></span>Rounded</button><button data-corner="square"><span class="cshape"></span>Square</button></div></div>
+    <div class="field"><label>Side menu</label>
+      <div class="seg" id="sideSeg"><button data-side="show">Always shown</button><button data-side="auto">Auto-hide</button></div></div>
     <h4>Connections</h4>
     <div id="connBox"></div>
     <h4>Metadata source</h4>
@@ -2299,15 +2390,22 @@ const ACCENTS = [
   ['Amber','#e8b04b'], ['Zombie Green','#8cc152'], ['Teal','#2bb5a4'], ['Sky Blue','#4f9cf7'], ['Violet','#9b7cf2'],
   ['Pink','#ec5f9e'], ['Blood Red','#e0524a'], ['Orange','#f08a3c'], ['Silver','#aeb6c2']
 ];
-let LOOK = Object.assign({theme:'dark', accent:'#e8b04b', psize:2, corner:'round'}, store.get('zn:look') || {});
+let LOOK = Object.assign({theme:'dark', accent:'#e8b04b', psize:2, corner:'round', frost:2, amb:true, side:'show'}, store.get('zn:look') || {});
 const PSIZES = [[0.8,'Small'], [1,'Medium'], [1.33,'Large'], [1.67,'X-Large'], [2,'Huge']];
 const mqLight = window.matchMedia ? matchMedia('(prefers-color-scheme: light)') : null;
+const mqClear = window.matchMedia ? matchMedia('(prefers-reduced-transparency: reduce)') : null;
 function hexRgb(h){ const n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
 function lum([r,g,b]){ const f = c => { c /= 255; return c <= .03928 ? c/12.92 : ((c+.055)/1.055) ** 2.4; }; return .2126*f(r) + .7152*f(g) + .0722*f(b); }
 function applyLook(){
   const root = document.documentElement, rgb = hexRgb(LOOK.accent);
-  const theme = LOOK.theme === 'auto' ? (mqLight?.matches ? 'light' : 'dark') : LOOK.theme;
+  let theme = LOOK.theme === 'auto' ? (mqLight?.matches ? 'light' : 'dark') : LOOK.theme;
+  if(theme === 'glass' && mqClear?.matches) theme = 'dark';   // the device asked for less transparency
   root.dataset.theme = theme;
+  root.dataset.frost = LOOK.frost || 2;
+  root.dataset.amb = LOOK.amb === false ? 'off' : 'on';
+  root.dataset.side = LOOK.side === 'auto' ? 'auto' : 'show';
+  if(theme === 'glass') ambReset();
+  if(typeof PIN_HIDE !== 'undefined') sidePin();
   root.style.setProperty('--accent', LOOK.accent);
   root.style.setProperty('--acc-rgb', rgb.join(','));
   root.style.setProperty('--on-accent', lum(rgb) > .42 ? '#16120a' : '#ffffff');
@@ -2326,12 +2424,83 @@ function renderLook(){
   $('#psTicks').innerHTML = PSIZES.map(([, n], k) => `<span class="${k===i?'on':''}" style="left:${k*25}%">${n}</span>`).join('');
   $('#psPrev i').style.height = `${Math.round(24 * PSIZES[i][0])}px`;
   document.querySelectorAll('#cornerSeg button').forEach(b => b.classList.toggle('on', b.dataset.corner === (LOOK.corner || 'round')));
+  document.querySelectorAll('#frostSeg button').forEach(b => b.classList.toggle('on', +b.dataset.frost === (LOOK.frost || 2)));
+  document.querySelectorAll('#ambSeg button').forEach(b => b.classList.toggle('on', b.dataset.amb === (LOOK.amb === false ? 'off' : 'on')));
+  document.querySelectorAll('#sideSeg button').forEach(b => b.classList.toggle('on', b.dataset.side === (LOOK.side === 'auto' ? 'auto' : 'show')));
+  $('#glassOpts').style.display = LOOK.theme === 'glass' ? '' : 'none';
+  $('#glassNote').textContent = LOOK.theme !== 'glass' ? '' : mqClear?.matches
+    ? 'Your device is set to reduce transparency, so YAMZ is showing solid panels instead.'
+    : 'Frosted panels that let your posters shine through.';
 }
 $('#themeSeg').onclick = e => { const b = e.target.closest('button'); if(!b) return; LOOK.theme = b.dataset.theme; store.set('zn:look', LOOK); applyLook(); renderLook(); };
 $('#swatches').onclick = e => { const b = e.target.closest('.sw'); if(!b) return; LOOK.accent = b.dataset.acc; store.set('zn:look', LOOK); applyLook(); renderLook(); };
 mqLight?.addEventListener?.('change', () => LOOK.theme === 'auto' && applyLook());
 $('#psRange').oninput = e => { LOOK.psize = +e.target.value; store.set('zn:look', LOOK); applyLook(); renderLook(); };
 $('#cornerSeg').onclick = e => { const b = e.target.closest('button'); if(!b) return; LOOK.corner = b.dataset.corner; store.set('zn:look', LOOK); applyLook(); renderLook(); };
+const setLook = patch => { Object.assign(LOOK, patch); store.set('zn:look', LOOK); applyLook(); renderLook(); };
+$('#frostSeg').onclick = e => { const b = e.target.closest('button'); if(b) setLook({frost: +b.dataset.frost}); };
+$('#ambSeg').onclick = e => { const b = e.target.closest('button'); if(b) setLook({amb: b.dataset.amb === 'on'}); };
+$('#sideSeg').onclick = e => { const b = e.target.closest('button'); if(b) setLook({side: b.dataset.side}); };
+mqClear?.addEventListener?.('change', () => { applyLook(); renderLook(); });
+
+/* ambient colour: the glass background picks up the colours of the poster you're on */
+const AMB = {cache: new Map(), t: 0, key: ''};
+function ambSet(c){ const a = $('#amb'); if(!a || !c) return; a.style.setProperty('--a1', c[0]); a.style.setProperty('--a2', c[1]); a.style.setProperty('--a3', c[2]); }
+function ambReset(){ const [r,g,b] = hexRgb(LOOK.accent); ambSet([`rgb(${r*.6|0} ${g*.6|0} ${b*.6|0})`, '#4a2d6e', '#163e4a']); AMB.key = ''; }
+function ambHue(t){ const h = hue(t || ''); return [`hsl(${h} 65% 40%)`, `hsl(${(h+40)%360} 70% 36%)`, `hsl(${(h+200)%360} 55% 30%)`]; }
+function ambSample(img){
+  // average three bands of the poster, then lift the saturation so it reads as a glow
+  const cv = document.createElement('canvas'); cv.width = 4; cv.height = 9;
+  const x = cv.getContext('2d', {willReadFrequently: true}); x.drawImage(img, 0, 0, 4, 9);
+  const d = x.getImageData(0, 0, 4, 9).data, out = [];
+  for(let band = 0; band < 3; band++){
+    let r = 0, g = 0, b = 0; for(let i = band * 12 * 4; i < (band + 1) * 12 * 4; i += 4){ r += d[i]; g += d[i+1]; b += d[i+2]; }
+    r /= 12; g /= 12; b /= 12;
+    const mx = Math.max(r,g,b), mn = Math.min(r,g,b), l = (mx + mn) / 510, dd = (mx - mn) / 255;
+    let h = 0; if(dd){ h = mx === r ? ((g - b) / (mx - mn)) % 6 : mx === g ? (b - r) / (mx - mn) + 2 : (r - g) / (mx - mn) + 4; h = Math.round(h * 60 + 360) % 360; }
+    const sat = dd ? Math.min(.85, Math.max(.45, dd / (1 - Math.abs(2 * l - 1) || 1))) : .1;
+    out.push(`hsl(${h} ${Math.round(sat*100)}% ${Math.round(Math.min(.46, Math.max(.32, l)) * 100)}%)`);
+  }
+  return out;
+}
+function ambFrom(card){
+  if(document.documentElement.dataset.theme !== 'glass' || LOOK.amb === false) return;
+  const img = card.querySelector('.poster img, img'), title = (card.querySelector('.ct, .ph') || card).textContent.trim();
+  const key = img?.currentSrc || img?.src || title; if(key === AMB.key) return; AMB.key = key;
+  if(AMB.cache.has(key)) return ambSet(AMB.cache.get(key));
+  const done = c => { AMB.cache.set(key, c); if(AMB.key === key) ambSet(c); };
+  if(img && img.complete && img.naturalWidth){
+    try{ return done(ambSample(img)); }catch{}
+    // the poster came from another site without permission to read it: fetch a readable copy, else use the title colour
+    ambSet(ambHue(title));
+    const c = new Image(); c.crossOrigin = 'anonymous'; c.onload = () => { try{ done(ambSample(c)); }catch{ done(ambHue(title)); } }; c.onerror = () => done(ambHue(title)); c.src = key;
+    return;
+  }
+  done(ambHue(title));
+}
+const ambOn = e => { const c = e.target.closest?.('.card, .dcard, .mini'); if(!c) return; clearTimeout(AMB.t); AMB.t = setTimeout(() => ambFrom(c), 90); };
+document.addEventListener('mouseover', ambOn, {passive: true});
+document.addEventListener('focusin', ambOn);
+
+/* side menu pin: hide it (auto-hide) or keep it docked */
+const PIN_HIDE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>';
+const PIN_KEEP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="M9 4.5v15"/></svg>';
+function sidePin(){
+  const s = $('#side'); let b = s.querySelector(':scope > .sidepin');
+  if(!b){ b = document.createElement('button'); b.className = 'sidepin'; b.type = 'button'; s.prepend(b); }
+  const auto = LOOK.side === 'auto';
+  const want = auto ? 'keep' : 'hide';
+  if(b.dataset.m !== want){ b.dataset.m = want; b.innerHTML = auto ? PIN_KEEP : PIN_HIDE; }
+  b.title = auto ? 'Keep the menu open' : 'Hide the menu'; b.setAttribute('aria-label', b.title);
+}
+new MutationObserver(() => { if(!$('#side > .sidepin')) sidePin(); }).observe($('#side'), {childList: true});
+sidePin();
+$('#side').addEventListener('click', e => {
+  if(!e.target.closest('.sidepin')) return;
+  e.stopPropagation(); $('#side').classList.remove('open');
+  setLook({side: LOOK.side === 'auto' ? 'show' : 'auto'}); sidePin();
+  if(LOOK.side === 'auto') toast('Menu hidden. Use ☰ at the top left to bring it back.');
+}, true);
 applyLook();
 
 
