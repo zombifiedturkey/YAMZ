@@ -3088,7 +3088,7 @@ $('#grid').addEventListener('change', e => { if(e.target.id==='lsort'){ LSORT = 
 
 
 /* ================= DISCOVER: popular, upcoming, recent, essentials ================= */
-const DISC = {kind: store.get('zn:dkind') || 'movie', sec: store.get('zn:dsec') || 'Popular', genre: store.get('zn:dgenre') || '', dec: store.get('zn:ddec') || '', hideOwn: store.get('zn:dhide') ?? false, busy:{}, err:{}};
+const DISC = {kind: store.get('zn:dkind') || 'movie', sec: store.get('zn:dsec') || 'Popular', genre: store.get('zn:dgenre') || '', dec: store.get('zn:ddec') || '', hideOwn: store.get('zn:dhide') ?? false, noForeign: store.get('zn:dnoforeign') ?? false, langBusy:{}, busy:{}, err:{}};
 if(DISC.sec === 'New Releases' || DISC.sec === 'Last 12 Months') DISC.sec = 'Recent';
 /* Recent: how far back to look — 1, 3, 6, 9 or 12 months (one 12-month list is fetched, then trimmed) */
 const RMONTHS = [1, 3, 6, 9, 12];
@@ -3158,7 +3158,7 @@ async function tmdbPages(path, params, pages){
 }
 const tmdbItem = (r, kind) => { const date = (r.release_date || r.first_air_date || '').slice(0, 10);
   return {q:'tm' + r.id, tmid:r.id, t:r.title || r.name, y:+date.slice(0, 4) || null, date, art:'', img:r.poster_path ? IMG + 'w342' + r.poster_path : null, s:kind,
-    tm:r.vote_count ? r.vote_average : null, votes:r.vote_count || 0, ids:kind === 'movie' ? {tmdb:String(r.id)} : {}}; };
+    tm:r.vote_count ? r.vote_average : null, votes:r.vote_count || 0, lang:r.original_language || '?', ids:kind === 'movie' ? {tmdb:String(r.id)} : {}}; };
 async function discTmdb(kind, sec, genre, dec){
   const gp = tmdbGenre(kind, genre); if(gp === null) return null;
   const d0 = kind === 'movie' ? 'primary_release_date' : 'first_air_date', today = isoDay(new Date());
@@ -3344,13 +3344,19 @@ function renderDiscover(){
   }
   const own = new Map(); DATA.filter(d => d.s===kind).forEach(d => { const k = fold(d.t); if(!own.has(k)) own.set(k, []); own.get(k).push(d.y); });
   const owned = x => { const ys = own.get(fold(x.t)); return !!ys && (!x.y || ys.some(y => !y || Math.abs(y - x.y) <= 1)); };
-  let items = (sec === 'Popular' && !genre ? c.items.slice(0, 60) : sec === 'Recent' ? recentItems(c.items) : c.items).map(x => ({...x, have: owned(x)}));
+  let pool = sec === 'Recent' ? recentItems(c.items) : c.items, nForeign = 0;
+  if(DISC.noForeign){
+    if(pool.some(x => x.lang === undefined) && !DISC.langBusy[key]) discLangs(key);
+    const before = pool.length; pool = pool.filter(x => !isForeign(x)); nForeign = before - pool.length;
+  }
+  let items = (sec === 'Popular' && !genre ? pool.slice(0, 60) : pool).map(x => ({...x, have: owned(x)}));
   const nHave = items.filter(x => x.have).length;
   if(DISC.hideOwn) items = items.filter(x => !x.have);
-  $('#count').textContent = `${items.length} title${items.length===1?'':'s'}${sec === 'Recent' ? ` · released within ${monthsLabel(DISC.months)}` : ''}${sec === GOAT && nHave ? ` · you own ${nHave}` : ''}`;
+  $('#count').textContent = `${items.length} title${items.length===1?'':'s'}${sec === 'Recent' ? ` · released within ${monthsLabel(DISC.months)}` : ''}${sec === GOAT && nHave ? ` · you own ${nHave}` : ''}${nForeign ? ` · ${nForeign} foreign-language hidden` : DISC.noForeign && DISC.langBusy[key] ? ' · checking languages…' : ''}`;
   const LS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/><path class="pl" d="M12 7.5v6M9 10.5h6"/></svg>';
   const crit = x => x.tm != null ? `★ ${x.tm.toFixed(1)}` : x.rt != null ? `🍅 ${x.rt}%` : x.mc != null ? `MC ${x.mc}` : '';
   g.innerHTML = `<div class="mtools"><label class="tog"><input type="checkbox" id="dhide" ${DISC.hideOwn?'checked':''}> Hide titles I already have</label>
+      <label class="tog" title="Hides titles whose original language isn't English"><input type="checkbox" id="dforeign" ${DISC.noForeign?'checked':''}> Hide foreign-language titles</label>
       ${DISC.busy[key] ? '<span class="dsrc" style="margin:0">Refreshing…</span>' : ''}</div>
     ${items.length ? `<div class="dgrid">${items.map(x => {
       DMAP.set(x.q, x); const h = hue(x.t), p = x.img || PP[x.art], listed = inAnyList('w:'+x.q);
@@ -3375,7 +3381,28 @@ $('#side').addEventListener('change', e => {
   }
   if(e.target.id === 'dDec'){ DISC.dec = e.target.value; store.set('zn:ddec', DISC.dec); renderSide(); render(); scrollTo(0,0); }
 });
-$('#grid').addEventListener('change', e => { if(e.target.id==='dhide'){ DISC.hideOwn = e.target.checked; store.set('zn:dhide', DISC.hideOwn); render(); } });
+$('#grid').addEventListener('change', e => { if(e.target.id==='dhide'){ DISC.hideOwn = e.target.checked; store.set('zn:dhide', DISC.hideOwn); render(); }
+  if(e.target.id==='dforeign'){ DISC.noForeign = e.target.checked; store.set('zn:dnoforeign', DISC.noForeign); render(); } });
+/* "foreign" = original language isn't English. TMDB lists carry the language; Wikidata lists look it up once (P364 → ISO 639-1) and cache it. */
+const isForeign = x => !!x.lang && x.lang !== '?' && !x.lang.split(',').includes('en');
+async function discLangs(key){
+  const c = store.get(key); if(!c) return;
+  const need = c.items.filter(x => x.lang === undefined);
+  const qs = need.filter(x => /^Q\d+$/.test(x.q)).map(x => x.q);
+  DISC.langBusy[key] = true;
+  try{
+    const got = {};
+    for(const ch of chunk(uniq(qs), 200)){
+      const rows = await sparql(`#yamz:lang
+SELECT ?f ?l WHERE { VALUES ?f { ${ch.map(q => 'wd:' + q).join(' ')} } ?f wdt:P364 ?lang . ?lang wdt:P218 ?l }`);
+      rows.forEach(r => { const q = qidOf(r.f.value); (got[q] ||= []).push(r.l.value); });
+    }
+    need.forEach(x => { x.lang = got[x.q] ? uniq(got[x.q]).join(',') : '?'; });
+    store.set(key, c);
+  }catch{ need.forEach(x => { if(x.lang === undefined) x.lang = '?'; }); }
+  DISC.langBusy[key] = false;
+  if(state.s === 'discover') render();
+}
 
 
 document.addEventListener('input', e => {

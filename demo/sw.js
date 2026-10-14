@@ -214,6 +214,10 @@ async function sparql(req){
     return J({results:{bindings:L.map(([t, y, rt, mc], i) => B({f:E + 'Q' + (8000 + hash(t) % 9999), date:`${y}-06-01T00:00:00Z`, art:WK + t.replace(/ /g, '_'), sl:String(120 - i * 3), rts:rt + '%', mcs:mc ? mc + '/100' : ''}))}});
   }
   if(q.includes('ORDER BY DESC(?sl)')){ const L = q.includes('?d > "') ? UPC : LAST; return J({results:{bindings:L.map(([t, n], i) => B({f:E + 'Q' + (7000 + hash(t) % 9999), date:daysFromNow(n) + 'T00:00:00Z', art:WK + t.replace(/ /g, '_'), sl:String(40 - i)}))}}); }
+  if(q.includes('#yamz:lang')){
+    const ids = [...q.matchAll(/wd:(Q\d+)/g)].map(m => m[1]), L = ['ja', 'ko', 'fr', 'es'];
+    return J({results:{bindings:ids.map(id => B({f:E + id, l:hash(id) % 4 === 0 ? L[hash(id + 'l') % 4] : 'en'}))}});
+  }
   if(q.includes('#yamz:series')){
     const id = /wd:(Q\d+) wdt:P179/.exec(q)?.[1], out = [];
     SERIES.forEach(([name, films]) => { if(!films.some(([t]) => QID(t) === id)) return;

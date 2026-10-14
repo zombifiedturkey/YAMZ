@@ -29,6 +29,9 @@
 - Titles found on TMDB go to Radarr by their exact TMDB id.
 - No key? Everything keeps working from Wikipedia/Wikidata as before. TV genres TMDB doesn't have (e.g. Horror) also fall back automatically.
 
+**Hide foreign-language titles**
+- New Discover switch next to *Hide titles I already have*. Hides anything whose original language isn't English (from TMDB, or from Wikidata's original-language field without a key). Titles with no language recorded are kept. Remembered per device.
+
 **Menus**
 - The selected item in the side menus is now a soft, accent-tinted fill (a coloured-glass look in Glass) instead of a bar down the left edge.
 
