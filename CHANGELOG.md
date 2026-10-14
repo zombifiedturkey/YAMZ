@@ -23,6 +23,11 @@
 - *Last 12 Months* is now **Recent**, with a slider underneath to choose how far back to look: 1, 3, 6, 9 or 12 months. Cards show the release month.
 - *The GOAT* is now **Essentials** — the must-see titles in a genre, all time or by decade (e.g. *Essential Horror Movies of the 1980s*).
 
+**Release dates in the pop-up**
+- Movies that aren't out everywhere yet show a *Not out yet* / *Release dates* panel with each release type — **Theatres**, **Streaming**, **Physical media** — its date and how far away it is (already-released ones are dimmed). A chip under the title shows the next one, e.g. *Theatres 20 Nov 2026*.
+- Dates come from Radarr when the movie's there, otherwise TMDB (your region) when you have a key, otherwise Wikidata.
+- TV shows with episodes still to air show the premiere, next episode and finale with dates and the network or streaming service (from TVmaze).
+
 **Fixes**
 - Plex Watchlist sync failing with "HTTP 400": Plex now limits how many titles can be requested at once. YAMZ asks in smaller pages and steps down automatically if Plex objects.
 

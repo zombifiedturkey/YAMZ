@@ -132,6 +132,7 @@ async function arr(svc, u, req){
   if(P === '/api/v3/qualityprofile') return J([{id:1, name:'HD-1080p'}, {id:4, name:'Ultra-HD'}, {id:6, name:'HD - 720p/1080p'}]);
   if(P === '/api/v3/rootfolder') return J([{id:1, path:svc === 'radarr' ? '/data/media/movies' : '/data/media/tv', freeSpace:6.8e12, accessible:true}]);
   if(P === '/api/v3/tag') return J([{id:2, label:'horror'}, {id:3, label:'4k'}]);
+  if(/^\/api\/v3\/movie\/\d+$/.test(P) && m === 'GET'){ const id = +P.split('/').pop(); const all = await (await arr(svc, new URL(u.origin + '/api/v3/movie?apikey=' + ARR_KEY), new Request(u.origin + '/api/v3/movie?apikey=' + ARR_KEY))).json(); const one = all.find(x => x.id === id); return one ? J(one) : J({message:'NotFound'}, 404); }
   if(P === '/api/v3/movie' && m === 'GET'){
     const img = (t, y) => [{coverType:'poster', remoteUrl:P_(t, y)}], D = n => daysFromNow(n) + 'T00:00:00Z';
     const wanted = [['Mad Max 2', 1981, -9000, 'released'], ['Furiosa: A Mad Max Saga', 2024, -800, 'released'], ['Evil Dead Rise', 2023, -1200, 'released'], ['Army of Darkness', 1992, -12000, 'released'],
@@ -186,6 +187,7 @@ function tvmaze(u){
 const E = 'http://www.wikidata.org/entity/', WK = 'https://en.wikipedia.org/wiki/';
 /* Missing → Search & add: a small catalogue the demo can "find" (title, year or days-from-now, kind) */
 const QID = t => 'Q' + (7000 + hash(t) % 9999);
+const PAGEID = t => 50000 + hash(t) % 900000;
 const SERIES = [
   ['Mad Max', [['Mad Max', 1979], ['Mad Max 2', 1981], ['Mad Max Beyond Thunderdome', 1985], ['Mad Max: Fury Road', 2015], ['Furiosa: A Mad Max Saga', 2024]]],
   ['Evil Dead', [['The Evil Dead', 1981], ['Evil Dead II', 1987], ['Army of Darkness', 1992], ['Evil Dead', 2013], ['Evil Dead Rise', 2023]]],
@@ -235,9 +237,10 @@ async function sparql(req){
 function wikipedia(u){
   if(u.searchParams.get('gsrsearch')){
     const hits = catFind(u.searchParams.get('gsrsearch')).slice(0, 20);
-    return J({batchcomplete:true, query:{pages:hits.map((c, i) => ({pageid:5000 + i, index:i + 1, title:c.t, pageprops:{wikibase_item:QID(c.t)}}))}});
+    return J({batchcomplete:true, query:{pages:hits.map((c, i) => ({pageid:PAGEID(c.t), index:i + 1, title:c.t, pageprops:{wikibase_item:QID(c.t)}}))}});
   }
-  const titles = (u.searchParams.get('titles') || '').split('|').filter(Boolean);
+  const pid = (u.searchParams.get('pageids') || '').split('|').filter(Boolean).map(Number);
+  const titles = pid.length ? pid.map(n => CATALOG.find(c => PAGEID(c.t) === n)?.t).filter(Boolean) : (u.searchParams.get('titles') || '').split('|').filter(Boolean);
   return J({batchcomplete:true, query:{pages:titles.map((t, i) => { const c = t.replace(/ \(.*\)$/, ''); return {pageid:i + 1, title:t, extract:`${c} is one of the titles in the YAMZ live demo. In the real app, the description, cast and photos come from Wikipedia and Wikidata.`, thumbnail:{source:P_(c, DEMOY[c] || ''), width:300, height:450}, pageprops:{wikibase_item:'Q' + (7000 + hash(c) % 9999)}}; })}});
 }
 function images(u){
