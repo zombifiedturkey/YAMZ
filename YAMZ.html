@@ -1450,6 +1450,7 @@ async function openDetail(d){
   };
   try{
     if(d.synth && d.art && d.s!=='tv' && P()===FREE && !cached(d)) mem.set(d.i, {type:'wiki', title:d.art, poster:PP[d.art] || null});
+    if(d.synth && d.tmid && P()===TMDB && !cached(d)) mem.set(d.i, {id:d.tmid, type:d.s==='tv' ? 'tv' : 'movie', poster:d.img || null});
     let m = cached(d);
     if(!m){ m = await P().search(d); store.set(ck(d), m); mem.set(d.i, m); paint(d); }
     if(m.srv) m = await ensureRef(d, m);
@@ -1763,7 +1764,7 @@ function miniHTML(x){
     <div class="ct">${esc(x.t)}</div><div class="cy">${x.y || 'TBA'}</div>
   </button>`;
 }
-const synth = x => ({i:'w:'+x.q, t:x.t, y:x.y, q:x.t, s:x.s || 'movie', c:'Movie', n:'', synth:true, own:x.st==='own', art:x.art});
+const synth = x => ({i:'w:'+x.q, t:x.t, y:x.y, q:x.t, s:x.s || 'movie', c:'Movie', n:'', synth:true, own:x.st==='own', art:x.art, tmid:x.tmid, img:x.img, ids:x.ids});
 
 let rowIO;
 async function loadPosters(row, sel='.mini'){
@@ -1966,6 +1967,11 @@ function ownedTest(kind){
   return x => { const ys = own.get(fold(x.t)); return !!ys && (!x.y || ys.some(y => !y || Math.abs(y - x.y) <= 1)); };
 }
 async function manSearch(q, kind){
+  if(tmdbOn()){
+    const ym = /^(.*?)\s+((?:19|20)\d\d)$/.exec(q.trim());
+    const j = await getJSON(TMDB.url(`/search/${kind}`, {query:ym ? ym[1] : q, [kind === 'movie' ? 'year' : 'first_air_date_year']:ym ? ym[2] : '', include_adult:'false'}), TMDB.opts());
+    return (j.results || []).filter(r => !r.adult).slice(0, 30).map(r => tmdbItem(r, kind));
+  }
   const hint = kind === 'movie' ? 'film' : 'television series';
   const run = async term => (await wq({action:'query', generator:'search', gsrsearch:term, gsrlimit:'20', prop:'pageprops', ppprop:'wikibase_item'})).query?.pages || [];
   let pages = (await run(`${q} ${hint}`)).sort((a, b) => (a.index||0) - (b.index||0));
@@ -2010,7 +2016,7 @@ function renderManRes(){
   if(!items.length){ r.innerHTML = `<div class="empty">No ${what} found for “${esc(MAN.q)}”. Try a different spelling, or switch to ${MAN.kind === 'movie' ? 'TV' : 'Movies'} at the top of the menu.</div>`; return; }
   const LS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/><path class="pl" d="M12 7.5v6M9 10.5h6"/></svg>';
   r.innerHTML = `<div class="dgrid">${items.map(x => {
-    DMAP.set(x.q, x); const h = hue(x.t), p = PP[x.art], listed = inAnyList('w:'+x.q), soon = x.date && x.date > today;
+    DMAP.set(x.q, x); const h = hue(x.t), p = x.img || PP[x.art], listed = inAnyList('w:'+x.q), soon = x.date && x.date > today;
     const badge = x.have ? `<div class="badge have">✓ In library</div>` : soon ? `<div class="badge date">${esc(fmtWhen(x.date))}</div>` : '';
     return `<button class="dcard" data-q="${x.q}" data-art="${esc(x.art)}"><div class="poster">
       <div class="ph" style="background:linear-gradient(160deg,hsl(${h} 45% 26%),hsl(${(h+40)%360} 50% 10%))">${esc(x.t)}${x.y?`<em>${x.y}</em>`:''}</div>
@@ -3128,7 +3134,55 @@ function genreClause(kind, g){
 const isoDay = dt => dt.toISOString().slice(0,10);
 const shiftDays = n => { const d = new Date(); d.setUTCDate(d.getUTCDate() + n); return d; };
 const cleanArt = a => a.replace(/\s*\((\d{4} )?([A-Z][a-z]+ )*(film|TV series|television series|miniseries|series|animated series|web series)\)$/i, '').trim();
-const dkey = (kind, sec, genre = DISC.genre, dec = DISC.dec) => `zn:disc:${kind}:${sec}${genre ? ':' + genre : ''}${sec === GOAT && dec ? ':' + dec : ''}`;
+const dkey = (kind, sec, genre = DISC.genre, dec = DISC.dec) => `zn:disc:${tmdbOn() ? 'tm:' : ''}${kind}:${sec}${genre ? ':' + genre : ''}${sec === GOAT && dec ? ':' + dec : ''}`;
+/* ---------- Discover via TMDB (used whenever a TMDB key is set; otherwise Wikipedia/Wikidata) ---------- */
+const TMDB_GEN = {
+  movie:{Action:28, Adventure:12, Animation:16, Comedy:35, Crime:80, Documentary:99, Drama:18, Family:10751, Fantasy:14, History:36, Horror:27, Music:10402,
+    Mystery:9648, Romance:10749, 'Science Fiction':878, Thriller:53, War:10752, Western:37, Sport:'k6075', Superhero:'k9715'},
+  tv:{Action:10759, Adventure:10759, Animation:16, Comedy:35, Crime:80, Documentary:99, Drama:18, Family:10751, Fantasy:10765, Mystery:9648,
+    'Science Fiction':10765, War:10768, Western:37, Superhero:'k9715'}
+};
+function tmdbGenre(kind, genre){
+  if(!genre) return {};
+  const g = TMDB_GEN[kind][genre]; if(g == null) return null;          // no TMDB equivalent: use the free lists for this one
+  return typeof g === 'string' ? {with_keywords:g.slice(1)} : {with_genres:g};
+}
+async function tmdbPages(path, params, pages){
+  const out = [], seen = new Set();
+  for(let pg = 1; pg <= pages; pg++){
+    const j = await getJSON(TMDB.url(path, {...params, page:pg, include_adult:'false', language:'en-US'}), TMDB.opts());
+    (j.results || []).forEach(r => { if(!r.adult && !seen.has(r.id)){ seen.add(r.id); out.push(r); } });
+    if(pg >= (j.total_pages || 1)) break;
+  }
+  return out;
+}
+const tmdbItem = (r, kind) => { const date = (r.release_date || r.first_air_date || '').slice(0, 10);
+  return {q:'tm' + r.id, tmid:r.id, t:r.title || r.name, y:+date.slice(0, 4) || null, date, art:'', img:r.poster_path ? IMG + 'w342' + r.poster_path : null, s:kind,
+    tm:r.vote_count ? r.vote_average : null, votes:r.vote_count || 0, ids:kind === 'movie' ? {tmdb:String(r.id)} : {}}; };
+async function discTmdb(kind, sec, genre, dec){
+  const gp = tmdbGenre(kind, genre); if(gp === null) return null;
+  const d0 = kind === 'movie' ? 'primary_release_date' : 'first_air_date', today = isoDay(new Date());
+  const base = `/discover/${kind}`, map = rs => rs.map(r => tmdbItem(r, kind));
+  if(sec === 'Popular'){
+    const rs = genre ? await tmdbPages(base, {...gp, sort_by:'popularity.desc', 'vote_count.gte':kind === 'movie' ? 20 : 10}, 3) : await tmdbPages(`/trending/${kind}/week`, {}, 3);
+    return map(rs).map((x, i) => ({...x, rank:i + 1}));
+  }
+  if(sec === 'Upcoming'){
+    const rs = await tmdbPages(base, {...gp, sort_by:'popularity.desc', [d0 + '.gte']:isoDay(shiftDays(1)), [d0 + '.lte']:isoDay(shiftDays(400))}, 3);
+    return map(rs).filter(x => x.date).sort((a, b) => a.date.localeCompare(b.date));
+  }
+  if(sec === 'Recent'){
+    const rs = await tmdbPages(base, {...gp, sort_by:'popularity.desc', [d0 + '.gte']:isoDay(shiftDays(-365)), [d0 + '.lte']:today, 'vote_count.gte':kind === 'movie' ? 5 : 3}, 5);
+    return map(rs);   // most popular first; the slider trims by date
+  }
+  if(sec === GOAT){
+    const minV = dec ? (kind === 'movie' ? 250 : 120) : (kind === 'movie' ? 1200 : 400);
+    const range = dec ? {[d0 + '.gte']:`${dec}-01-01`, [d0 + '.lte']:`${+dec + 9}-12-31`} : {[d0 + '.lte']:today};
+    const rs = await tmdbPages(base, {...gp, ...range, sort_by:'vote_average.desc', 'vote_count.gte':minV, without_genres:kind === 'movie' && genre !== 'Documentary' ? '99' : ''}, 5);
+    return map(rs).slice(0, 100).map((x, i) => ({...x, rank:i + 1}));
+  }
+  return null;
+}
 function discPrune(){   // keep the discover cache from growing without limit
   const ks = store.keys().filter(k => k.startsWith('zn:disc:')).map(k => [k, store.get(k)?.at || 0]).sort((a,b) => b[1] - a[1]);
   ks.slice(40).forEach(([k]) => store.del(k));
@@ -3238,6 +3292,8 @@ async function loadDiscover(force){
   if(DISC.busy[key]) return;
   DISC.busy[key] = true; DISC.err[key] = null; if(state.s==='discover') render();
   try{
+    const viaTmdb = tmdbOn() ? await discTmdb(kind, sec, genre, dec) : null;
+    if(viaTmdb){ store.set(key, {at:Date.now(), items:viaTmdb, src:'tmdb'}); discPrune(); return; }
     if(sec === 'Popular' && !genre){
       const r = await discPopular(), at = Date.now();
       store.set(dkey('movie','Popular',''), {at, items:r.movie}); store.set(dkey('tv','Popular',''), {at, items:r.tv});
@@ -3246,7 +3302,7 @@ async function loadDiscover(force){
     else if(sec === GOAT) store.set(key, {at:Date.now(), items: await discGoat(kind, genre, dec)});
     else store.set(key, {at:Date.now(), items: await discQuery(kind, sec, genre)});
     discPrune();
-  }catch(e){ DISC.err[key] = e.net ? `Couldn't reach ${e.host}. Check your connection or ad blocker.` : /HTTP 5|busy|timeout/i.test(e.message || '') ? 'Wikidata took too long to answer this one. Give it a minute and try again.' : (e.message || 'Something went wrong.'); }
+  }catch(e){ DISC.err[key] = e.status === 401 && tmdbOn() ? 'TMDB rejected your key. Check it in Settings → Metadata source.' : e.net ? `Couldn't reach ${e.host}. Check your connection or ad blocker.` : /HTTP 5|busy|timeout/i.test(e.message || '') ? 'Wikidata took too long to answer this one. Give it a minute and try again.' : (e.message || 'Something went wrong.'); }
   finally{ DISC.busy[key] = false; if(state.s==='discover'){ renderSide(); render(); } }
 }
 function renderDiscoverSide(){
@@ -3265,8 +3321,10 @@ function renderDiscoverSide(){
       return opts ? `<div class="catgrp">${btn}<div class="catopts">${opts}</div></div>` : btn;
     }).join('') +
     `<div class="side-foot">${state.c === GOAT
-      ? `Essentials ranks every ${DISC.genre.toLowerCase()} ${DISC.kind==='movie'?'film':'series'} on Wikidata by critic scores (Rotten Tomatoes and Metacritic) blended with how widely it's covered around the world.`
-      : `Popular is what's trending on Wikipedia right now. Upcoming and Recent come from Wikidata, ranked by how widely covered each title is.${DISC.genre ? '' : ' Pick a genre to unlock Essentials.'}`}
+      ? (tmdbOn() && TMDB_GEN[DISC.kind][DISC.genre] ? `Essentials ranks ${DISC.genre.toLowerCase()} ${DISC.kind==='movie'?'films':'series'} by TMDB audience rating, counting only titles with plenty of votes so one-off scores don't skew it.`
+        : `Essentials ranks every ${DISC.genre.toLowerCase()} ${DISC.kind==='movie'?'film':'series'} on Wikidata by critic scores (Rotten Tomatoes and Metacritic) blended with how widely it's covered around the world.`)
+      : tmdbOn() ? `Lists come from TMDB: trending this week, release dates and popularity.${DISC.genre && !TMDB_GEN[DISC.kind][DISC.genre] ? ` TMDB has no ${DISC.genre.toLowerCase()} category for TV, so this genre uses Wikipedia instead.` : ''}${DISC.genre ? '' : ' Pick a genre to unlock Essentials.'}`
+      : `Popular is what's trending on Wikipedia right now. Upcoming and Recent come from Wikidata, ranked by how widely covered each title is. Add a free TMDB key in Settings for richer lists.${DISC.genre ? '' : ' Pick a genre to unlock Essentials.'}`}
       <button class="btn" data-drefresh>↻ Refresh</button></div>`;
 }
 function renderDiscover(){
@@ -3291,11 +3349,11 @@ function renderDiscover(){
   if(DISC.hideOwn) items = items.filter(x => !x.have);
   $('#count').textContent = `${items.length} title${items.length===1?'':'s'}${sec === 'Recent' ? ` · released within ${monthsLabel(DISC.months)}` : ''}${sec === GOAT && nHave ? ` · you own ${nHave}` : ''}`;
   const LS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/><path class="pl" d="M12 7.5v6M9 10.5h6"/></svg>';
-  const crit = x => x.rt != null ? `🍅 ${x.rt}%` : x.mc != null ? `MC ${x.mc}` : '';
+  const crit = x => x.tm != null ? `★ ${x.tm.toFixed(1)}` : x.rt != null ? `🍅 ${x.rt}%` : x.mc != null ? `MC ${x.mc}` : '';
   g.innerHTML = `<div class="mtools"><label class="tog"><input type="checkbox" id="dhide" ${DISC.hideOwn?'checked':''}> Hide titles I already have</label>
       ${DISC.busy[key] ? '<span class="dsrc" style="margin:0">Refreshing…</span>' : ''}</div>
     ${items.length ? `<div class="dgrid">${items.map(x => {
-      DMAP.set(x.q, x); const h = hue(x.t), p = PP[x.art], listed = inAnyList('w:'+x.q);
+      DMAP.set(x.q, x); const h = hue(x.t), p = x.img || PP[x.art], listed = inAnyList('w:'+x.q);
       const badge = x.have ? `<div class="badge have">✓ In library</div>` : sec==='Upcoming' && x.date ? `<div class="badge date">${esc(fmtWhen(x.date))}</div>` : sec===GOAT && crit(x) ? `<div class="badge score">${crit(x)}</div>` : '';
       return `<button class="dcard" data-q="${x.q}" data-art="${esc(x.art)}"><div class="poster">
         <div class="ph" style="background:linear-gradient(160deg,hsl(${h} 45% 26%),hsl(${(h+40)%360} 50% 10%))">${esc(x.t)}${x.y?`<em>${x.y}</em>`:''}</div>
@@ -3473,7 +3531,7 @@ function renderWatchlist(){
 }
 function pwItemFromEl(b){
   const [kind, id] = (b.dataset.pwq || '').split(':');
-  if(kind==='d'){ const x = DMAP.get(id); return x && {t:x.t, y:x.y, s:x.s, q:x.q}; }
+  if(kind==='d'){ const x = DMAP.get(id); return x && {t:x.t, y:x.y, s:x.s, q:/^Q\d+$/.test(x.q) ? x.q : undefined, ids:x.ids}; }
   if(kind==='m'){ const x = MINI.get(id); return x && {t:x.t, y:x.y, s:x.s || 'movie', q:x.q}; }
   if(kind==='w'){ const x = PW.items.find(i => i.rk === id); return x && {t:x.t, y:x.y, s:x.s, ids:x.ids}; }
   if(kind==='l'){ const it = LISTS.flatMap(l => l.items).find(i => i.k === b.dataset.pwk); return it && {t:it.t, y:it.y, s:it.s || 'movie', k:it.k}; }
@@ -3650,7 +3708,7 @@ function arrItem(it){
 }
 async function arrIds(it){
   const ids = {...(it.ids || {})};
-  if(it.q && !(ids.tmdb || ids.tvdb)){
+  if(it.q && /^Q\d+$/.test(it.q) && !(ids.tmdb || ids.tvdb)){
     if(!ARRID.has(it.q)){
       try{
         const cl = (await Promise.race([wd({action:'wbgetentities', ids:it.q, props:'claims'}), sleep(6000).then(() => { throw new Error('timeout'); })])).entities?.[it.q]?.claims || {};

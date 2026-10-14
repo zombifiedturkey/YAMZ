@@ -27,7 +27,7 @@ Run it as a **Docker container** (Unraid, Synology, any Linux box) and use it fr
 - **Make it yours** — dark, light, auto or **Glass** theme (frosted panels with an ambient glow that follows the poster you're on), 9 accent colours, 5 poster sizes, rounded or square corners, and a side menu that can auto-hide.
 - **Server mode** — built-in sign-in, settings shared across every device, backups, and requests to your LAN servers relayed by YAMZ (no CORS or mixed-content problems behind https).
 
-No API keys are required. Metadata comes from Wikipedia/Wikidata and TVmaze; a free **TMDB** key gives richer data and theatrical/digital/physical release dates.
+No API keys are required. Metadata comes from Wikipedia/Wikidata and TVmaze; a free **TMDB** key gives richer data, TMDB-powered Discover lists (trending, release dates, audience-rated Essentials) and theatrical/digital/physical release dates.
 
 ---
 
