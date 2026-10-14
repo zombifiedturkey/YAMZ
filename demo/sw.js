@@ -131,8 +131,20 @@ async function arr(svc, u, req){
   if(P === '/api/v3/qualityprofile') return J([{id:1, name:'HD-1080p'}, {id:4, name:'Ultra-HD'}, {id:6, name:'HD - 720p/1080p'}]);
   if(P === '/api/v3/rootfolder') return J([{id:1, path:svc === 'radarr' ? '/data/media/movies' : '/data/media/tv', freeSpace:6.8e12, accessible:true}]);
   if(P === '/api/v3/tag') return J([{id:2, label:'horror'}, {id:3, label:'4k'}]);
-  if(P === '/api/v3/movie' && m === 'GET') return J([...MOV.slice(0, 20).map(([t, y], i) => ({id:i + 1, title:t, year:y, tmdbId:100 + i, titleSlug:slug(t), hasFile:true})), ...ARRADD.radarr]);
-  if(P === '/api/v3/series' && m === 'GET') return J(ARRADD.sonarr);
+  if(P === '/api/v3/movie' && m === 'GET'){
+    const img = (t, y) => [{coverType:'poster', remoteUrl:P_(t, y)}], D = n => daysFromNow(n) + 'T00:00:00Z';
+    const wanted = [['Mad Max 2', 1981, -9000, 'released'], ['Furiosa: A Mad Max Saga', 2024, -800, 'released'], ['Evil Dead Rise', 2023, -1200, 'released'], ['Army of Darkness', 1992, -12000, 'released'],
+      ['Bone Orchard', null, -18, 'released'], ['The Hollow Hour', null, 37, 'inCinemas'], ['Grave Shift', null, 58, 'announced'], ['Night Feeders', null, 107, 'announced']]
+      .map(([t, y, n, st], i) => ({id:200 + i, title:t, year:y || +daysFromNow(n).slice(0, 4), tmdbId:3000 + i, titleSlug:slug(t), hasFile:false, monitored:true, status:st, isAvailable:n <= 0,
+        inCinemas:D(n), digitalRelease:D(n + 40), physicalRelease:D(n + 80), images:img(t, y || +daysFromNow(n).slice(0, 4)), added:D(-i * 3)}));
+    return J([...MOV.slice(0, 20).map(([t, y], i) => ({id:i + 1, title:t, year:y, tmdbId:100 + i, titleSlug:slug(t), hasFile:true, monitored:true, isAvailable:true})), ...wanted, ...ARRADD.radarr.map(x => ({...x, hasFile:false}))]);
+  }
+  if(P === '/api/v3/series' && m === 'GET'){
+    const img = (t, y) => [{coverType:'poster', remoteUrl:P_(t, y)}];
+    const ser = [['Severance', 2022, 19, 12, 'Apple TV+'], ['Deadwater County', 2025, 16, 9, 'HBO'], ['The Crypt Keepers', 2026, 3, 0, 'Shudder'], ['Breaking Bad', 2008, 62, 62, 'AMC']]
+      .map(([t, y, of, have, net], i) => ({id:400 + i, title:t, year:y, tvdbId:9000 + i, titleSlug:slug(t), monitored:true, network:net, images:img(t, y), statistics:{episodeCount:of, episodeFileCount:have, totalEpisodeCount:of + 4}}));
+    return J([...ser, ...ARRADD.sonarr.map(x => ({...x, statistics:{episodeCount:8, episodeFileCount:0}}))]);
+  }
   if(P === '/api/v3/calendar'){
     const D = n => daysFromNow(n) + 'T00:00:00Z', img = (t, y) => [{coverType:'poster', remoteUrl:P_(t, y)}];
     if(svc === 'radarr') return J([['Grave Shift', 4, 40, 75], ['The Hollow Hour', 9, 45, 82], ['Bone Orchard', -18, 3, 16], ['Night Feeders', 17, 58, 96], ['Carrion', -40, -6, 12], ['Starfall', -60, 1, 23], ['Deadlight Motel', 24, 66, 101]]

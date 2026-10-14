@@ -173,6 +173,24 @@ main{flex:1;min-width:0;padding:22px 26px 60px}
 .steps li{display:flex;gap:10px;align-items:center;padding:5px 0;color:var(--dim)}
 .steps li.on{color:var(--text)} .steps li.ok{color:var(--muted)}
 .steps li b{width:20px;text-align:center}
+.cat.mansrch{margin:2px 0 0;padding:10px 12px;background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:10px;box-shadow:inset 0 2px 6px rgba(0,0,0,.35);color:var(--text)}
+.cat.mansrch:hover{background:rgba(0,0,0,.36)}
+.cat.mansrch.on{border-color:var(--accent-t);box-shadow:inset 0 2px 6px rgba(0,0,0,.35),inset 3px 0 0 var(--accent);background:rgba(0,0,0,.36)}
+:root[data-theme="light"] .cat.mansrch{background:rgba(0,0,0,.045);box-shadow:inset 0 2px 5px rgba(0,0,0,.08)}
+:root[data-theme="light"] .cat.mansrch.on{background:rgba(0,0,0,.07);box-shadow:inset 0 2px 5px rgba(0,0,0,.08),inset 3px 0 0 var(--accent)}
+.side-div{height:1px;background:var(--line);margin:16px 12px 14px}
+.side-sub{margin:0 12px 6px;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);font-weight:600}
+.chip.okc{color:var(--ok-t,#5fb57d);border-color:rgba(95,181,125,.4)}
+.wsec{margin-bottom:34px}
+.wsec h3{font-size:28px;margin:0 0 4px}
+.wsec h3 small{font-family:Inter,sans-serif;font-size:13px;color:var(--muted);letter-spacing:0;margin-left:6px;vertical-align:5px}
+.wnote{margin:0 0 16px;color:var(--muted);font-size:13px}
+.wcard2{display:flex;flex-direction:column;gap:6px;align-self:start}
+.wcard2 .dcard{width:100%}
+.wbar{height:4px;border-radius:2px;background:var(--bg3);overflow:hidden}
+.wbar i{display:block;height:100%;background:var(--accent)}
+.wopen{align-self:flex-start;border:1px solid var(--line);background:var(--bg2);color:var(--muted);border-radius:999px;padding:4px 10px;font-size:11.5px;font-weight:600;cursor:pointer}
+.wopen:hover{color:var(--arr);border-color:var(--arr)}
 .catico{display:inline-flex;width:15px;height:15px;margin-right:8px;vertical-align:-2px;opacity:.8}
 .catico svg{width:15px;height:15px}
 .cat .catico{font-style:normal}
@@ -1511,7 +1529,8 @@ function closeOv(id){ $('#'+id).classList.remove('open'); if(!document.querySele
 
 
 /* ================= MISSING: collections & actors via Wikidata ================= */
-const MISS = { filter:'', data: store.get('zn:miss'), qmap: store.get('zn:qid') || {}, running:false, prog:null, err:null,
+const MISS_TITLE = 'Missing';
+const MISS = { kind: store.get('zn:misskind') || 'movie', filter:'', data: store.get('zn:miss'), qmap: store.get('zn:qid') || {}, running:false, prog:null, err:null,
   kids: store.get('zn:kids') ?? false, showOwn: store.get('zn:own') ?? true };
 const PP = store.get('zn:pp') || {};
 const MINI = new Map();
@@ -1728,24 +1747,124 @@ async function loadPosters(row, sel='.mini'){
   });
 }
 
+const TV_CATS = ['Incomplete shows', 'Missing seasons', 'Complete shows'];
+const WAIT_C = {movie:'Waiting in Radarr', tv:'Waiting in Sonarr'};
+const missCats = () => MISS.kind === 'tv' ? [...TV_CATS, WAIT_C.tv] : ['Collections', 'Actors', WAIT_C.movie];
+const missDefault = () => MISS.kind === 'tv' ? 'Incomplete shows' : 'Collections';
 function renderMissingSide(){
-  const D = MISS.data;
+  const D = MISS.data, tv = MISS.kind === 'tv';
+  if(state.c !== MAN_C && !missCats().includes(state.c)) state.c = missDefault();
   const nA = D ? D.actors.filter(a => (MISS.kids ? a.all : a.adult) >= 4).length : 0;
-  $('#side').innerHTML = `<h4>What's missing</h4>` +
-    [[MAN_C, ''], ['Collections', D ? D.coll.length : '–'], ['Actors', D ? nA : '–'], ['TV Shows', TV.res ? tvList().filter(r => r.missEp > 0).length : '–']]
-      .map(([c,n]) => `<button class="cat ${state.c===c?'on':''}" data-c="${c}">${c===MAN_C ? `<b class="catlbl"><i class="catico">${SRCH_ICO}</i>${c}</b>` : c}<span>${n}</span></button>`).join('') +
-    (state.c===MAN_C ? `<div class="side-foot">Search for any movie or show, then add it to a list, your Plex Watchlist, or Radarr / Sonarr.</div>` :
-    state.c==='TV Shows' ? `<div class="side-foot">${Object.keys(TV.eps).length} shows in your library.<br>${TV.res ? 'Last checked against TVmaze.' : 'Not checked yet.'}
-      <button class="btn" data-act="tvcheck" ${TV.running?'disabled':''}>${TV.running ? 'Checking…' : TV.res ? '↻ Re-check TVmaze' : 'Check my shows'}</button></div>` :
-    `<div class="side-foot">${D ? `Last analysed ${new Date(D.at).toLocaleDateString()}<br>${D.matched} of ${D.total} movies matched on Wikidata.` : 'Not analysed yet.'}
-      <button class="btn" data-act="scan" ${MISS.running?'disabled':''}>${MISS.running ? 'Analysing…' : D ? '↻ Re-analyse' : 'Analyse collection'}</button></div>`);
+  const rows = TV.res ? tvList() : null;
+  const wsvc = tv ? 'sonarr' : 'radarr', W = WAIT[wsvc];
+  if(!W && arrOn(wsvc)) setTimeout(() => waitLoad(wsvc), 0);
+  const counts = {Collections: D ? D.coll.length : '–', Actors: D ? nA : '–',
+    'Incomplete shows': rows ? rows.filter(r => r.missEp > 0).length : '–', 'Missing seasons': rows ? rows.filter(r => r.missS > 0).length : '–',
+    'Complete shows': rows ? rows.filter(r => r.missEp === 0).length : '–', [WAIT_C[MISS.kind]]: W?.items ? W.items.length : '–'};
+  const foot = state.c === MAN_C ? `Search for any ${tv ? 'TV show' : 'movie'}, then add it to a list, your Plex Watchlist, or ${tv ? 'Sonarr' : 'Radarr'}.`
+    : state.c === WAIT_C[MISS.kind] ? `${tv ? 'Series' : 'Movies'} you're monitoring in ${ARR_DEF[wsvc].name} that ${tv ? 'still have episodes' : "don't have a file"} yet.${W?.at ? `<br>Updated ${new Date(W.at).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}.` : ''}
+      ${arrOn(wsvc) ? `<button class="btn" data-wrefresh ${W?.busy ? 'disabled' : ''}>${W?.busy ? 'Refreshing…' : '↻ Refresh'}</button>` : ''}`
+    : tv ? `${Object.keys(TV.eps).length} shows in your library.<br>${TV.res ? 'Last checked against TVmaze.' : 'Not checked yet.'}
+      <button class="btn" data-act="tvcheck" ${TV.running?'disabled':''}>${TV.running ? 'Checking…' : TV.res ? '↻ Re-check TVmaze' : 'Check my shows'}</button>`
+    : `${D ? `Last analysed ${new Date(D.at).toLocaleDateString()}<br>${D.matched} of ${D.total} movies matched on Wikidata.` : 'Not analysed yet.'}
+      <button class="btn" data-act="scan" ${MISS.running?'disabled':''}>${MISS.running ? 'Analysing…' : D ? '↻ Re-analyse' : 'Analyse collection'}</button>`;
+  $('#side').innerHTML = `<h4>${MISS_TITLE}</h4>
+    <div class="side-seg"><div class="seg"><button data-misskind="movie" class="${!tv?'on':''}">Movies</button><button data-misskind="tv" class="${tv?'on':''}">TV</button></div></div>
+    <button class="cat mansrch ${state.c===MAN_C?'on':''}" data-c="${MAN_C}"><b class="catlbl"><i class="catico">${SRCH_ICO}</i>${MAN_C}</b></button>
+    <div class="side-div" role="separator"></div>
+    <h5 class="side-sub">${tv ? 'Check your shows' : 'Find the gaps'}</h5>` +
+    missCats().map(c => `<button class="cat ${state.c===c?'on':''}" data-c="${c}">${c}<span>${counts[c]}</span></button>`).join('') +
+    `<div class="side-foot">${foot}</div>`;
 }
+$('#side').addEventListener('click', e => {
+  const k = e.target.closest('[data-misskind]'); if(k && state.s === 'missing'){
+    if(MISS.kind === k.dataset.misskind) return;
+    MISS.kind = MAN.kind = k.dataset.misskind; store.set('zn:misskind', MISS.kind); store.set('zn:mankind', MAN.kind);
+    if(state.c === MAN_C){ MAN.items = null; if(MAN.q.trim()) manGo(); } else state.c = missDefault();
+    MISS.filter = ''; renderSide(); render(); scrollTo(0, 0); return;
+  }
+  if(e.target.closest('[data-wrefresh]')) waitLoad(MISS.kind === 'tv' ? 'sonarr' : 'radarr', true);
+});
+
+/* ---------- Waiting in Radarr / Sonarr: monitored titles with no file yet ---------- */
+const WAIT = {radarr:null, sonarr:null};
+async function waitLoad(svc, force){
+  if(!arrOn(svc)) return;
+  const W = WAIT[svc] ||= {items:null, at:0, busy:false, err:null};
+  if(W.busy || (!force && W.items && Date.now() - W.at < 5*60e3)) return;
+  W.busy = true; W.err = null; if(state.s === 'missing'){ renderSide(); if(state.c === WAIT_C[ARR_DEF[svc].kind]) render(); }
+  try{
+    const all = await arrReq(svc, ARR_DEF[svc].lib) || [];
+    const today = isoDay(new Date()), poster = m => (m.images || []).find(i => i.coverType === 'poster');
+    W.items = svc === 'radarr'
+      ? all.filter(m => m.monitored && !m.hasFile).map(m => {
+          const dates = [m.digitalRelease, m.physicalRelease, m.inCinemas].filter(Boolean).map(d => d.slice(0, 10)).sort();
+          const next = dates.find(d => d > today) || null;
+          return {id:m.id, t:m.title, y:m.year || null, slug:m.titleSlug, img:poster(m)?.remoteUrl || null, s:'movie',
+            ready:m.isAvailable !== false && !(m.status === 'announced'), next, cinema:(m.inCinemas || '').slice(0, 10), added:m.added || ''};
+        })
+      : all.filter(m => m.monitored && (m.statistics?.episodeCount || 0) > (m.statistics?.episodeFileCount || 0)).map(m => ({
+          id:m.id, t:m.title, y:m.year || null, slug:m.titleSlug, img:poster(m)?.remoteUrl || null, s:'tv',
+          have:m.statistics.episodeFileCount || 0, of:m.statistics.episodeCount || 0, net:m.network || '', added:m.added || ''}));
+    W.at = Date.now();
+  }catch(e){ W.err = `Couldn't reach ${ARR_DEF[svc].name}${e.message ? ` (${e.message})` : ''}.`; }
+  W.busy = false;
+  if(state.s === 'missing'){ renderSide(); if(state.c === WAIT_C[ARR_DEF[svc].kind]) render(); }
+}
+function renderWaiting(){
+  const svc = MISS.kind === 'tv' ? 'sonarr' : 'radarr', D = ARR_DEF[svc], W = WAIT[svc], g = $('#grid');
+  g.className = 'mview'; $('#title').textContent = WAIT_C[MISS.kind];
+  if(!arrOn(svc)){
+    $('#count').textContent = '';
+    g.innerHTML = `<div class="mpanel"><h2 class="bebas">Connect ${D.name}</h2><p>Connect ${D.name} in Settings and this page will list the ${D.items} you're monitoring that aren't in your library yet.</p>
+      <div class="actions"><button class="btn pri" data-opensettings>Open Settings</button></div></div>`;
+    return;
+  }
+  if(!W?.items){
+    $('#count').textContent = '';
+    g.innerHTML = W?.err ? `<div class="mpanel"><p class="err">${esc(W.err)}</p><div class="actions"><button class="btn pri" data-wrefresh>Try again</button></div></div>` : `<div class="loading"><div class="spin"></div>Asking ${D.name}…</div>`;
+    if(!W?.busy && !W?.err) waitLoad(svc);
+    return;
+  }
+  if(Date.now() - W.at > 5*60e3) waitLoad(svc);
+  const owned = ownedTest(D.kind), q = (MISS.filter || '').trim().toLowerCase();
+  const card = x => { const h = hue(x.t), lib = owned(x);
+    const badge = svc === 'radarr' ? (x.ready ? `<div class="badge miss">Released</div>` : `<div class="badge date">${x.next ? esc(fmtWhen(x.next)) : 'Not out yet'}</div>`)
+      : `<div class="badge miss">${x.of - x.have} to go</div>`;
+    return `<div class="wcard2" data-s="${esc(x.t.toLowerCase())}"><button class="dcard" data-wid="${svc}:${x.id}"><div class="poster">
+      <div class="ph" style="background:linear-gradient(160deg,hsl(${h} 45% 26%),hsl(${(h+40)%360} 50% 10%))">${esc(x.t)}${x.y?`<em>${x.y}</em>`:''}</div>
+      ${x.img ? `<img class="ld" src="${esc(px(x.img))}" alt="" loading="lazy" onerror="this.remove()">` : ''}${badge}</div>
+      <div class="ct">${esc(x.t)}</div>
+      <div class="cy">${svc === 'radarr' ? (x.ready ? (x.y || '') : x.next ? `Due ${esc(fmtWhen(x.next))}` : 'Release date TBA') : `${x.have} of ${x.of} episodes`}${lib ? ' · <b class="own-t">In your library</b>' : ''}</div></button>
+      ${svc === 'sonarr' ? `<div class="wbar"><i style="width:${Math.round(x.have / Math.max(1, x.of) * 100)}%"></i></div>` : ''}
+      <button class="wopen" data-wopen="${svc}:${x.id}" style="--arr:${D.color}">Open in ${D.name} ↗</button></div>`; };
+  const sect = (title, list, note) => list.length ? `<div class="wsec"><h3 class="bebas">${title} <small>${list.length}</small></h3>${note ? `<p class="wnote">${note}</p>` : ''}<div class="dgrid">${list.map(card).join('')}</div></div>` : '';
+  const items = W.items.filter(x => !q || x.t.toLowerCase().includes(q));
+  $('#count').textContent = `${W.items.length} waiting`;
+  const tools = `<div class="mtools"><div class="mfilter"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="wfilter" type="search" placeholder="Find a title…" value="${esc(MISS.filter)}" autocomplete="off"></div>${W.busy ? '<span class="dsrc" style="margin:0">Refreshing…</span>' : ''}</div>`;
+  if(!W.items.length){ g.innerHTML = `<div class="empty">Nothing waiting — every ${D.item} you're monitoring in ${D.name} is ${svc === 'radarr' ? 'in your library' : 'complete'}.</div>`; return; }
+  if(svc === 'radarr'){
+    const ready = items.filter(x => x.ready).sort((a, b) => (b.added || '').localeCompare(a.added || ''));
+    const soon = items.filter(x => !x.ready).sort((a, b) => (a.next || '9999').localeCompare(b.next || '9999'));
+    g.innerHTML = tools + sect('Released, not in your library yet', ready, 'Out now, but Radarr doesn’t have a file for these yet. Newest additions first.') + sect('Not released yet', soon, 'Monitored in Radarr and waiting for release. Soonest first.') + (!items.length ? `<div class="empty">Nothing matches “${esc(q)}”.</div>` : '');
+  } else {
+    g.innerHTML = tools + sect('Episodes still to come in', items.sort((a, b) => (b.of - b.have) - (a.of - a.have)), 'Monitored series in Sonarr with aired episodes it doesn’t have files for yet. Most episodes to go first.') + (!items.length ? `<div class="empty">Nothing matches “${esc(q)}”.</div>` : '');
+  }
+}
+document.addEventListener('click', e => {
+  const o = e.target.closest('[data-wopen]'); if(o){ const [svc, id] = o.dataset.wopen.split(':'); const x = WAIT[svc]?.items?.find(i => String(i.id) === id); if(x) arrOpenIn(svc, {slug:x.slug}); return; }
+  const c = e.target.closest('[data-wid]'); if(c){ const [svc, id] = c.dataset.wid.split(':'); const x = WAIT[svc]?.items?.find(i => String(i.id) === id); if(x) openDetail(synthFromItem({k:'a' + svc[0] + x.id, t:x.t, y:x.y, s:x.s})); return; }
+  if(e.target.closest('#grid [data-wrefresh]')) waitLoad(MISS.kind === 'tv' ? 'sonarr' : 'radarr', true);
+  if(e.target.closest('[data-opensettings]')) openSettings();
+});
+document.addEventListener('input', e => { if(e.target.id !== 'wfilter') return; MISS.filter = e.target.value; const v = e.target.value, pos = e.target.selectionStart; renderWaiting(); const i = $('#wfilter'); if(i){ i.focus(); i.value = v; i.setSelectionRange(pos, pos); } });
 
 function renderMissing(){
   $('#grid').className = 'mview'; $('#sort').style.display = 'none'; $('#progress').textContent = '';
   const D = MISS.data, g = $('#grid');
   if(state.c===MAN_C) return renderManual();
-  if(state.c==='TV Shows') return renderTvMissing();
+  if(state.c===WAIT_C[MISS.kind]) return renderWaiting();
+  if(TV_CATS.includes(state.c)) return renderTvMissing();
   if(MISS.running){
     const p = MISS.prog || {stage:1, label:'Starting…', done:0, total:1};
     const labels = ['Matching your movies to Wikipedia','Checking matches','Finding franchises and collections','Counting actors across your movies','Looking up their filmographies'];
@@ -1803,7 +1922,7 @@ const missFirst = items => items.map((x, i) => [x, i]).sort((a, b) => (MISS_ORD[
 /* ---------- Missing → Search & add: find any movie or show and send it somewhere ---------- */
 const MAN_C = 'Search & add';
 const SRCH_ICO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>';
-const MAN = {q:'', kind:store.get('zn:mankind') || 'movie', items:null, busy:false, err:null, seq:0};
+const MAN = {q:'', kind:store.get('zn:misskind') || 'movie', items:null, busy:false, err:null, seq:0};
 function ownedTest(kind){
   const own = new Map(); DATA.filter(d => d.s===kind).forEach(d => { const k = fold(d.t); if(!own.has(k)) own.set(k, []); own.get(k).push(d.y); });
   return x => { const ys = own.get(fold(x.t)); return !!ys && (!x.y || ys.some(y => !y || Math.abs(y - x.y) <= 1)); };
@@ -1834,10 +1953,9 @@ async function manGo(){
 }
 function renderManual(){
   const g = $('#grid'); g.className = 'mview';
-  $('#title').textContent = MAN_C; $('#count').textContent = '';
+  $('#title').textContent = MAN_C; $('#count').textContent = ''; MAN.kind = MISS.kind;
   g.innerHTML = `<form class="mansearch" id="manForm" autocomplete="off">
       <div class="mfilter big">${SRCH_ICO}<input id="manQ" type="search" placeholder="Search for a ${MAN.kind === 'movie' ? 'movie' : 'TV show'}…" value="${esc(MAN.q)}" aria-label="Search for a movie or TV show"></div>
-      <div class="seg" id="manKind" role="radiogroup" aria-label="Movies or TV"><button type="button" role="radio" data-mkind="movie" class="${MAN.kind==='movie'?'on':''}" aria-checked="${MAN.kind==='movie'}">Movies</button><button type="button" role="radio" data-mkind="tv" class="${MAN.kind==='tv'?'on':''}" aria-checked="${MAN.kind==='tv'}">TV</button></div>
       <button class="btn pri" type="submit">Search</button>
     </form><div id="manRes"></div>`;
   renderManRes();
@@ -1851,7 +1969,7 @@ function renderManRes(){
   if(!MAN.items){ $('#count').textContent = ''; r.innerHTML = `<div class="manhint"><b>Looking for something specific?</b> Search for any ${MAN.kind === 'movie' ? 'movie' : 'TV show'}, then use the buttons on its poster to add it to one of your lists, your Plex Watchlist, or ${MAN.kind === 'movie' ? 'Radarr' : 'Sonarr'}. Click the poster for details.</div>`; return; }
   const owned = ownedTest(MAN.kind), items = MAN.items.map(x => ({...x, have: owned(x)})), today = isoDay(new Date());
   $('#count').textContent = `${items.length} result${items.length === 1 ? '' : 's'}`;
-  if(!items.length){ r.innerHTML = `<div class="empty">No ${what} found for “${esc(MAN.q)}”. Try a different spelling${MAN.kind === 'movie' ? ', or switch to TV' : ', or switch to Movies'}.</div>`; return; }
+  if(!items.length){ r.innerHTML = `<div class="empty">No ${what} found for “${esc(MAN.q)}”. Try a different spelling, or switch to ${MAN.kind === 'movie' ? 'TV' : 'Movies'} at the top of the menu.</div>`; return; }
   const LS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/><path class="pl" d="M12 7.5v6M9 10.5h6"/></svg>';
   r.innerHTML = `<div class="dgrid">${items.map(x => {
     DMAP.set(x.q, x); const h = hue(x.t), p = PP[x.art], listed = inAnyList('w:'+x.q), soon = x.date && x.date > today;
@@ -1952,7 +2070,7 @@ async function tvCheck(){
             aired: seasons.filter(s => s.aired).length};
         }
       }catch(e){ if(e.net) throw e; }
-      TV.prog = {done:++n, total:titles.length}; if(state.s==='missing' && state.c==='TV Shows') renderTvMissing(true);
+      TV.prog = {done:++n, total:titles.length}; if(state.s==='missing' && TV_CATS.includes(state.c)) renderTvMissing(true);
     });
     TV.res = res; store.set('zn:tvr', res);
     toast(`TV check done — ${Object.values(res).filter(r => r.missEp > 0).length} shows have missing episodes.`);
@@ -1977,7 +2095,8 @@ function missLines(seasons){
 }
 function renderTvMissing(progressOnly){
   const g = $('#grid'); $('#grid').className = 'mview'; $('#sort').style.display = 'none';
-  $('#title').textContent = 'TV Shows';
+  const cat = TV_CATS.includes(state.c) ? state.c : TV_CATS[0];
+  $('#title').textContent = cat;
   if(TV.running){
     const p = TV.prog || {done:0,total:1};
     $('#count').textContent = '';
@@ -2004,12 +2123,13 @@ function renderTvMissing(progressOnly){
       <div class="actions"><button class="btn pri" data-act="tvcheck">Check my shows</button></div></div>`;
     return;
   }
-  const all = tvList(), list = all.filter(r => r.missEp > 0).sort((a,b) => a.name.localeCompare(b.name));
-  const complete = all.filter(r => r.missEp === 0).length;
-  $('#count').textContent = `${list.length} incomplete`;
+  const all = tvList(), inc = all.filter(r => r.missEp > 0);
+  const list = (cat === 'Missing seasons' ? all.filter(r => r.missS > 0) : cat === 'Complete shows' ? all.filter(r => r.missEp === 0) : inc).sort((a,b) => a.name.localeCompare(b.name));
+  const complete = all.length - inc.length;
+  $('#count').textContent = cat === 'Complete shows' ? `${list.length} complete` : cat === 'Missing seasons' ? `${list.length} with whole seasons missing` : `${list.length} incomplete`;
   g.innerHTML = (TV.err ? `<p class="err">${esc(TV.err)}</p>` : '') +
-    `<div class="tvsum"><div class="stat"><b>${all.length}</b><small>shows checked</small></div><div class="stat"><b>${complete}</b><small>complete</small></div><div class="stat"><b>${list.length}</b><small>missing episodes</small></div>
-      <div class="stat"><b>${list.reduce((s,r) => s + r.missEp, 0).toLocaleString()}</b><small>episodes missing in total</small></div></div>
+    `<div class="tvsum"><div class="stat"><b>${all.length}</b><small>shows checked</small></div><div class="stat"><b>${complete}</b><small>complete</small></div><div class="stat"><b>${inc.length}</b><small>missing episodes</small></div>
+      <div class="stat"><b>${inc.reduce((s,r) => s + r.missEp, 0).toLocaleString()}</b><small>episodes missing in total</small></div></div>
     <div class="mtools"><div class="mfilter"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="mfilter" type="search" placeholder="Find a show…" value="${esc(MISS.filter)}" autocomplete="off"></div>
       <label class="tog"><input type="checkbox" id="realTog" ${TV.real?'checked':''}> Include reality shows</label>
       <button class="btn" data-act="tvcheck">↻ Re-check TVmaze</button><button class="btn" data-act="folders-tv">Manage library</button></div>
@@ -2019,8 +2139,9 @@ function renderTvMissing(progressOnly){
         <div style="flex:1;min-width:200px"><h3 class="bebas" data-open="${r.i}">${esc(r.name)}</h3>
         <div class="sub">${r.full} of ${r.aired} season${r.aired===1?'':'s'} complete</div></div>
         ${r.missS ? `<span class="chip miss">${r.missS} season${r.missS>1?'s':''} missing</span>` : ''}
-        <span class="chip">${r.missEp} episode${r.missEp>1?'s':''} missing</span></div>
-        ${seasonChips(r.seasons, r.t, r.id || TV.ids[r.t]?.id)}${missLines(r.seasons)}</div>`).join('') : `<div class="empty">Every show you've scanned is complete. Nice!</div>`) +
+        ${r.missEp ? `<span class="chip">${r.missEp} episode${r.missEp>1?'s':''} missing</span>` : `<span class="chip okc">✓ Every episode</span>`}</div>
+        ${seasonChips(r.seasons, r.t, r.id || TV.ids[r.t]?.id)}${cat === 'Complete shows' ? '' : missLines(r.seasons)}</div>`).join('')
+      : `<div class="empty">${cat === 'Complete shows' ? 'None of your shows are complete yet.' : cat === 'Missing seasons' ? 'No whole seasons missing from any show. Nice!' : "Every show you've scanned is complete. Nice!"}</div>`) +
     '';
   applyFilter();
 }
@@ -2038,7 +2159,7 @@ async function fillSeasons(d, m){
       <div class="misslist">${seasons.length} season${seasons.length===1?'':'s'} · ${totEp} episodes${owned ? (miss ? ` · <b style="color:var(--accent-t)">you're missing ${miss}</b>` : ` · <b style="color:var(--ok-t)">you have them all</b>`) : ''}</div>
       ${owned ? seasonChips(seasons, d.t, id.id) + missLines(seasons) :
         `<div class="seas">${seasons.map(s => `<button class="sc" data-show="${esc(d.t)}" data-tvid="${id.id}" data-season="${s.n}" title="Click to see the episodes"><b>S${s.n}</b>${s.total} eps</button>`).join('')}</div>
-         <div class="hint" style="margin:0">To see which episodes you're missing, scan your TV folder on the <b>Missing → TV Shows</b> page.</div>`}`;
+         <div class="hint" style="margin:0">To see which episodes you're missing, check your shows on the <b>Missing → TV</b> page.</div>`}`;
   }catch{ const l = document.querySelector('#seasonSec .misslist'); if(l) l.textContent = "Couldn't load season details right now."; }
 }
 
@@ -2084,7 +2205,7 @@ async function openSeason(title, tvid, n){
           <div class="meta"><span class="chip">S${pad(e.season)}E${pad(e.number)}</span>${e.airdate ? `<span class="chip">Aired ${fmtDate(e.airdate)}</span>` : ''}${e.runtime ? `<span class="chip">${e.runtime} min</span>` : ''}${e.rating?.average ? `<span class="chip star">★ ${e.rating.average}</span>` : ''}
           ${e.url ? `<a class="chip" href="${esc(e.url)}" target="_blank" rel="noopener" style="text-decoration:none">TVmaze ↗</a>` : ''}</div></div></div></div>`; }).join('')
         || '<div class="empty">No episodes listed for this season.</div>'}
-      ${!scanned ? `<div class="hint" style="margin:14px 12px 0">Scan your TV folder on the Missing → TV Shows page to see which of these you own.</div>` : ''}</div>`;
+      ${!scanned ? `<div class="hint" style="margin:14px 12px 0">Check your shows on the Missing → TV page to see which of these you own.</div>` : ''}</div>`;
     md.scrollIntoView?.({block:'start'}); ov.scrollTop = 0;
   }catch(e){
     md.innerHTML = `<button class="x" data-close="eov">×</button><div class="loading" style="padding:60px 30px">Couldn't load the episodes${e.net ? ` — couldn't reach ${esc(e.host)}` : ''}.</div>`;
@@ -4014,7 +4135,7 @@ $('#clearCache').onclick = () => { store.keys().filter(k => k.startsWith('vault:
 let tt; function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 4200); }
 $('#tabs').onclick = e => { const b = e.target.closest('button'); if(!b) return;
   document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x===b));
-  state.s = b.dataset.s; state.c = state.s==='missing' ? 'Collections' : state.s==='discover' ? DISC.sec : 'All'; if(state.s==='lists'){ state.attn = false; pwLoad(); } state.q = ''; $('#q').value = ''; renderSide(); render(); scrollTo(0,0); };
+  state.s = b.dataset.s; state.c = state.s==='missing' ? missDefault() : state.s==='discover' ? DISC.sec : 'All'; if(state.s==='lists'){ state.attn = false; pwLoad(); } state.q = ''; $('#q').value = ''; renderSide(); render(); scrollTo(0,0); };
 $('#side').addEventListener('click', e => {
   if(state.s !== 'discover') return;
   const k = e.target.closest('[data-dkind]'); if(k){ DISC.kind = k.dataset.dkind; store.set('zn:dkind', DISC.kind); renderSide(); render(); loadDiscover(); }
