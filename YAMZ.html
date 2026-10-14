@@ -197,6 +197,15 @@ main{flex:1;min-width:0;padding:22px 26px 60px}
 .mini .poster{border-radius:var(--prs);box-shadow:0 4px 12px rgba(0,0,0,.4)}
 .mini .ph{font-size:16px;padding:8px}
 .mini.own .poster{opacity:.5;filter:grayscale(.5)}
+.serrow .mini.own .poster{opacity:1;filter:none}
+.serrow{padding-top:8px}
+.sertitle small{font-family:Inter,sans-serif;font-size:13px;letter-spacing:0;color:var(--muted);margin-left:8px;vertical-align:4px}
+.mini.cur{cursor:default}
+.mini.cur .poster,.mini.cur:hover .poster{transform:translateY(-4px);box-shadow:0 0 0 3px var(--accent),0 12px 28px rgba(0,0,0,.55)}
+.mini.cur .ct{color:var(--accent-t)}
+.badge.cur{background:var(--accent)!important;color:var(--on-accent)!important}
+.snum{position:absolute;left:7px;bottom:7px;z-index:2;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:rgba(0,0,0,.72);color:#fff;font:700 12px/22px Inter,sans-serif;text-align:center}
+.mini.cur .snum{background:var(--accent);color:var(--on-accent)}
 .mini:hover .poster{transform:translateY(-3px);box-shadow:0 10px 22px rgba(0,0,0,.55),0 0 0 2px var(--accent)}
 .mini .ct{font-size:12px} .mini .cy{font-size:11px}
 .badge.miss{background:var(--accent2)!important;color:#fff}
@@ -1427,10 +1436,11 @@ async function openDetail(d){
         ${x.cast?.length?`<div class="sec"><h3 class="bebas">Cast</h3><div class="cast">${x.cast.map(c=>`
           <div class="person"><div class="face" style="${c.img?`background-image:url('${c.img}')`:''}">${c.img?'':esc((c.name||'?')[0])}</div>
           <b>${esc(c.name)}</b><small>${esc(c.role||'')}</small></div>`).join('')}</div></div>`:''}
+        ${d.s!=='tv' ? `<div class="sec" id="seriesSec" hidden></div>` : ''}
         ${d.s==='tv' ? `<div class="sec" id="seasonSec"><h3 class="bebas">Seasons</h3><div class="misslist">Checking seasons…</div></div>` : ''}
         ${x.photos?.length?`<div class="sec"><h3 class="bebas">Photos</h3><div class="gallery">${x.photos.map(p=>`<img src="${p.thumb}" data-full="${p.full}" alt="" loading="lazy">`).join('')}</div></div>`:''}
       </div>`;
-    if(d.s==='tv') fillSeasons(d, m);
+    if(d.s==='tv') fillSeasons(d, m); else fillSeries(d, m, x);
   }catch(e){
     const why = e.net && inPreview
       ? `This window is blocking internet access, which happens when the file is opened inside an app's preview.<br><b>Save the file and open it in Chrome, Edge or Firefox.</b>`
@@ -1439,6 +1449,64 @@ async function openDetail(d){
     md.innerHTML = `<button class="x" data-close="ov">×</button><div class="loading" style="padding:60px 30px;line-height:1.7">Couldn't load details for <b>${esc(d.t)}</b>.<br>${why}</div>`;
   }
 }
+/* ---------- movie pop-up: the other films in its series, in order, with this one highlighted ---------- */
+const SER = new Map();
+async function serLoad(qid){
+  const rows = await sparql(`#yamz:series
+SELECT ?s ?sLabel ?m ?mLabel ?date ?ord ?art WHERE {
+  wd:${qid} wdt:P179 ?s . ?m p:P179 ?st . ?st ps:P179 ?s . ?m wdt:P31 ?ft . ${FTYPES}
+  OPTIONAL { ?st pq:P1545 ?ord }
+  OPTIONAL { ?m wdt:P577 ?date }
+  OPTIONAL { ?art schema:about ?m ; schema:isPartOf <https://en.wikipedia.org/> }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } }`);
+  const ser = {};
+  rows.forEach(r => {
+    const sid = qidOf(r.s.value), mq = qidOf(r.m.value);
+    const S = ser[sid] ||= {id:sid, name:r.sLabel?.value || sid, m:{}};
+    const M = S.m[mq] ||= {q:mq, t:r.mLabel?.value || mq, d:'', ord:null, art:null};
+    const dt = (r.date?.value || '').slice(0, 10); if(dt && (!M.d || dt < M.d)) M.d = dt;
+    const o = parseFloat(r.ord?.value); if(!isNaN(o) && M.ord == null) M.ord = o;
+    if(!M.art && r.art) M.art = artTitle(r.art.value);
+  });
+  return Object.values(ser).filter(S => !/^Q\d+$/.test(S.name)).map(S => ({id:S.id, name:S.name,
+    items:Object.values(S.m).filter(M => !/^Q\d+$/.test(M.t))
+      .sort((a, b) => (a.d || '9999').localeCompare(b.d || '9999') || (a.ord ?? 999) - (b.ord ?? 999))}))
+    .filter(S => S.items.length >= 2 && S.items.some(M => M.q === qid))
+    .sort((a, b) => a.items.length - b.items.length).slice(0, 2);
+}
+async function fillSeries(d, m, x){
+  const el = $('#seriesSec'), me = CUR; if(!el) return;
+  try{
+    let qid = d.synth && /^w:Q\d+$/.test(d.i) ? d.i.slice(2) : (m.qid || MISS.qmap[keyOf(d)] || null);
+    if(!qid && m.type === 'wiki' && (m.id || m.title)){
+      const j = await wq({action:'query', ...(m.id ? {pageids:String(m.id)} : {titles:m.title}), redirects:'1', prop:'pageprops', ppprop:'wikibase_item'});
+      qid = j.query?.pages?.[0]?.pageprops?.wikibase_item || null;
+    }
+    if(!qid && x.imdb && /^tt\d+$/.test(x.imdb)){ const r = await sparql(`SELECT ?f WHERE { ?f wdt:P345 "${x.imdb}" } LIMIT 1`); qid = r[0] ? qidOf(r[0].f.value) : null; }
+    if(!qid) return;
+    if(!SER.has(qid)) SER.set(qid, await serLoad(qid));
+    const list = SER.get(qid);
+    if(CUR !== me || !list.length || !$('#ov').classList.contains('open')) return;
+    const owned = ownedTest('movie'), today = isoDay(new Date());
+    const nth = n => n + (['th','st','nd','rd'][(n % 100 > 10 && n % 100 < 14) ? 0 : n % 10] || 'th');
+    el.innerHTML = list.map(S => {
+      const pos = S.items.findIndex(M => M.q === qid) + 1;
+      return `<h3 class="bebas sertitle">${esc(S.name)} <small>${nth(pos)} of ${S.items.length}</small></h3>
+        <div class="mrow serrow">${S.items.map((M, i) => { const y = +M.d.slice(0, 4) || null;
+          const st = M.q === qid || owned({t:M.t, y}) ? 'own' : (!M.d || M.d > today) ? 'up' : 'miss';
+          return miniHTML({q:M.q, t:M.t, y, art:M.art, st, n:i + 1, cur:M.q === qid}); }).join('')}</div>`;
+    }).join('');
+    el.hidden = false;
+    el.querySelectorAll('.serrow').forEach(r => { const c = r.querySelector('.mini.cur'); if(c) r.scrollLeft = Math.max(0, c.offsetLeft - r.offsetLeft - r.clientWidth / 2 + c.offsetWidth / 2); });
+    loadPosters(el, '.mini');
+  }catch{}
+}
+$('#modal').addEventListener('click', e => {
+  const mi = e.target.closest('#seriesSec .mini'); if(!mi || mi.classList.contains('cur')) return;
+  const x = MINI.get(mi.dataset.q); if(!x) return;
+  const mine = x.st === 'own' && DATA.find(d => d.s === 'movie' && fold(d.t) === fold(x.t) && (!x.y || !d.y || Math.abs(d.y - x.y) <= 1));
+  openDetail(mine || synth(x));
+});
 function closeOv(id){ $('#'+id).classList.remove('open'); if(!document.querySelector('.ov.open')) document.body.style.overflow = ''; }
 
 
@@ -1627,13 +1695,13 @@ async function runScan(){
 function miniHTML(x){
   MINI.set(x.q, x);
   const h = hue(x.t), img = x.art && PP[x.art];
-  const badge = {own:['own','✓ Owned'], miss:['miss','Missing'], up:['up','Upcoming']}[x.st];
-  return `<button class="mini ${x.st}" data-q="${x.q}" data-art="${esc(x.art||'')}">
+  const badge = x.cur ? ['cur','▶ Viewing'] : {own:['own','✓ Owned'], miss:['miss','Missing'], up:['up','Upcoming']}[x.st];
+  return `<button class="mini ${x.st}${x.cur ? ' cur' : ''}" data-q="${x.q}" data-art="${esc(x.art||'')}"${x.cur ? ' aria-current="true"' : ''}>
     <div class="poster">
       <div class="ph" style="background:linear-gradient(160deg,hsl(${h} 45% 26%),hsl(${(h+40)%360} 50% 10%))">${esc(x.t)}</div>
       ${img ? `<img class="ld" src="${esc(img)}" alt="">` : ''}
-      <div class="badge ${badge[0]}">${badge[1]}</div>
-      ${x.st==='own' ? '' : (pb => pb + arrBtn({t:x.t, y:x.y, s:x.s || 'movie', q:x.q}, pb ? 1 : 0, `data-pwq="m:${x.q}"`))(pwBtn({t:x.t, y:x.y, s:x.s || 'movie'}, `data-pwq="m:${x.q}"`).replace('class="pwbtn', 'class="pwbtn solo'))}
+      <div class="badge ${badge[0]}">${badge[1]}</div>${x.n ? `<span class="snum">${x.n}</span>` : ''}
+      ${x.st==='own' || x.cur ? '' : (pb => pb + arrBtn({t:x.t, y:x.y, s:x.s || 'movie', q:x.q}, pb ? 1 : 0, `data-pwq="m:${x.q}"`))(pwBtn({t:x.t, y:x.y, s:x.s || 'movie'}, `data-pwq="m:${x.q}"`).replace('class="pwbtn', 'class="pwbtn solo'))}
     </div>
     <div class="ct">${esc(x.t)}</div><div class="cy">${x.y || 'TBA'}</div>
   </button>`;

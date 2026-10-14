@@ -8,6 +8,9 @@
 - **Glass strength**: Subtle, Balanced (default) or Frosted.
 - Falls back to solid panels when the device asks for reduced transparency, and drops the animations for reduced motion.
 
+**Movie pop-up**
+- New series row under the cast: every film in the movie's series in release order, numbered, with the one you're viewing highlighted ("3rd of 5"). Each shows whether you own it, are missing it, or it's upcoming; click any of them to jump to it, or add missing ones to Radarr, your Watchlist or a list.
+
 **Missing**
 - New **Search & add** at the top of Missing: search for any movie or TV show and add it to a list, your Plex Watchlist, or Radarr / Sonarr. Titles you already own are marked, and unreleased ones show their release date.
 - Collections now show the films you're missing first, then upcoming ones, then the ones you own.

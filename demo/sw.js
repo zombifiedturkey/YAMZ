@@ -173,6 +173,16 @@ function tvmaze(u){
 const E = 'http://www.wikidata.org/entity/', WK = 'https://en.wikipedia.org/wiki/';
 /* Missing → Search & add: a small catalogue the demo can "find" (title, year or days-from-now, kind) */
 const QID = t => 'Q' + (7000 + hash(t) % 9999);
+const SERIES = [
+  ['Mad Max', [['Mad Max', 1979], ['Mad Max 2', 1981], ['Mad Max Beyond Thunderdome', 1985], ['Mad Max: Fury Road', 2015], ['Furiosa: A Mad Max Saga', 2024]]],
+  ['Evil Dead', [['The Evil Dead', 1981], ['Evil Dead II', 1987], ['Army of Darkness', 1992], ['Evil Dead', 2013], ['Evil Dead Rise', 2023]]],
+  ['John Wick', [['John Wick', 2014], ['John Wick: Chapter 2', 2017], ['John Wick: Chapter 3 – Parabellum', 2019], ['John Wick: Chapter 4', 2023]]],
+  ['Terminator', [['The Terminator', 1984], ['Terminator 2: Judgment Day', 1991], ['Terminator 3: Rise of the Machines', 2003], ['Terminator Salvation', 2009], ['Terminator Genisys', 2015], ['Terminator: Dark Fate', 2019]]],
+  ['Alien', [['Alien', 1979], ['Aliens', 1986], ['Alien 3', 1992], ['Alien Resurrection', 1997], ['Prometheus', 2012], ['Alien: Covenant', 2017], ['Alien: Romulus', 2024]]],
+  ['The Fast and the Furious', [['The Fast and the Furious', 2001], ['2 Fast 2 Furious', 2003], ['The Fast and the Furious: Tokyo Drift', 2006], ['Fast & Furious', 2009], ['Fast Five', 2011]]],
+  ['Halloween', [['Halloween', 1978], ['Halloween II', 1981], ['Halloween III: Season of the Witch', 1982], ['Halloween', 2018], ['Halloween Kills', 2021], ['Halloween Ends', 2022]]],
+  ['A Nightmare on Elm Street', [['A Nightmare on Elm Street', 1984], ['A Nightmare on Elm Street 2: Freddy\'s Revenge', 1985], ['A Nightmare on Elm Street 3: Dream Warriors', 1987], ['A Nightmare on Elm Street 4: The Dream Master', 1988]]]
+];
 const CATALOG = (() => {
   const seen = new Set(), out = [], add = (t, y, k, date) => { if(seen.has(t + k)) return; seen.add(t + k); out.push({t, y, k, date: date || (y ? y + '-06-01' : '')}); };
   [...GOAT80, ...GOATALL, ...MOV, ...WL.filter(w => !w[3])].forEach(([t, y]) => add(t, y, 'movie'));
@@ -192,6 +202,12 @@ async function sparql(req){
     return J({results:{bindings:L.map(([t, y, rt, mc], i) => B({f:E + 'Q' + (8000 + hash(t) % 9999), date:`${y}-06-01T00:00:00Z`, art:WK + t.replace(/ /g, '_'), sl:String(120 - i * 3), rts:rt + '%', mcs:mc ? mc + '/100' : ''}))}});
   }
   if(q.includes('ORDER BY DESC(?sl)')){ const L = q.includes('?d >') ? UPC : LAST; return J({results:{bindings:L.map(([t, n], i) => B({f:E + 'Q' + (7000 + hash(t) % 9999), date:daysFromNow(n) + 'T00:00:00Z', art:WK + t.replace(/ /g, '_'), sl:String(40 - i)}))}}); }
+  if(q.includes('#yamz:series')){
+    const id = /wd:(Q\d+) wdt:P179/.exec(q)?.[1], out = [];
+    SERIES.forEach(([name, films]) => { if(!films.some(([t]) => QID(t) === id)) return;
+      films.forEach(([t, y], i) => out.push(B({s:E + QID(name + ' series'), sLabel:name, m:E + QID(t), mLabel:t, date:`${y}-06-01T00:00:00Z`, ord:String(i + 1), art:WK + t.replace(/ /g, '_')}))); });
+    return J({results:{bindings:out}});
+  }
   if(q.includes('#yamz:search')){
     const ids = new Set([...q.matchAll(/wd:(Q\d+)/g)].map(m => m[1])), tv = q.includes('Q5398426');
     return J({results:{bindings:CATALOG.filter(c => ids.has(QID(c.t)) && (c.k === 'tv') === tv).map(c => B({f:E + QID(c.t), date:c.date + 'T00:00:00Z'}))}});
