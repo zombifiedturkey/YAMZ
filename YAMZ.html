@@ -2828,7 +2828,7 @@ const SELPOP = {el:null, sel:null, hi:-1, opts:[]};
 const SEL_TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 const coarse = () => matchMedia('(hover: none) and (pointer: coarse)').matches;
 function selClose(focus){ const P = SELPOP; if(!P.el?.classList.contains('open')) return; P.el.classList.remove('open'); if(focus) P.sel?.focus(); P.sel = null; }
-function selHi(i){ const P = SELPOP, bs = P.el.querySelectorAll('button'); bs.forEach(b => b.classList.remove('hi')); P.hi = i; const b = bs[i]; if(b){ b.classList.add('hi'); b.scrollIntoView({block:'nearest'}); } }
+function selHi(i, scroll = true){ const P = SELPOP, bs = P.el.querySelectorAll('button'); bs.forEach(b => b.classList.remove('hi')); P.hi = i; const b = bs[i]; if(b){ b.classList.add('hi'); if(scroll) b.scrollIntoView({block:'nearest'}); } }
 function selPick(i){
   const P = SELPOP, o = P.opts[i], sel = P.sel; if(!o || o.disabled || !sel) return;
   const changed = sel.value !== o.value; sel.value = o.value; selClose(true);
@@ -2839,7 +2839,7 @@ function selOpen(sel){
   if(!P.el){ P.el = document.createElement('div'); P.el.className = 'selpop'; P.el.setAttribute('role', 'listbox'); document.body.appendChild(P.el);
     P.el.addEventListener('mousedown', e => e.preventDefault());
     P.el.addEventListener('click', e => { const b = e.target.closest('button'); if(b) selPick(+b.dataset.i); });
-    P.el.addEventListener('mousemove', e => { const b = e.target.closest('button'); if(b && +b.dataset.i !== P.hi) selHi(+b.dataset.i); }); }
+    P.el.addEventListener('mousemove', e => { const b = e.target.closest('button'); if(b && +b.dataset.i !== P.hi) selHi(+b.dataset.i, false); }); }
   P.sel = sel; P.opts = [...sel.options];
   let html = '', lastG = null;
   P.opts.forEach((o, i) => {
