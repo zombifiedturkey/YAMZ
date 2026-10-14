@@ -4,6 +4,8 @@
 
 *A "vibe coded" media manager.*
 
+<p align="center"><a href="https://zombifiedturkey.github.io/YAMZ/"><b>▶ Try the live demo</b></a> — runs entirely in your browser with a sample library (sign in with <code>demo</code> / <code>zombies123</code>).</p>
+
 A good-looking, self-hosted browser for your movie and TV collection. Point it at **Plex** or **Jellyfin** and get a poster wall with ratings, cast and photos — plus tools for finding what you're missing, discovering what to watch next, tracking releases, and sending titles to **Radarr** and **Sonarr**.
 
 Run it as a **Docker container** (Unraid, Synology, any Linux box) and use it from any browser on your network or through a reverse proxy — or just open the single **`YAMZ.html`** file.
@@ -108,6 +110,10 @@ Because YAMZ relays requests to Plex, Jellyfin, Radarr and Sonarr itself, those 
 - Server addresses, API keys and tokens are stored on your server and only delivered to signed-in browsers. They are never sent anywhere except to the servers they belong to.
 - Lookups go directly from your browser to Wikipedia, Wikidata, TVmaze and (if you add a key) TMDB/OMDb.
 - **Forgot your password?** Stop the container, delete `auth.json` from your appdata folder, start it again and create a new account. Your library and settings are kept.
+
+## Live demo
+
+The demo at **https://zombifiedturkey.github.io/YAMZ/** is the real app with a service worker standing in for the YAMZ server, Plex, Radarr, Sonarr, Wikidata and TVmaze (`demo/sw.js`). Everything stays in your browser; **Reset** in the corner puts it back to the start. It's rebuilt on every push to `main` by `.github/workflows/pages.yml`; `demo/seed.json` is the starting library.
 
 ## Development
 
