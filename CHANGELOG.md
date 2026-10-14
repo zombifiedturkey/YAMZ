@@ -11,12 +11,12 @@
 **Movie pop-up**
 - New series row under the cast: every film in the movie's series in release order, numbered, with the one you're viewing highlighted ("3rd of 5"). Each shows whether you own it, are missing it, or it's upcoming; click any of them to jump to it, or add missing ones to Radarr, your Watchlist or a list.
 
-**Missing**
+**Gaps** (renamed from Missing)
 - **Movies / TV switch** at the top of the menu; TV is no longer a single item in the list.
 - **Search & add** sits in its own recessed box above the rest of the menu, and follows the Movies / TV switch.
 - **Waiting in Radarr**: monitored movies with no file yet, split into *Released, not in your library yet* and *Not released yet* (with the next release date).
 - **TV**: *Incomplete shows*, *Missing seasons* (whole seasons absent), *Complete shows*, and **Waiting in Sonarr** (monitored series with aired episodes it doesn't have yet, with progress bars).
-- New **Search & add** at the top of Missing: search for any movie or TV show and add it to a list, your Plex Watchlist, or Radarr / Sonarr. Titles you already own are marked, and unreleased ones show their release date.
+- New **Search & add** at the top of Gaps: search for any movie or TV show and add it to a list, your Plex Watchlist, or Radarr / Sonarr. Titles you already own are marked, and unreleased ones show their release date.
 - Collections now show the films you're missing first, then upcoming ones, then the ones you own.
 
 **Side menu**

@@ -683,7 +683,7 @@ aside > h4:first-of-type{padding-right:34px}
   <div class="tabs" id="tabs">
     <button data-s="movie" class="on">Movies</button>
     <button data-s="tv">TV</button>
-    <button data-s="missing">Missing</button>
+    <button data-s="missing">Gaps</button>
     <button data-s="discover">Discover</button>
     <button data-s="lists">Lists</button>
     <button data-s="calendar">Calendar</button>
@@ -1529,7 +1529,7 @@ function closeOv(id){ $('#'+id).classList.remove('open'); if(!document.querySele
 
 
 /* ================= MISSING: collections & actors via Wikidata ================= */
-const MISS_TITLE = 'Missing';
+const MISS_TITLE = 'Gaps';
 const MISS = { kind: store.get('zn:misskind') || 'movie', filter:'', data: store.get('zn:miss'), qmap: store.get('zn:qid') || {}, running:false, prog:null, err:null,
   kids: store.get('zn:kids') ?? false, showOwn: store.get('zn:own') ?? true };
 const PP = store.get('zn:pp') || {};
@@ -1877,7 +1877,7 @@ function renderMissing(){
     return;
   }
   if(!D){
-    $('#title').textContent = "What's missing"; $('#count').textContent = '';
+    $('#title').textContent = 'Gaps'; $('#count').textContent = '';
     g.innerHTML = `<div class="mpanel"><h2 class="bebas">Find the gaps in your collection</h2>
       <p>YAMZ will look up every movie you own on Wikidata (the free database behind Wikipedia) and work out:</p>
       <ul><li><b>Incomplete collections</b>: franchises and series where you own some films but not all, like a John Wick or Mad Max set with gaps.</li>
@@ -2159,7 +2159,7 @@ async function fillSeasons(d, m){
       <div class="misslist">${seasons.length} season${seasons.length===1?'':'s'} · ${totEp} episodes${owned ? (miss ? ` · <b style="color:var(--accent-t)">you're missing ${miss}</b>` : ` · <b style="color:var(--ok-t)">you have them all</b>`) : ''}</div>
       ${owned ? seasonChips(seasons, d.t, id.id) + missLines(seasons) :
         `<div class="seas">${seasons.map(s => `<button class="sc" data-show="${esc(d.t)}" data-tvid="${id.id}" data-season="${s.n}" title="Click to see the episodes"><b>S${s.n}</b>${s.total} eps</button>`).join('')}</div>
-         <div class="hint" style="margin:0">To see which episodes you're missing, check your shows on the <b>Missing → TV</b> page.</div>`}`;
+         <div class="hint" style="margin:0">To see which episodes you're missing, check your shows on the <b>Gaps → TV</b> page.</div>`}`;
   }catch{ const l = document.querySelector('#seasonSec .misslist'); if(l) l.textContent = "Couldn't load season details right now."; }
 }
 
@@ -2205,7 +2205,7 @@ async function openSeason(title, tvid, n){
           <div class="meta"><span class="chip">S${pad(e.season)}E${pad(e.number)}</span>${e.airdate ? `<span class="chip">Aired ${fmtDate(e.airdate)}</span>` : ''}${e.runtime ? `<span class="chip">${e.runtime} min</span>` : ''}${e.rating?.average ? `<span class="chip star">★ ${e.rating.average}</span>` : ''}
           ${e.url ? `<a class="chip" href="${esc(e.url)}" target="_blank" rel="noopener" style="text-decoration:none">TVmaze ↗</a>` : ''}</div></div></div></div>`; }).join('')
         || '<div class="empty">No episodes listed for this season.</div>'}
-      ${!scanned ? `<div class="hint" style="margin:14px 12px 0">Check your shows on the Missing → TV page to see which of these you own.</div>` : ''}</div>`;
+      ${!scanned ? `<div class="hint" style="margin:14px 12px 0">Check your shows on the Gaps → TV page to see which of these you own.</div>` : ''}</div>`;
     md.scrollIntoView?.({block:'start'}); ov.scrollTop = 0;
   }catch(e){
     md.innerHTML = `<button class="x" data-close="eov">×</button><div class="loading" style="padding:60px 30px">Couldn't load the episodes${e.net ? ` — couldn't reach ${esc(e.host)}` : ''}.</div>`;
@@ -2916,7 +2916,7 @@ function renderLists(){
     state.c = 'All';
     $('#title').textContent = 'Lists'; $('#count').textContent = `${LISTS.length} list${LISTS.length===1?'':'s'}`;
     g.className = 'mview';
-    g.innerHTML = (LISTS.length ? '' : `<p style="color:var(--muted);margin:0 0 18px;max-width:640px">Make lists for anything: a horror marathon, movies to lend a mate, a shopping list from the Missing page. Create one here, or tap the <b>bookmark</b> on any poster while browsing.</p>`) +
+    g.innerHTML = (LISTS.length ? '' : `<p style="color:var(--muted);margin:0 0 18px;max-width:640px">Make lists for anything: a horror marathon, movies to lend a mate, a shopping list from the Gaps page. Create one here, or tap the <b>bookmark</b> on any poster while browsing.</p>`) +
       `<div class="ltiles">${PW.token ? `<button class="ltile wl" data-open-list="plexwl"><div class="lcol ${PW.items.length?'':'empty'}">${PW.items.length ? [0,1,2,3].map(k => `<i style="${PW.items[k]?.poster ? `background-image:url('${esc(PW.items[k].poster)}')` : ''}"></i>`).join('') : 'Nothing on your watchlist yet'}</div>
           <div class="lt"><b>${PLEX_LOGO}Plex Watchlist</b><small>${PW.items.length} title${PW.items.length===1?'':'s'} · synced from Plex</small></div></button>` : ''}${LISTS.map(L => { const ps = L.items.slice(0,4).map(it => posterOfItem(it, map));
         return `<button class="ltile" data-open-list="${L.id}"><div class="lcol ${L.items.length?'':'empty'}">${L.items.length ? [0,1,2,3].map(k => `<i style="${ps[k] ? `background-image:url('${esc(ps[k])}')` : ''}"></i>`).join('') : 'Empty list'}</div>
@@ -2946,7 +2946,7 @@ function renderLists(){
           <div class="badge ${own ? '' : 'nown'}">${own ? 'In library' : 'Not owned'}</div>
           ${own ? '' : (pb => pb + arrBtn({t:it.t, y:it.y, s:it.s || 'movie', k:it.k}, pb ? 1 : 0, `data-pwq="l:" data-pwk="${esc(it.k)}"`))(pwBtn({t:it.t, y:it.y, s:it.s || 'movie'}, `data-pwq="l:" data-pwk="${esc(it.k)}"`).replace('class="pwbtn', 'class="pwbtn solo'))}</div>
         <div class="ct">${esc(it.t)}</div><div class="cy">${it.y || '&nbsp;'}</div></button>`;
-    }).join('')}</div>` : `<div class="mpanel"><h2 class="bebas">This list is empty</h2><p>Browse your Movies or TV and tap the bookmark on any poster to add it here. You can also add films from the Missing page by opening them and choosing <b>Add to list</b>.</p></div>`}`;
+    }).join('')}</div>` : `<div class="mpanel"><h2 class="bebas">This list is empty</h2><p>Browse your Movies or TV and tap the bookmark on any poster to add it here. You can also add films from the Gaps page by opening them and choosing <b>Add to list</b>.</p></div>`}`;
   $('#lsort') && ($('#lsort').value = LSORT);
   io?.disconnect();
   io = new IntersectionObserver(es => es.forEach(e => { if(!e.isIntersecting) return; const d = DATA[e.target.dataset.i]; io.unobserve(e.target); if(!d) return; if(cached(d)) paint(d, e.target); if(needsSearch(d)) enqueue(d, true); }), {rootMargin:'600px 0px'});
@@ -3346,7 +3346,7 @@ function renderWatchlist(){
           ${p ? `<img class="ld" src="${esc(p)}" alt="" onerror="this.remove()">` : ''}
           <div class="badge nown">Not owned</div>${pwForceBtn(it.rk)}${arrBtn({t:it.t, y:it.y, s:it.s, ids:it.ids}, 1, `data-pwq="w:${esc(it.rk)}"`)}</div>
         <div class="ct">${esc(it.t)}</div><div class="cy">${it.y || '&nbsp;'}</div></button>`;
-    }).join('')}</div>` : `<div class="mpanel"><h2 class="bebas">Your watchlist is empty</h2><p>Tap the <span class="pwdemo">${PW_ICON}</span> button on any poster in Discover, Missing or your lists to add it to your Plex Watchlist.</p></div>`}`;
+    }).join('')}</div>` : `<div class="mpanel"><h2 class="bebas">Your watchlist is empty</h2><p>Tap the <span class="pwdemo">${PW_ICON}</span> button on any poster in Discover, Gaps or your lists to add it to your Plex Watchlist.</p></div>`}`;
   $('#lsort').value = LSORT;
   g.querySelectorAll('img.ld').forEach(i => { if(i.complete && i.naturalWidth) i.classList.add('on'); else i.onload = () => i.classList.add('on'); });
   io?.disconnect();
