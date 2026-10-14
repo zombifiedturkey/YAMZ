@@ -21,6 +21,7 @@
 
 **Discover**
 - *Last 12 Months* is now **Recent**, with a slider underneath to choose how far back to look: 1, 3, 6, 9 or 12 months. Cards show the release month.
+- *The GOAT* is now **Essentials** — the must-see titles in a genre, all time or by decade (e.g. *Essential Horror Movies of the 1980s*).
 
 **Dropdowns**
 - Every dropdown (genre, decade, sort, Radarr/Sonarr options…) now opens a themed list that matches Dark, Light and Glass instead of the browser's plain white one. Keyboard works too (arrows, Enter, Esc, type a letter to jump). Phones and tablets keep their native picker.

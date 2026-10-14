@@ -12,7 +12,7 @@ Run it as a **Docker container** (Unraid, Synology, any Linux box) and use it fr
 
 | | |
 |---|---|
-| ![Library](docs/library.png) | ![The GOAT](docs/discover.png) |
+| ![Library](docs/library.png) | ![Essentials](docs/discover.png) |
 | ![Calendar](docs/calendar.png) | ![Sign in](docs/login.png) |
 
 ## Features
@@ -20,7 +20,7 @@ Run it as a **Docker container** (Unraid, Synology, any Linux box) and use it fr
 - **Library** — Plex and/or Jellyfin (or plain folders), merged and de-duplicated. Posters, genres, ratings from several sources, cast, photos and a *Play in Plex/Jellyfin* button.
 - **TV** — seasons and episodes you have vs. what exists, with episode lists and descriptions (via TVmaze).
 - **Gaps** — search for any movie or show and add it to a list, Plex Watchlist, Radarr or Sonarr; incomplete franchises/collections (missing films first), your most-watched actors and the films of theirs you don't own, and TV shows with missing seasons or episodes.
-- **Discover** — Popular, Upcoming and Recent (last 1–12 months) for movies or TV, filterable by genre. Pick a genre to unlock **The GOAT**: the greatest titles in that genre, all time or by decade.
+- **Discover** — Popular, Upcoming and Recent (last 1–12 months) for movies or TV, filterable by genre. Pick a genre to unlock **Essentials**: the greatest titles in that genre, all time or by decade.
 - **Lists** — your own lists (marathons, shopping lists, films to lend a mate), plus your **Plex Watchlist** synced alongside.
 - **Calendar** — month or agenda view of upcoming releases for everything in Radarr, Sonarr, your lists and your Plex Watchlist, labelled *Theatres*, *Streaming* or *Physical media* (episodes for TV).
 - **Connections** — Plex Watchlist, Radarr and Sonarr (documented v3 API only: look up and add titles with your root folder, quality profile, tags and monitoring options).
