@@ -1,0 +1,22 @@
+name: 💡 Feature idea
+description: Suggest something new for YAMZ.
+title: "[Idea] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like YAMZ to do?
+      placeholder: Show the release date in the movie pop-up for films that aren't out yet…
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why would it help you?
+      description: What are you trying to do today that this would make easier?
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Examples from other apps, sketches or screenshots are welcome.

@@ -123,6 +123,10 @@ npm run dev          # http://localhost:7979, data in ./config
 
 No dependencies — Node 20+ only. The UI is `YAMZ.html`; the server is `server/server.js`. Images are built for `linux/amd64` and `linux/arm64` by GitHub Actions and published to `ghcr.io` on every push to `main` (`:edge`) and every `v*` tag (`:latest`, `:1.0.0`, `:1.0`).
 
+## Found a bug? Got an idea?
+
+Please [open an issue](https://github.com/zombifiedturkey/YAMZ/issues/new/choose): there's a quick form for bug reports and one for feature ideas. YAMZ is new and vibe-coded, so reports are genuinely helpful. Please leave API keys, tokens and passwords out of anything you paste.
+
 ## Credits
 
 Metadata: [Wikipedia](https://www.wikipedia.org) & [Wikidata](https://www.wikidata.org) (CC BY-SA / CC0), [TVmaze](https://www.tvmaze.com/api) (CC BY-SA), optional [TMDB](https://www.themoviedb.org) and [OMDb](https://www.omdbapi.com). *This product uses the TMDB API but is not endorsed or certified by TMDB.* Not affiliated with Plex, Jellyfin, Radarr or Sonarr.

@@ -1,0 +1,80 @@
+name: 🐛 Bug report
+description: Something in YAMZ isn't working the way it should.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this! A few details help a lot.
+        **Please don't paste API keys, Plex tokens, passwords or server addresses you'd rather keep private.**
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What went wrong, and what did you expect to happen instead?
+      placeholder: When I click "Add to Radarr" on a movie in Discover, nothing happens…
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we make it happen again?
+      placeholder: |
+        1. Go to Discover → Horror → The GOAT
+        2. Click the Radarr button on "The Fog"
+        3. …
+    validations:
+      required: true
+  - type: dropdown
+    id: how
+    attributes:
+      label: How are you running YAMZ?
+      options:
+        - Docker on Unraid
+        - Docker (other — Synology, Linux, docker compose…)
+        - Standalone YAMZ.html file
+        - Live demo (zombifiedturkey.github.io/YAMZ)
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: YAMZ version
+      description: Shown in Settings → Account, on the sign-in screen, or at the top of the container log.
+      placeholder: "1.0.0"
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of YAMZ?
+      multiple: true
+      options:
+        - Sign-in / account
+        - Library (Movies / TV)
+        - Missing
+        - Discover / The GOAT
+        - Lists / Plex Watchlist
+        - Calendar
+        - Plex connection
+        - Jellyfin connection
+        - Radarr / Sonarr
+        - Settings / appearance / backup
+        - Installing / Docker / Unraid
+        - Something else
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: Chrome 131 on Windows 11 / Safari on iPhone
+  - type: textarea
+    id: logs
+    attributes:
+      label: Container log or error message
+      description: For Docker, click the YAMZ icon → Logs (Unraid) or run `docker logs yamz`. Copy any error text you saw on screen too.
+      render: text
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshots or anything else
+      description: Drag screenshots in here if they help.
