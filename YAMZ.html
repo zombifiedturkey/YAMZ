@@ -673,6 +673,27 @@ aside > h4:first-of-type{padding-right:34px}
   :root[data-theme="glass"] #amb{transition:none}
   :root[data-theme="glass"] .card .poster::after{display:none}
 }
+/* ---------- dropdowns: themed chevron + themed option list ---------- */
+select:not([multiple]){-webkit-appearance:none;appearance:none;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239097a3' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")!important;
+  background-repeat:no-repeat!important;background-position:right 10px center!important;background-size:14px!important;padding-right:32px!important}
+select:not([multiple]):focus-visible{outline:2px solid var(--accent-t);outline-offset:1px}
+select option,select optgroup{background-color:#16181e;color:#ecedf0}
+:root[data-theme="light"] select option,:root[data-theme="light"] select optgroup{background-color:#ffffff;color:#1b1c20}
+:root[data-theme="glass"] .side-sel select,:root[data-theme="glass"] .lhead select,:root[data-theme="glass"] .field select{background-color:rgba(255,255,255,.07)}
+.selpop{position:fixed;z-index:120;min-width:180px;max-height:340px;overflow-y:auto;padding:6px;border-radius:14px;
+  background:#181a20;border:1px solid var(--line);box-shadow:0 18px 50px rgba(0,0,0,.55);scrollbar-width:thin;animation:pop .14s ease;display:none}
+.selpop.open{display:block}
+:root[data-theme="light"] .selpop{background:#fff;box-shadow:0 18px 50px rgba(40,35,20,.22)}
+:root[data-theme="glass"] .selpop{background:rgba(18,20,28,.9);border-color:rgba(255,255,255,.15);-webkit-backdrop-filter:var(--gfx);backdrop-filter:var(--gfx);box-shadow:var(--ghi),0 18px 50px rgba(0,0,0,.5)}
+.selpop .sg{padding:8px 10px 4px;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);font-weight:700}
+.selpop button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;color:var(--text);text-align:left;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:14px;line-height:1.3}
+.selpop button i{width:16px;flex:none;display:inline-flex;color:var(--accent-t)}
+.selpop button i svg{width:16px;height:16px}
+.selpop button.hi{background:var(--bg3)}
+:root[data-theme="glass"] .selpop button.hi{background:rgba(255,255,255,.12)}
+.selpop button.on{color:var(--accent-t);font-weight:600}
+.selpop button:disabled{opacity:.4;cursor:default}
 </style>
 </head>
 <body>
@@ -2778,6 +2799,62 @@ $('#side').addEventListener('click', e => {
 }, true);
 applyLook();
 
+
+/* ---------- themed dropdown list for every <select> (mouse/keyboard); touch devices keep the native picker ---------- */
+const SELPOP = {el:null, sel:null, hi:-1, opts:[]};
+const SEL_TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const coarse = () => matchMedia('(hover: none) and (pointer: coarse)').matches;
+function selClose(focus){ const P = SELPOP; if(!P.el?.classList.contains('open')) return; P.el.classList.remove('open'); if(focus) P.sel?.focus(); P.sel = null; }
+function selHi(i){ const P = SELPOP, bs = P.el.querySelectorAll('button'); bs.forEach(b => b.classList.remove('hi')); P.hi = i; const b = bs[i]; if(b){ b.classList.add('hi'); b.scrollIntoView({block:'nearest'}); } }
+function selPick(i){
+  const P = SELPOP, o = P.opts[i], sel = P.sel; if(!o || o.disabled || !sel) return;
+  const changed = sel.value !== o.value; sel.value = o.value; selClose(true);
+  if(changed){ sel.dispatchEvent(new Event('input', {bubbles:true})); sel.dispatchEvent(new Event('change', {bubbles:true})); }
+}
+function selOpen(sel){
+  const P = SELPOP;
+  if(!P.el){ P.el = document.createElement('div'); P.el.className = 'selpop'; P.el.setAttribute('role', 'listbox'); document.body.appendChild(P.el);
+    P.el.addEventListener('mousedown', e => e.preventDefault());
+    P.el.addEventListener('click', e => { const b = e.target.closest('button'); if(b) selPick(+b.dataset.i); });
+    P.el.addEventListener('mousemove', e => { const b = e.target.closest('button'); if(b && +b.dataset.i !== P.hi) selHi(+b.dataset.i); }); }
+  P.sel = sel; P.opts = [...sel.options];
+  let html = '', lastG = null;
+  P.opts.forEach((o, i) => {
+    const g = o.parentElement.tagName === 'OPTGROUP' ? o.parentElement : null;
+    if(g !== lastG){ lastG = g; if(g) html += `<div class="sg">${esc(g.label)}</div>`; }
+    html += `<button type="button" role="option" data-i="${i}" class="${o.selected ? 'on' : ''}" aria-selected="${o.selected}" ${o.disabled ? 'disabled' : ''}><i>${o.selected ? SEL_TICK : ''}</i>${esc(o.textContent)}</button>`;
+  });
+  P.el.innerHTML = html;
+  const r = sel.getBoundingClientRect(), vw = innerWidth, vh = innerHeight;
+  P.el.style.minWidth = Math.max(180, r.width) + 'px'; P.el.classList.add('open');
+  const h = Math.min(P.el.scrollHeight, 340), w = P.el.offsetWidth, below = vh - r.bottom - 8, above = r.top - 8;
+  P.el.style.left = Math.max(8, Math.min(r.left, vw - w - 8)) + 'px';
+  P.el.style.top = (below >= Math.min(h, 220) || below >= above ? r.bottom + 6 : Math.max(8, r.top - 6 - Math.min(h, above))) + 'px';
+  P.el.style.maxHeight = Math.max(160, Math.min(340, below >= Math.min(h, 220) || below >= above ? below - 6 : above - 6)) + 'px';
+  selHi(Math.max(0, sel.selectedIndex));
+}
+document.addEventListener('mousedown', e => {
+  const sel = e.target.closest?.('select');
+  if(sel && !sel.multiple && !sel.disabled && !coarse() && e.button === 0){ e.preventDefault(); if(SELPOP.sel === sel) return selClose(true); sel.focus(); return selOpen(sel); }
+  if(SELPOP.sel && !e.target.closest('.selpop')) selClose();
+}, true);
+document.addEventListener('keydown', e => {
+  const P = SELPOP;
+  if(P.sel && P.el.classList.contains('open')){
+    const n = P.opts.length, step = d => { let i = P.hi; for(let k = 0; k < n; k++){ i = (i + d + n) % n; if(!P.opts[i].disabled) return selHi(i); } };
+    if(e.key === 'ArrowDown'){ e.preventDefault(); e.stopPropagation(); step(1); }
+    else if(e.key === 'ArrowUp'){ e.preventDefault(); e.stopPropagation(); step(-1); }
+    else if(e.key === 'Home'){ e.preventDefault(); selHi(0); } else if(e.key === 'End'){ e.preventDefault(); selHi(n - 1); }
+    else if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); e.stopPropagation(); selPick(P.hi); }
+    else if(e.key === 'Escape' || e.key === 'Tab'){ if(e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); } selClose(e.key === 'Escape'); }
+    else if(e.key.length === 1){ const k = e.key.toLowerCase(), start = P.hi; for(let j = 1; j <= n; j++){ const i = (start + j) % n; if(P.opts[i].textContent.trim().toLowerCase().startsWith(k)){ selHi(i); break; } } }
+    return;
+  }
+  const sel = e.target.closest?.('select');
+  if(sel && !sel.multiple && !coarse() && (e.key === 'Enter' || e.key === ' ' || (e.altKey && e.key === 'ArrowDown'))){ e.preventDefault(); selOpen(sel); }
+}, true);
+addEventListener('resize', () => selClose());
+document.addEventListener('scroll', e => { if(SELPOP.sel && !e.target.closest?.('.selpop') && e.target !== SELPOP.el) selClose(); }, true);
 
 /* ---------- fix a title / match ---------- */
 async function openFix(d, q, y){

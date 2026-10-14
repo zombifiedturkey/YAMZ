@@ -19,6 +19,9 @@
 - New **Search & add** at the top of Gaps: search for any movie or TV show and add it to a list, your Plex Watchlist, or Radarr / Sonarr. Titles you already own are marked, and unreleased ones show their release date.
 - Collections now show the films you're missing first, then upcoming ones, then the ones you own.
 
+**Dropdowns**
+- Every dropdown (genre, decade, sort, Radarr/Sonarr options…) now opens a themed list that matches Dark, Light and Glass instead of the browser's plain white one. Keyboard works too (arrows, Enter, Esc, type a letter to jump). Phones and tablets keep their native picker.
+
 **Side menu**
 - New **Auto-hide** option (Settings → Appearance → Side menu, or the arrow at the top of the menu). The menu tucks away and ☰ at the top left brings it back as a drawer that closes once you pick something.
 
