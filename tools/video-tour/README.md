@@ -16,10 +16,12 @@ The first run installs the recorder (a couple of minutes). Then it asks for your
 (e.g. `http://192.168.1.10:7979`), username and password, and films the tour (about 6–7 minutes).
 The video is saved as **`output/yamz-tour.webm`**.
 
-Want to watch while it records? Run `run-windows.bat --watch` (or `./run-mac-linux.sh --watch`).
+Want to watch while it records? Run `.\run-windows.bat --watch` in PowerShell (or `./run-mac-linux.sh --watch`).
+
+> **PowerShell tip:** scripts in the current folder need `.\` in front, e.g. `.\run-windows.bat`.
 
 ### Recording with OBS instead (sharper picture)
-`run-windows.bat --obs` opens a 1920 × 1080 YAMZ window and waits. In OBS, add a **Window Capture**
+`.\run-windows.bat --obs` (PowerShell) opens a 1920 × 1080 YAMZ window and waits. In OBS, add a **Window Capture**
 of that window (canvas 1920 × 1080), start recording, then press **Enter** in the script window.
 It tells you when to stop.
 
