@@ -264,6 +264,10 @@ main{flex:1;min-width:0;padding:22px 26px 60px}
 .aimg{width:68px;height:68px;border-radius:50%;background:var(--bg3) center/cover;flex:none;display:flex;align-items:center;justify-content:center;font-family:"Bebas Neue",Impact,sans-serif;font-size:30px;color:var(--dim);border:2px solid var(--line)}
 .side-foot{margin:18px 12px 0;padding-top:14px;border-top:1px solid var(--line);font-size:12px;color:var(--dim);line-height:1.6}
 .side-foot button{margin-top:8px;width:100%;justify-content:center}
+#side:has(> .libsync){display:flex;flex-direction:column}
+#side:has(> .libsync) > *{flex:none}
+.libsync{order:9;margin:auto 12px 0;padding-top:22px;font-size:11px;line-height:1.7;color:var(--dim);opacity:.75;letter-spacing:.01em}
+.libsync div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:default}
 .err{color:var(--bad-t)}
 
 .mfilter{flex:1;min-width:200px;max-width:340px;position:relative}
@@ -1423,8 +1427,21 @@ function renderSide(){
   $('#side').innerHTML = `<h4>${state.s==='tv'?'TV Shows':'Movies'}</h4>` +
     [['All',total], ...cats[state.s].map(c => [c, counts[c]])]
       .map(([c,n]) => `<button class="cat ${state.c===c&&!state.q?'on':''}" data-c="${esc(c)}">${esc(c)}<span>${n||0}</span></button>`).join('') +
-    (pending && !inPreview ? `<div class="side-foot">Sorting your ${state.s==='tv'?'shows':'movies'} into genres using ${state.s==='tv' ? (P()===FREE ? 'TVmaze' : P().name) : P().name}… <b>${pending.toLocaleString()}</b> to go. Categories fill in as it works.</div>` : '');
+    libSyncHTML() + (pending && !inPreview ? `<div class="side-foot">Sorting your ${state.s==='tv'?'shows':'movies'} into genres using ${state.s==='tv' ? (P()===FREE ? 'TVmaze' : P().name) : P().name}… <b>${pending.toLocaleString()}</b> to go. Categories fill in as it works.</div>` : '');
 }
+/* quiet line at the foot of the Movies / TV menu: when the media server last refreshed, and when YAMZ last pulled from it */
+function libSyncHTML(){
+  const sv = LIB.servers || []; if(!sv.length) return '';
+  const lines = sv.map(s => {
+    const who = sv.length > 1 ? esc(s.name || SRV(s).label) : SRV(s).label;
+    if(s.busy) return `<div>Syncing with ${who}…</div>`;
+    if(s.err) return `<div title="${esc(s.err)}">Couldn't reach ${who}</div>`;
+    const scan = s.scan ? `<div title="${esc(new Date(s.scan).toLocaleString())}">${s.scanHow === 'added' ? `Last added to ${who}` : `${who} library refreshed`} ${ago(s.scan)}</div>` : '';
+    return scan + `<div title="${s.at ? esc(new Date(s.at).toLocaleString()) : ''}">YAMZ synced ${ago(s.at)}</div>`;
+  });
+  return `<div class="libsync">${lines.join('')}</div>`;
+}
+setInterval(() => { const el = $('#side .libsync'); if(el) el.outerHTML = libSyncHTML(); }, 60e3);
 function renderBanner(){
   if(inPreview){ $('#banner').innerHTML = `<div class="banner"><div><b>You're viewing this in a preview window.</b> Previews block internet access, so posters and details can't load. Save <b>YAMZ.html</b> to your computer and open it in Chrome, Edge or Firefox.</div></div>`; return; }
   $('#banner').innerHTML = stopped ? `<div class="banner"><div><b>Posters paused.</b> ${P().name} couldn't be reached with the current settings.</div><button class="btn pri" onclick="openSettings()">Open settings</button></div>` : '';
@@ -2431,7 +2448,8 @@ const PLEX = {
     return {found:servers.length, ok:out};
   },
   async identity(url, token){ const m = (await jget(`${url}/identity?X-Plex-Token=${encodeURIComponent(token)}`, {headers:{Accept:'application/json'}}, 6000)).MediaContainer || {}; return {machine:m.machineIdentifier, name:m.friendlyName}; },
-  async libs(s){ return ((await this.get(s, '/library/sections')).Directory || []).filter(x => x.type==='movie' || x.type==='show').map(x => ({key:String(x.key), name:x.title, kind:x.type==='movie' ? 'movie' : 'tv'})); },
+  async libs(s){ return ((await this.get(s, '/library/sections')).Directory || []).filter(x => x.type==='movie' || x.type==='show').map(x => ({key:String(x.key), name:x.title, kind:x.type==='movie' ? 'movie' : 'tv', scan:(+x.scannedAt || +x.updatedAt || 0) * 1000})); },
+  async lastScan(s){ return {at:Math.max(0, ...s.libs.filter(l => l.on).map(l => l.scan || 0)) || null, how:'scan'}; },
   async paged(s, path, params, each, prog){
     let start = 0; const size = 2000;
     for(;;){
@@ -2494,6 +2512,22 @@ const JF = {
       if(!items.length || items.length < size || start >= (r.TotalRecordCount || 0)) break;
     }
   },
+  async lastScan(s){
+    try{
+      const t = (await this.get(s, '/ScheduledTasks', {isHidden:false}, 8000)).find(x => x.Key === 'RefreshLibrary');
+      const end = t?.State === 'Running' ? Date.now() : Date.parse(t?.LastExecutionResult?.EndTimeUtc || '');
+      if(end) return {at:end, how:'scan'};
+    }catch{}
+    try{
+      const ids = s.libs.filter(l => l.on).map(l => l.key); let at = 0;
+      for(const id of ids){
+        const r = await this.get(s, '/Items', {ParentId:id, Recursive:true, SortBy:'DateCreated', SortOrder:'Descending', Limit:1, IncludeItemTypes:'Movie,Episode', Fields:'DateCreated', userId:s.user || ''}, 8000);
+        at = Math.max(at, Date.parse(r.Items?.[0]?.DateCreated || '') || 0);
+      }
+      if(at) return {at, how:'added'};
+    }catch{}
+    return null;
+  },
   ids(x){ const p = x.ProviderIds || {}, o = {}; if(p.Imdb) o.imdb = p.Imdb; if(p.Tmdb) o.tmdb = p.Tmdb; if(p.Tvdb) o.tvdb = p.Tvdb; return o; },
   ratings(x){ const r = []; if(x.CriticRating != null) r.push({src:'Rotten Tomatoes', val:Math.round(x.CriticRating)+'%'}); if(x.CommunityRating != null) r.push({src:'TMDB', val:(+x.CommunityRating).toFixed(1)+'/10'}); return r; },
   async sync(s, prog){
@@ -2517,16 +2551,18 @@ const JF = {
 const SRV = s => s.type === 'plex' ? PLEX : JF;
 async function syncServer(s, quiet){
   s.busy = true; s.err = null; s.msg = 'Syncing…'; if($('#fov').classList.contains('open')) renderFolders();
+  const foot = () => { const el = $('#side .libsync'); if(el) el.outerHTML = libSyncHTML(); }; foot();
   try{
     if(!s.libs?.length) s.libs = (await SRV(s).libs(s)).map(l => ({...l, on:true}));
     else { const fresh = await SRV(s).libs(s); s.libs = fresh.map(l => ({...l, on: s.libs.find(o => o.key===l.key)?.on ?? true})); }
     const r = await SRV(s).sync(s, m => { s.msg = m; if($('#fov').classList.contains('open')) renderFolders(); });
     s.movies = r.movies; s.shows = r.shows; s.at = Date.now();
+    try{ const ls = await SRV(s).lastScan(s); if(ls){ s.scan = ls.at; s.scanHow = ls.how; } }catch{}
   }catch(e){
     s.err = e.status===401 || e.status===403 ? 'Sign-in expired or not allowed. Remove and reconnect this server.'
       : e.net ? `Couldn't reach ${s.url}. Check the server is on and this computer is on the same network.` : (e.message || 'Sync failed.');
     if(!quiet) toast(`${SRV(s).label}: ${s.err}`);
-  }finally{ s.busy = false; s.msg = ''; saveLib(); }
+  }finally{ s.busy = false; s.msg = ''; saveLib(); foot(); }
 }
 async function syncAll(quiet){
   for(const s of LIB.servers) await syncServer(s, quiet);

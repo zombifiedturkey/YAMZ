@@ -111,7 +111,7 @@ function plexTv(u){
 function plexServer(u){
   const P = u.searchParams;
   if(u.pathname === '/identity') return J({MediaContainer:{machineIdentifier:'mach1', friendlyName:'Crypt'}});
-  if(u.pathname === '/library/sections') return J({MediaContainer:{Directory:[{key:'1', title:'Movies', type:'movie'}, {key:'2', title:'TV Shows', type:'show'}]}});
+  if(u.pathname === '/library/sections') return J({MediaContainer:{Directory:[{key:'1', title:'Movies', type:'movie', scannedAt:Math.floor(Date.now() / 1000) - 2 * 3600}, {key:'2', title:'TV Shows', type:'show', scannedAt:Math.floor(Date.now() / 1000) - 3 * 3600}]}});
   if(u.pathname === '/library/sections/1/all') return J({MediaContainer:{totalSize:PLEXMOV.length, Metadata:PLEXMOV}});
   if(u.pathname === '/library/sections/2/all' && P.get('type') === '4') return J({MediaContainer:{totalSize:PLEXEPS.length, Metadata:PLEXEPS}});
   if(u.pathname === '/library/sections/2/all') return J({MediaContainer:{totalSize:PLEXTV.length, Metadata:PLEXTV}});

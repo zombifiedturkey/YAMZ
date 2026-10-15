@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+**Library**
+- The foot of the Movies and TV menus now shows, in small faded text, when Plex or Jellyfin last refreshed its library and when YAMZ last synced with it. Hover over a line to see the exact date and time. For Jellyfin this uses the "Scan media library" task. If your account can't see that task, YAMZ shows when something was last added instead.
+
 **Calendar**
 - Clicking a TV episode now opens the pop-up on that episode: season and episode number, title, air date, network and runtime, plus the episode's own description (from Sonarr or TVmaze). The show's description is still there under "About the show".
 - When a service drops a whole season on one day, the calendar shows it once, on episode 1, marked "all N eps", rather than filling the day with every episode. Weekly shows still appear once a week.
