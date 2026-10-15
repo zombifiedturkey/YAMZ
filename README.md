@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/banner.png" alt="YAMZ — Yet Another Media Zombie" width="820"></p>
+<p align="center"><img src="docs/banner.png" alt="YAMZ — Yet Another Media Zombie" width="880"></p>
 
 # YAMZ — Yet Another Media Zombie
 
