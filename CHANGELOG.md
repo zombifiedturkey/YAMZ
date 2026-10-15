@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Calendar**
+- Clicking a TV episode now opens the pop-up on that episode: season and episode number, title, air date, network and runtime, plus the episode's own description (from Sonarr or TVmaze). The show's description is still there under "About the show".
+- When a service drops a whole season on one day, the calendar shows it once, on episode 1, marked "all N eps", rather than filling the day with every episode. Weekly shows still appear once a week.
+
 **Appearance**
 - New **Glass** theme (Settings → Appearance → Theme): a floating frosted header, glass side menu, pop-ups and menus, with your posters showing through.
 - **Ambient colour**: in Glass, the background glows with the colours of the poster you're on. Can be turned off.

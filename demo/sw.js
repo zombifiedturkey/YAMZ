@@ -153,7 +153,10 @@ async function arr(svc, u, req){
       .map(([t, c, dg, ph], i) => ({title:t, year:+daysFromNow(c).slice(0, 4), inCinemas:D(c), digitalRelease:D(dg), physicalRelease:D(ph), hasFile:i === 2, tmdbId:4000 + i, images:img(t)})));
     const eps = [];
     [['Severance', 2022, 3, -6, 'Apple TV+'], ['Deadwater County', 2025, 2, 1, 'HBO'], ['The Crypt Keepers', 2026, 1, 9, 'Shudder']].forEach(([t, y, sn, st, net]) => {
-      for(let n = 1; n <= 8; n++) eps.push({seasonNumber:sn, episodeNumber:n, title:['Opening Night', 'Below', 'The Ledger', 'Static', 'Cold Storage', 'Lanterns', 'Undertow', 'Daybreak'][n - 1], airDateUtc:D(st + (n - 1) * 7).replace('T00', 'T10'), hasFile:false, finaleType:n === 8 ? 'season' : undefined, series:{title:t, year:y, network:net, images:img(t, y)}});
+      const binge = net === 'Shudder';   // this one drops the whole season at once
+      const names = ['Opening Night', 'Below', 'The Ledger', 'Static', 'Cold Storage', 'Lanterns', 'Undertow', 'Daybreak'];
+      const blurbs = ['Everything changes when a stranger arrives with a key nobody can explain.', 'A search beneath the town turns up something that should have stayed buried.', 'Old records point to a deal made decades ago, and someone still collecting.', 'A night of radio silence leaves the crew guessing who is really on the other end.', 'The cold room holds more than supplies, and it is starting to wake up.', 'A festival of lanterns becomes the perfect cover for a disappearance.', 'Secrets surface when the river floods the lower streets.', 'Dawn brings answers, and a choice that will cost someone dearly.'];
+      for(let n = 1; n <= 8; n++) eps.push({seasonNumber:sn, episodeNumber:n, title:names[n - 1], overview:`${t}: ${blurbs[n - 1]} In YAMZ, episode descriptions come from TVmaze or Sonarr.`, airDateUtc:D(st + (binge ? 0 : (n - 1) * 7)).replace('T00', 'T10'), hasFile:false, finaleType:n === 8 ? 'season' : undefined, series:{title:t, year:y, network:net, images:img(t, y)}});
     });
     return J(eps);
   }

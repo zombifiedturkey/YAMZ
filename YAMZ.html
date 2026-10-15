@@ -218,6 +218,19 @@ main{flex:1;min-width:0;padding:22px 26px 60px}
 .mini .ph{font-size:16px;padding:8px}
 .mini.own .poster{opacity:.5;filter:grayscale(.5)}
 .serrow .mini.own .poster{opacity:1;filter:none}
+.epbox{max-width:760px}
+.ephead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ephead b{font-size:17px}
+.epmeta{margin:6px 0 10px;font-size:13px;color:var(--muted)}
+.epdrop{margin:0 0 10px;padding:8px 12px;border-radius:10px;background:rgba(var(--acc-rgb),.1);border:1px solid rgba(var(--acc-rgb),.3);font-size:13px}
+.epwrap{display:flex;gap:16px;align-items:flex-start}
+.epimg2{width:220px;flex:none;aspect-ratio:16/9;object-fit:cover;border-radius:10px;background:var(--bg3)}
+.epwrap .ovw{margin:0}
+.eploading{color:var(--muted)}
+.epshow{margin-top:12px;color:var(--muted)}
+.epshow summary{cursor:pointer;font-size:13px;font-weight:600}
+.epshow .ovw{margin-top:8px;font-size:14px}
+@media (max-width:640px){ .epwrap{flex-direction:column} .epimg2{width:100%} }
 .relbox{margin:0 0 18px;padding:14px 16px;border-radius:14px;background:rgba(var(--acc-rgb),.08);border:1px solid rgba(var(--acc-rgb),.3);max-width:640px}
 .relhead{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:8px}
 .relhead b{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-t)}
@@ -1451,8 +1464,8 @@ function ratingsHTML(x){
 
 /* ---------- detail modal ---------- */
 let CUR = null;
-async function openDetail(d){
-  CUR = d;
+async function openDetail(d, ctx){
+  CUR = d; const ep = ctx?.ep || null;
   const ov = $('#ov'), md = $('#modal');
   ov.classList.add('open'); document.body.style.overflow = 'hidden';
   md.innerHTML = `<button class="x" data-close="ov">×</button><div class="loading"><div class="spin"></div>Loading ${esc(d.t)}…</div>`;
@@ -1461,10 +1474,10 @@ async function openDetail(d){
       <div class="mbody" style="padding-top:40px"><h2 class="bebas" style="font-size:46px;margin:0">${esc(d.t)}</h2>
       <div class="meta">${d.y?`<span class="chip">${d.y}</span>`:''}${(genresOf(d)||[]).map(g => `<span class="chip">${esc(g)}</span>`).join('')}</div>
       ${d.n?`<div class="note">On your drive: ${esc(d.n)}</div>`:''}
-      <div id="relBox" class="relbox" hidden style="margin-top:18px"></div>
+      ${ep ? `<div class="epbox" id="epBox" style="margin-top:18px">${epBoxHTML(ep, null, '')}</div>` : `<div id="relBox" class="relbox" hidden style="margin-top:18px"></div>`}
       <p style="color:var(--muted);margin-top:18px">Couldn't find this title on ${srcName(d)}.${d.r ? ` It was read from <b>${esc(d.r)}</b>.` : ''}</p>
       <div class="actions"><button class="btn pri" data-fix="${d.i}">✎ Fix title &amp; find details</button></div></div>`;
-    fillRelease(d, {}, {});
+    if(ep) fillEpisode(d, {}, ep); else fillRelease(d, {}, {});
   };
   try{
     if(d.synth && d.art && d.s!=='tv' && P()===FREE && !cached(d)) mem.set(d.i, {type:'wiki', title:d.art, poster:PP[d.art] || null});
@@ -1497,7 +1510,7 @@ async function openDetail(d){
       <div class="mbody">
         <div id="relBox" class="relbox" hidden></div>
         ${ratingsHTML(x)}
-        <p class="ovw">${esc(x.overview || 'No description available.')}</p>
+        ${ep ? `<div class="epbox" id="epBox">${epBoxHTML(ep, null, x.overview)}</div>` : `<p class="ovw">${esc(x.overview || 'No description available.')}</p>`}
         <div class="actions">
           ${(d.play||[]).map(p => `<a class="btn play ${p.type}" href="${esc(p.url)}" target="_blank" rel="noopener">▶ Play in ${esc(p.label)}</a>`).join('')}
           <a class="btn ${(d.play||[]).length ? '' : 'pri'}" href="${trailer}" target="_blank" rel="noopener">▶ ${x.trailer ? 'Watch trailer' : 'Find trailer'}</a>
@@ -1517,7 +1530,7 @@ async function openDetail(d){
         ${x.photos?.length?`<div class="sec"><h3 class="bebas">Photos</h3><div class="gallery">${x.photos.map(p=>`<img src="${p.thumb}" data-full="${p.full}" alt="" loading="lazy">`).join('')}</div></div>`:''}
       </div>`;
     if(d.s==='tv') fillSeasons(d, m); else fillSeries(d, m, x);
-    fillRelease(d, m, x);
+    if(ep) fillEpisode(d, x, ep); else fillRelease(d, m, x);
   }catch(e){
     const why = e.net && inPreview
       ? `This window is blocking internet access, which happens when the file is opened inside an app's preview.<br><b>Save the file and open it in Chrome, Edge or Firefox.</b>`
@@ -1551,6 +1564,36 @@ SELECT ?s ?sLabel ?m ?mLabel ?date ?ord ?art WHERE {
     .filter(S => S.items.length >= 2 && S.items.some(M => M.q === qid))
     .sort((a, b) => a.items.length - b.items.length).slice(0, 2);
 }
+/* ---------- pop-up opened from a calendar episode: show that episode, not the whole show ---------- */
+function epBoxHTML(ev, info, showOverview){
+  const [label, col] = CTYPE[ev.type] || CTYPE.episode;
+  const m = /S(\d+)E(\d+)(?:\s*·\s*(.*))?/.exec(ev.sub || '') || [];
+  const name = info?.name || m[3] || '';
+  const text = (info?.summary || ev.overview || '').replace(/<[^>]+>/g, '').trim();
+  const meta = [relDay(ev.d), ev.net, info?.runtime ? `${info.runtime} min` : ''].filter(Boolean).join(' · ');
+  return `<div class="ephead"><span class="chip" style="background:${col};border-color:${col};color:#10131a;font-weight:700">${esc(label)}</span>
+      <b>Season ${+m[1] || '?'}, Episode ${+m[2] || '?'}${name ? ` · ${esc(name)}` : ''}</b></div>
+    <div class="epmeta">${esc(meta)}</div>
+    ${ev.binge ? `<div class="epdrop">The whole season (${ev.binge} episodes) arrives at once on this day. Showing the first episode.</div>` : ''}
+    <div class="epwrap">${info?.img ? `<img class="epimg2" src="${esc(px(info.img))}" alt="">` : ''}
+      <p class="ovw">${text ? esc(text) : info === null ? '<span class="eploading">Loading the episode description…</span>' : 'No description for this episode yet.'}</p></div>
+    ${showOverview ? `<details class="epshow"><summary>About the show</summary><p class="ovw">${esc(showOverview)}</p></details>` : ''}`;
+}
+async function fillEpisode(d, x, ev){
+  const me = CUR, m = /S(\d+)E(\d+)/.exec(ev.sub || ''); if(!m) return;
+  let info = {};
+  try{
+    let tvm = ev.tvm;
+    if(!tvm){ const r = await tvmazeId({t:ev.t, q:ev.t, y:ev.y, ids:{...(ev.ids || {}), ...(d.ids || {})}, s:'tv'}); tvm = r?.id; }
+    if(tvm){
+      const e = await tvGet(`https://api.tvmaze.com/shows/${tvm}/episodebynumber?season=${+m[1]}&number=${+m[2]}`);
+      info = {name:e.name, summary:e.summary, runtime:e.runtime, img:e.image?.medium || null};
+    }
+  }catch(e){ if(e.status !== 404) console.warn('episode', e); }
+  if(CUR !== me) return;
+  const box = $('#epBox'); if(box) box.innerHTML = epBoxHTML(ev, info, x.overview);
+}
+
 /* Wikidata id for whatever the pop-up is showing (cached per title) */
 const QIDS = new Map();
 async function qidFor(d, m, x){
@@ -4106,7 +4149,7 @@ async function calArr(svc, start, end){
   return list.filter(x => x.airDateUtc || x.airDate).map(x => {
     const se = x.series || {}, d = x.airDateUtc ? ymd(new Date(x.airDateUtc)) : x.airDate;
     const type = x.episodeNumber === 1 ? 'premiere' : x.finaleType ? 'finale' : 'episode';
-    return {d, type, t:se.title || 'Unknown series', y:se.year, s:'tv', poster:img(se), src:'Sonarr', have:!!x.hasFile, net:se.network || '',
+    return {d, type, t:se.title || 'Unknown series', y:se.year, s:'tv', poster:img(se), src:'Sonarr', have:!!x.hasFile, net:se.network || '', overview:x.overview || '',
       sub:`S${String(x.seasonNumber).padStart(2, '0')}E${String(x.episodeNumber).padStart(2, '0')}${x.title && x.title !== 'TBA' ? ' · ' + x.title : ''}`, ids:{tvdb:se.tvdbId}};
   });
 }
@@ -4176,7 +4219,7 @@ async function calShow(it){
     const type = e.number === 1 ? 'premiere' : order[e.season] && e.number === order[e.season] ? 'finale' : 'episode';
     return {d, type, sub:`S${String(e.season).padStart(2, '0')}E${String(e.number).padStart(2, '0')}${e.name ? ' · ' + e.name : ''}`};
   }).filter(e => e.d >= from).slice(0, 80);
-  return {ev, net, poster:s.image?.medium || null};
+  return {ev, net, poster:s.image?.medium || null, tvm:id.id};
 }
 
 async function calLoad(force){
@@ -4221,23 +4264,37 @@ function calEvents(){
   };
   const svc = arrFor(kind), ak = `${svc}|${start}|${end}`;
   if(CAL.src.arr && arrOn(svc)) (CAL.arr[ak]?.ev || []).forEach(push);
-  calCands(kind).forEach(it => { const c = store.get(calKey(it)); (c?.ev || []).forEach(e => push({...e, t:it.t, y:it.y, s:kind, poster:c.poster || it.poster || null, net:c.net || '', src:c.src, from:it.from, ids:it.ids})); });
+  calCands(kind).forEach(it => { const c = store.get(calKey(it)); (c?.ev || []).forEach(e => push({...e, t:it.t, y:it.y, s:kind, poster:c.poster || it.poster || null, net:c.net || '', src:c.src, from:it.from, ids:it.ids, tvm:c.tvm})); });
   const ord = Object.keys(CTYPE);
-  return [...seen.values()].sort((a, b) => a.d.localeCompare(b.d) || ord.indexOf(a.type) - ord.indexOf(b.type) || a.t.localeCompare(b.t));
+  let out = [...seen.values()];
+  if(kind === 'tv'){
+    // a whole season dropped on one day (streaming binge release): show just the first episode, flagged
+    const groups = new Map();
+    out.forEach(e => { const k = fold(e.t) + '|' + e.d; if(!groups.has(k)) groups.set(k, []); groups.get(k).push(e); });
+    out = [...groups.values()].flatMap(g => {
+      if(g.length < 3) return g;
+      const num = e => { const m = /S(\d+)E(\d+)/.exec(e.sub || ''); return m ? +m[1] * 1000 + +m[2] : 1e9; };
+      const first = {...g.sort((a, b) => num(a) - num(b))[0]};
+      first.binge = g.length; if(g.some(e => e.type === 'premiere')) first.type = 'premiere';
+      first.have = g.every(e => e.have);
+      return [first];
+    });
+  }
+  return out.sort((a, b) => a.d.localeCompare(b.d) || ord.indexOf(a.type) - ord.indexOf(b.type) || a.t.localeCompare(b.t));
 }
 
 /* ---- rendering ---- */
 function calChip(e, i){
   const [label, col] = CTYPE[e.type];
-  const sub = e.s === 'tv' ? [label, e.net].filter(Boolean).join(' · ') : label;
-  return `<button class="cev" data-cev="${i}" style="--c:${col}" title="${esc(`${e.t}${e.y ? ` (${e.y})` : ''} — ${label}${e.sub ? ' · ' + e.sub : ''}${e.net ? ' · ' + e.net : ''}`)}"><b>${esc(e.t)}</b><small>${esc(sub)}</small></button>`;
+  const sub = e.s === 'tv' ? [e.binge ? `${label} · all ${e.binge} eps` : label, e.net].filter(Boolean).join(' · ') : label;
+  return `<button class="cev" data-cev="${i}" style="--c:${col}" title="${esc(`${e.t}${e.y ? ` (${e.y})` : ''} — ${label}${e.sub ? ' · ' + e.sub : ''}${e.binge ? ` · whole season (${e.binge} episodes)` : ''}${e.net ? ' · ' + e.net : ''}`)}"><b>${esc(e.t)}</b><small>${esc(sub)}</small></button>`;
 }
 function calWhere(e){ return [e.src === 'Radarr' || e.src === 'Sonarr' ? e.src : null, ...(e.from || [])].filter(Boolean); }
 function calRow(e, i){
   const [label, col] = CTYPE[e.type], h = hue(e.t);
   return `<button class="crow" data-cev="${i}" style="--c:${col}">
     <span class="cpost" style="${e.poster ? `background-image:url('${esc(e.poster)}')` : `background:linear-gradient(160deg,hsl(${h} 45% 30%),hsl(${(h+40)%360} 50% 12%))`}"></span>
-    <span class="cinfo"><b>${esc(e.t)}${e.y && e.s === 'movie' ? ` <em>${e.y}</em>` : ''}</b>${e.sub ? `<small>${esc(e.sub)}</small>` : ''}
+    <span class="cinfo"><b>${esc(e.t)}${e.y && e.s === 'movie' ? ` <em>${e.y}</em>` : ''}</b>${e.sub ? `<small>${esc(e.sub)}${e.binge ? ` · whole season, ${e.binge} episodes at once` : ''}</small>` : ''}
       <span class="ctags"><i class="ctype">${esc(label)}</i>${e.net ? `<i>${esc(e.net)}</i>` : ''}${calWhere(e).map(w => `<i class="cwhere">${esc(w)}</i>`).join('')}${e.have ? '<i class="chave">✓ Already have it</i>' : ''}</span></span></button>`;
 }
 function renderCalendarSide(){
@@ -4328,7 +4385,7 @@ document.addEventListener('click', e => {
   const ev = CAL.evs[+c.dataset.cev]; if(!ev) return;
   closeOv('eov');
   const own = DATA.find(d => d.s === ev.s && fold(d.t) === fold(ev.t) && (!ev.y || !d.y || Math.abs(d.y - ev.y) <= 1));
-  openDetail(own || synthFromItem({k:'c:' + fold(ev.t) + (ev.y || ''), t:ev.t, y:ev.y, s:ev.s}));
+  openDetail(own || synthFromItem({k:'c:' + fold(ev.t) + (ev.y || ''), t:ev.t, y:ev.y, s:ev.s}), ev.s === 'tv' && /S\d+E\d+/.test(ev.sub || '') ? {ep:ev} : null);
 });
 
 /* ---------- Settings → Connections ---------- */
