@@ -9,7 +9,7 @@
   <Privileged>false</Privileged>
   <Support>https://github.com/zombifiedturkey/YAMZ/issues</Support>
   <Project>https://github.com/zombifiedturkey/YAMZ</Project>
-  <Overview>YAMZ (Yet Another Media Zombie) is a good-looking browser for your movie and TV collection. Connect Plex or Jellyfin and get a poster wall with ratings, cast and photos, a Missing page that finds gaps in your franchises and TV seasons, Discover (popular, upcoming, last 12 months and The GOAT by genre and decade), your own Lists, a release Calendar, Plex Watchlist sync, and one-click adding to Radarr and Sonarr. Everything is stored in /config and protected by its own sign-in. Open the WebUI and create your account on first run.</Overview>
+  <Overview>YAMZ (Yet Another Media Zombie) is a good-looking browser for your movie and TV collection. Connect Plex or Jellyfin and get a poster wall with ratings, cast and photos, a Gaps page that finds what's missing from your franchises and TV seasons, Discover (Popular, Upcoming, Recent and Essentials by genre and decade), your own Lists, a release Calendar, Plex Watchlist sync, and one-click adding to Radarr and Sonarr. Everything is stored in /config and protected by its own sign-in. Open the WebUI and create your account on first run. Note: YAMZ is tested day to day with Plex. Jellyfin support should work but still needs more real-world testing.</Overview>
   <Category>MediaApp:Video Tools:Utilities</Category>
   <WebUI>http://[IP]:[PORT:7979]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/zombifiedturkey/YAMZ/main/unraid/yamz.xml</TemplateURL>

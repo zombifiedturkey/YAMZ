@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+**Docs**
+- README and Unraid template now say that Jellyfin support should work but is still being tested. The Unraid description also uses the current page names (Gaps, Recent, Essentials).
+
 **Library**
 - The foot of the Movies and TV menus now shows, in small faded text, when Plex or Jellyfin last refreshed its library and when YAMZ last synced with it. Hover over a line to see the exact date and time. For Jellyfin this uses the "Scan media library" task. If your account can't see that task, YAMZ shows when something was last added instead.
 

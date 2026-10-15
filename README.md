@@ -8,6 +8,8 @@
 
 A good-looking, self-hosted browser for your movie and TV collection. Point it at **Plex** or **Jellyfin** and get a poster wall with ratings, cast and photos — plus tools for finding what you're missing, discovering what to watch next, tracking releases, and sending titles to **Radarr** and **Sonarr**.
 
+> **Jellyfin support is still being tested.** YAMZ is developed and tested day to day against Plex. Jellyfin uses Jellyfin's documented API and should work, but it hasn't had much real-world testing yet. If something doesn't look right with Jellyfin, please [open an issue](https://github.com/zombifiedturkey/YAMZ/issues) and say which Jellyfin version you're on.
+
 Run it as a **Docker container** (Unraid, Synology, any Linux box) and use it from any browser on your network or through a reverse proxy — or just open the single **`YAMZ.html`** file.
 
 | | |
@@ -17,7 +19,7 @@ Run it as a **Docker container** (Unraid, Synology, any Linux box) and use it fr
 
 ## Features
 
-- **Library** — Plex and/or Jellyfin (or plain folders), merged and de-duplicated. Posters, genres, ratings from several sources, cast, photos and a *Play in Plex/Jellyfin* button.
+- **Library** — Plex and/or Jellyfin (Jellyfin still being tested, see the note above), or plain folders, merged and de-duplicated. Posters, genres, ratings from several sources, cast, photos and a *Play in Plex/Jellyfin* button.
 - **TV** — seasons and episodes you have vs. what exists, with episode lists and descriptions (via TVmaze).
 - **Gaps** — search for any movie or show and add it to a list, Plex Watchlist, Radarr or Sonarr; incomplete franchises/collections (missing films first), your most-watched actors and the films of theirs you don't own, and TV shows with missing seasons or episodes.
 - **Discover** — Popular, Upcoming and Recent (last 1–12 months) for movies or TV, filterable by genre. Pick a genre to unlock **Essentials**: the greatest titles in that genre, all time or by decade.
