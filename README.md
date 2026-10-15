@@ -16,8 +16,9 @@ Run it as a **Docker container** (Unraid, Synology, any Linux box) and use it fr
 
 | | |
 |---|---|
-| ![Library](docs/library.png) | ![Essentials](docs/discover.png) |
-| ![Calendar](docs/calendar.png) | ![Sign in](docs/login.png) |
+| ![Library](docs/library.jpg) | ![Movie details](docs/details.jpg) |
+| ![Gaps: collections](docs/collections.jpg) | ![Gaps: actors](docs/actors.jpg) |
+| ![Discover: Essentials](docs/discover.jpg) | ![Calendar](docs/calendar.jpg) |
 
 ## Features
 
