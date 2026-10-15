@@ -1,6 +1,6 @@
 {
   "name": "yamz",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "YAMZ (Yet Another Media Zombie): a self-hosted browser for your Plex/Jellyfin library with Discover, Missing, Lists, Calendar, Plex Watchlist and Radarr/Sonarr integration.",
   "license": "MIT",
   "private": true,

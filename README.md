@@ -123,7 +123,7 @@ The demo at **https://zombifiedturkey.github.io/YAMZ/** is the real app with a s
 npm run dev          # http://localhost:7979, data in ./config
 ```
 
-No dependencies — Node 20+ only. The UI is `YAMZ.html`; the server is `server/server.js`. Images are built for `linux/amd64` and `linux/arm64` by GitHub Actions and published to `ghcr.io` on every push to `main` (`:edge`) and every `v*` tag (`:latest`, `:1.0.0`, `:1.0`).
+No dependencies — Node 20+ only. The UI is `YAMZ.html`; the server is `server/server.js`. Images are built for `linux/amd64` and `linux/arm64` by GitHub Actions and published to `ghcr.io` on every push to `main` (`:edge`) and every `v*` tag (`:latest`, `:1.1.0`, `:1.1`).
 
 ## Found a bug? Got an idea?
 

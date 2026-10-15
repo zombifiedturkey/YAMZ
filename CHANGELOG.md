@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 — 15 October 2026
 
 **Docs**
 - README and Unraid template now say that Jellyfin support should work but is still being tested. The Unraid description also uses the current page names (Gaps, Recent, Essentials).
