@@ -14,13 +14,19 @@
   <WebUI>http://[IP]:[PORT:7979]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/zombifiedturkey/YAMZ/main/unraid/yamz.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/zombifiedturkey/YAMZ/main/unraid/yamz-icon.png</Icon>
+  <Screenshot>https://raw.githubusercontent.com/zombifiedturkey/YAMZ/main/docs/library.jpg</Screenshot>
+  <Screenshot>https://raw.githubusercontent.com/zombifiedturkey/YAMZ/main/docs/details.jpg</Screenshot>
+  <Screenshot>https://raw.githubusercontent.com/zombifiedturkey/YAMZ/main/docs/collections.jpg</Screenshot>
+  <Screenshot>https://raw.githubusercontent.com/zombifiedturkey/YAMZ/main/docs/actors.jpg</Screenshot>
+  <Screenshot>https://raw.githubusercontent.com/zombifiedturkey/YAMZ/main/docs/discover.jpg</Screenshot>
+  <Screenshot>https://raw.githubusercontent.com/zombifiedturkey/YAMZ/main/docs/calendar.jpg</Screenshot>
   <ExtraParams/>
   <PostArgs/>
   <CPUset/>
   <DateInstalled/>
   <DonateText/>
   <DonateLink/>
-  <Requires/>
+  <Requires>A Plex or Jellyfin server reachable from this container (or plain media folders). Radarr, Sonarr, TMDB and OMDb keys are optional extras.</Requires>
   <Config Name="WebUI port" Target="7979" Default="7979" Mode="tcp" Description="Port for the YAMZ web interface." Type="Port" Display="always" Required="true" Mask="false">7979</Config>
   <Config Name="Appdata" Target="/config" Default="/mnt/user/appdata/yamz" Mode="rw" Description="Where YAMZ keeps its settings, lists, account and cache." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/yamz</Config>
   <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="User ID YAMZ runs as (Unraid default: 99 = nobody)." Type="Variable" Display="advanced" Required="false" Mask="false">99</Config>
