@@ -1,17 +1,26 @@
 # Getting YAMZ into Unraid Community Applications
 
-Community Applications (CA) lists templates from GitHub repositories that its moderators have approved.
-The requirements change from time to time — check the current guidance pinned in the
-**Community Applications** thread on forums.unraid.net before submitting. The usual steps are:
+Submissions now go through the Community Apps website: https://ca.unraid.net/submit
+(help pages: https://ca.unraid.net/submit/help). Check those pages before submitting, as the rules change from time to time.
 
-1. **Publish the image.** Push a `v1.0.0` tag so GitHub Actions publishes `ghcr.io/zombifiedturkey/yamz:latest`.
-   Then on GitHub go to your profile → **Packages → yamz → Package settings** and set visibility to **Public**
-   (new GHCR packages are private, and Unraid can't pull private images without a login).
-2. **Check the template.** `unraid/yamz.xml` must point at the public image, the icon URL and the template URL
-   (already set up for zombifiedturkey/YAMZ). Test it on your own server by copying it to `/boot/config/plugins/dockerMan/templates-user/my-YAMZ.xml` and choosing it under *Docker → Add Container*.
-3. **Create a support thread** in the Unraid forums (*Docker Containers* section). Put its URL in the
-   template's `<Support>` tag — CA expects a support link users can reach.
-4. **Submit the template repository** (`https://github.com/zombifiedturkey/YAMZ`) using the submission method
-   described in the CA thread. A moderator reviews it; once accepted, YAMZ appears in the Apps tab.
-5. **Updates** happen automatically: CA re-reads `unraid/yamz.xml` from `main`, and users get new images
-   whenever you push a new tag.
+## What the repository needs (all done)
+
+- [x] Public GitHub repository: `https://github.com/zombifiedturkey/YAMZ`
+- [x] OSI-approved licence at the root: `LICENSE` (MIT)
+- [x] `ca_profile.xml` at the root, with a non-empty `<Profile>`
+- [x] A Docker template: `unraid/yamz.xml`, pointing at `ghcr.io/zombifiedturkey/yamz:latest`, with icon, support and template URLs
+- [x] A published image: `:latest` is built from each `v*` release (currently 1.1.0)
+
+## Steps
+
+1. **Check the image is public.** On GitHub go to your profile → **Packages → yamz → Package settings** and make sure visibility is **Public**. Unraid can't pull private images.
+2. **Test the template on your own server.** Copy `unraid/yamz.xml` to `/boot/config/plugins/dockerMan/templates-user/my-YAMZ.xml`, then pick it under *Docker → Add Container* and check it installs and opens.
+3. **Optional: create a support thread** in the Unraid forums (*Docker Containers* section). If you do, put its URL in `<Support>` in `unraid/yamz.xml` and `<Forum>` in `ca_profile.xml`. Until then both point to GitHub Issues.
+4. **Submit.** Sign in at https://ca.unraid.net/submit/new, add the repository URL, then run **Validate** and **Scan** and fix anything they flag. Track it under *My submissions*.
+5. **Wait for review.** Once accepted, YAMZ appears in the Apps tab.
+
+## After it's listed
+
+CA re-reads `unraid/yamz.xml` from `main`, so template changes go live automatically. Users get new versions whenever a new `v*` release is published. Run Validate and Scan again after any meaningful change to the XML.
+
+Help with submissions: https://product.unraid.net/b/community-apps-submission-support

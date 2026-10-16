@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<CommunityApplications>
+  <Profile>YAMZ (Yet Another Media Zombie) is a self-hosted browser for your movie and TV collection. Connect Plex or Jellyfin for a poster wall with ratings, cast and photos, find the gaps in your franchises and TV seasons, discover what to watch next, track upcoming releases on a calendar, keep your own lists alongside your Plex Watchlist, and send titles to Radarr and Sonarr. YAMZ is tested day to day with Plex. Jellyfin support should work but still needs more real-world testing. For help, bug reports and feature requests, open an issue on GitHub.</Profile>
+  <Icon>https://raw.githubusercontent.com/zombifiedturkey/YAMZ/main/unraid/yamz-icon.png</Icon>
+  <WebPage>https://github.com/zombifiedturkey/YAMZ</WebPage>
+  <Forum>https://github.com/zombifiedturkey/YAMZ/issues</Forum>
+</CommunityApplications>
