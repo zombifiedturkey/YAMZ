@@ -10,6 +10,8 @@ A good-looking, self-hosted browser for your movie and TV collection. Point it a
 
 https://github.com/user-attachments/assets/50e57c1c-911d-4a4a-8e89-16c3db479537
 
+<p align="center"><a href="https://www.youtube.com/watch?v=bnb8neIcp1s">Watch the tour in full quality on YouTube</a></p>
+
 > **Jellyfin support is still being tested.** YAMZ is developed and tested day to day against Plex. Jellyfin uses Jellyfin's documented API and should work, but it hasn't had much real-world testing yet. If something doesn't look right with Jellyfin, please [open an issue](https://github.com/zombifiedturkey/YAMZ/issues) and say which Jellyfin version you're on.
 
 Run it as a **Docker container** (Unraid Community Applications, Synology, any Linux box) and use it from any browser on your network or through a reverse proxy — or just open the single **`YAMZ.html`** file.
