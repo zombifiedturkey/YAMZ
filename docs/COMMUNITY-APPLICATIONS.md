@@ -1,5 +1,7 @@
 # Getting YAMZ into Unraid Community Applications
 
+**Status: approved on 16 October 2026.** YAMZ appears in the Apps tab from the next Community Apps update.
+
 Submissions now go through the Community Apps website: https://ca.unraid.net/submit
 (help pages: https://ca.unraid.net/submit/help). Check those pages before submitting, as the rules change from time to time.
 

@@ -12,7 +12,7 @@ https://github.com/user-attachments/assets/50e57c1c-911d-4a4a-8e89-16c3db479537
 
 > **Jellyfin support is still being tested.** YAMZ is developed and tested day to day against Plex. Jellyfin uses Jellyfin's documented API and should work, but it hasn't had much real-world testing yet. If something doesn't look right with Jellyfin, please [open an issue](https://github.com/zombifiedturkey/YAMZ/issues) and say which Jellyfin version you're on.
 
-Run it as a **Docker container** (Unraid, Synology, any Linux box) and use it from any browser on your network or through a reverse proxy — or just open the single **`YAMZ.html`** file.
+Run it as a **Docker container** (Unraid Community Applications, Synology, any Linux box) and use it from any browser on your network or through a reverse proxy — or just open the single **`YAMZ.html`** file.
 
 | | |
 |---|---|
@@ -53,7 +53,13 @@ Or with Compose — see [`docker-compose.yml`](docker-compose.yml).
 
 ### Unraid
 
-Until YAMZ is listed in Community Applications, add the template by hand. (Unraid 6.10 and later no longer have a *Template repositories* box.)
+YAMZ is in **Community Applications**:
+
+1. **Apps** tab → search for **YAMZ** → **Install**.
+2. Check the settings (the defaults are fine for most people) → **Apply**.
+3. Click the YAMZ icon → **WebUI**, and create your account.
+
+<details><summary>Installing the template by hand instead</summary>
 
 1. Open a terminal (the **>_** icon at the top right of the Unraid web UI) and run:
    ```bash
@@ -62,6 +68,8 @@ Until YAMZ is listed in Community Applications, add the template by hand. (Unrai
    ```
 2. **Docker** tab → **Add Container** → in the **Template** dropdown pick **YAMZ** (under *User templates*) → **Apply**.
 3. Click the YAMZ icon → **WebUI**, and create your account.
+
+</details>
 
 Appdata defaults to `/mnt/user/appdata/yamz`, running as `99:100` (nobody:users).
 
