@@ -8,9 +8,13 @@
 
 A good-looking, self-hosted browser for your movie and TV collection. Point it at **Plex** or **Jellyfin** and get a poster wall with ratings, cast and photos — plus tools for finding what you're missing, discovering what to watch next, tracking releases, and sending titles to **Radarr** and **Sonarr**.
 
+<p align="center"><a href="https://www.youtube.com/watch?v=bnb8neIcp1s"><img src="docs/video.jpg" alt="Watch the YAMZ tour on YouTube" width="720"></a></p>
+
+<details><summary>Or play it here on GitHub</summary>
+
 https://github.com/user-attachments/assets/50e57c1c-911d-4a4a-8e89-16c3db479537
 
-<p align="center"><a href="https://www.youtube.com/watch?v=bnb8neIcp1s">Watch the tour in full quality on YouTube</a></p>
+</details>
 
 > **Jellyfin support is still being tested.** YAMZ is developed and tested day to day against Plex. Jellyfin uses Jellyfin's documented API and should work, but it hasn't had much real-world testing yet. If something doesn't look right with Jellyfin, please [open an issue](https://github.com/zombifiedturkey/YAMZ/issues) and say which Jellyfin version you're on.
 
