@@ -79,6 +79,10 @@ YAMZ is in **Community Applications**:
 
 Appdata defaults to `/mnt/user/appdata/yamz`, running as `99:100` (nobody:users).
 
+### Synology
+
+Use Container Manager (DSM 7.2 or later). The step-by-step guide is in [docs/SYNOLOGY.md](docs/SYNOLOGY.md).
+
 ### Settings (environment variables)
 
 | Variable | Default | What it does |
