@@ -2484,19 +2484,23 @@ const PLEX = {
 /* ---- Jellyfin ---- */
 const JF = {
   label:'Jellyfin',
-  auth(token){ return `MediaBrowser Client="YAMZ", Device="Browser", DeviceId="${CID}", Version="1.0"${token ? `, Token="${token}"` : ''}`; },
-  async get(s, path, params = {}, ms){ return jget(`${s.url}${path}?${qs({...params, api_key:s.token})}`, {headers:{Accept:'application/json'}}, ms); },
+  // Jellyfin's current sign-in method: everything goes in the Authorization header. Newer servers turn off the
+  // legacy ways (an api_key in the address, X-Emby-* headers), so YAMZ never puts a key or token in a URL.
+  auth(token){ return `MediaBrowser Client="YAMZ", Device="Browser", DeviceId="${CID}", Version="1.0"${token ? `, Token="${String(token).replace(/"/g, '')}"` : ''}`; },
+  hdr(token, extra = {}){ return {Accept:'application/json', Authorization:this.auth(token), ...extra}; },
+  async get(s, path, params = {}, ms){ const q = qs(params); return jget(`${s.url}${path}${q ? '?' + q : ''}`, {headers:this.hdr(s.token)}, ms); },
   img(s, id){ return id ? px(`${s.url}/Items/${id}/Images/Primary?fillHeight=450&fillWidth=300&quality=90`) : null; },
   play(s, k){ return `${s.url}/web/#/details?id=${k}&serverId=${s.sid || ''}`; },
   async connect(url, user, pass, key){
     const info = await jget(`${url}/System/Info/Public`, {headers:{Accept:'application/json'}}, 6000);
     let token = key, uid = null;
     if(!key){
-      const r = await jget(`${url}/Users/AuthenticateByName`, {method:'POST', headers:{'Content-Type':'application/json', Accept:'application/json', 'X-Emby-Authorization':this.auth()}, body:JSON.stringify({Username:user, Pw:pass})}, 10000);
+      const r = await jget(`${url}/Users/AuthenticateByName`, {method:'POST', headers:this.hdr(null, {'Content-Type':'application/json'}), body:JSON.stringify({Username:user, Pw:pass})}, 10000);
       token = r.AccessToken; uid = r.User?.Id;
     } else {
-      const us = await jget(`${url}/Users?${qs({api_key:key})}`, {headers:{Accept:'application/json'}}, 8000).catch(() => []);
-      uid = (us.find(u => u.Policy?.IsAdministrator) || us[0])?.Id || null;
+      // A rejected key must fail here (shown as "API key was rejected"), not slip through to a confusing 401 later
+      const us = await jget(`${url}/Users`, {headers:this.hdr(key)}, 8000);
+      uid = ((Array.isArray(us) ? us : []).find(u => u.Policy?.IsAdministrator) || us[0])?.Id || null;
     }
     return {name:info.ServerName || 'Jellyfin', url, token, sid:info.Id, user:uid};
   },

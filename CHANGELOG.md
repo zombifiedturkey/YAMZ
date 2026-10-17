@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+**Fixes**
+- Jellyfin: connecting with an API key failed with "HTTP 401" on newer Jellyfin servers, which turn off the old way of passing the key in the web address ([#1](https://github.com/zombifiedturkey/YAMZ/issues/1)). YAMZ now signs in to Jellyfin only with the `Authorization: MediaBrowser …` header, for API keys and for username/password, and never puts a key in a URL. A key Jellyfin rejects now shows "API key was rejected" straight away, instead of failing later during library sync. Existing Jellyfin connections pick up the fix automatically. Thanks to @RoWe90 for the detailed report, the fix and the regression tests.
+
 ## 1.1.0 — 15 October 2026
 
 **Docs**
