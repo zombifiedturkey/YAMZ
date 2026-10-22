@@ -12,6 +12,19 @@
 - Only the Plex server owner's sign-in can see everyone's streams. A shared user only sees their own.
 - Jellyfin support for Now playing is coming next.
 
+**Activity page**
+- New **Activity** tab, shown when a Plex server is connected. It gives a big card per stream, with the artwork behind it and who's watching. Each card shows:
+  - progress, and when the stream will end ("Ends 2:55 PM"), or how much is left if it's paused
+  - the device and Plex app
+  - video, audio and subtitles, each showing what the file is and what's actually being sent ("4K HEVC → 1080p H.264 (hardware)", "TrueHD 7.1 → AAC stereo", "English (PGS) (burned in)")
+  - the container, the bitrate and the transcode speed
+- The side menu totals Direct play, Direct stream and Transcoding, and splits bandwidth into Local and Remote.
+- The page refreshes every 10 seconds while it's open. Click a card to open that title.
+- The Now playing dropdown has a link to the page.
+
+**Library**
+- The poster grid is now centred in the window, so wide windows no longer leave a gap down the right-hand side.
+
 **Fixes**
 - Jellyfin: connecting with an API key failed with "HTTP 401" on newer Jellyfin servers, which turn off the old way of passing the key in the web address ([#1](https://github.com/zombifiedturkey/YAMZ/issues/1)). YAMZ now signs in to Jellyfin only with the `Authorization: MediaBrowser …` header, for API keys and for username/password, and never puts a key in a URL. A key Jellyfin rejects now shows "API key was rejected" straight away, instead of failing later during library sync. Existing Jellyfin connections pick up the fix automatically. Thanks to @RoWe90 for the detailed report, the fix and the regression tests.
 

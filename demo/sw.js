@@ -125,16 +125,16 @@ function demoSessions(){
   const m1 = PLEXMOV[2], m2 = PLEXMOV[5], sh = PLEXTV[0];
   return [
     {sessionKey:'1', type:'movie', ratingKey:m1.ratingKey, title:m1.title, year:m1.year, thumb:m1.thumb, duration:6.9e6, viewOffset:at(6.9e6, 2.4e6),
-     User:{title:'zombie_fan'}, Player:{title:'Living Room', product:'Plex for Apple TV', platform:'tvOS', state:'playing', local:true}, Session:{location:'lan', bandwidth:21400},
-     Media:[{videoResolution:'4k', selected:true, Part:[{decision:'directplay', Stream:[]}]}]},
+     art:m1.thumb, User:{title:'zombie_fan'}, Player:{title:'Living Room', product:'Plex for Apple TV', platform:'tvOS', state:'playing', local:true}, Session:{location:'lan', bandwidth:21400},
+     Media:[{videoResolution:'4k', container:'mkv', selected:true, Part:[{decision:'directplay', Stream:[{streamType:1, codec:'hevc', colorTrc:'smpte2084'}, {streamType:2, codec:'truehd', channels:8, language:'English', selected:true}]}]}]},
     {sessionKey:'2', type:'episode', ratingKey:'9100', title:'The Long Night', grandparentTitle:sh.title, grandparentThumb:sh.thumb, parentIndex:2, index:4, duration:3.3e6, viewOffset:at(3.3e6, 0.9e6),
-     User:{title:'Sam'}, Player:{title:'Pixel 8', product:'Plex for Android', platform:'Android', state:'playing', local:false}, Session:{location:'wan', bandwidth:8200},
-     TranscodeSession:{videoDecision:'transcode', audioDecision:'copy', sourceVideoCodec:'hevc', videoCodec:'h264', height:1080, transcodeHwFullPipeline:true},
-     Media:[{videoResolution:'4k', selected:true, Part:[{decision:'transcode', Stream:[{streamType:3, decision:'burn', selected:true}]}]}]},
+     grandparentArt:sh.thumb, User:{title:'Sam'}, Player:{title:'Pixel 8', product:'Plex for Android', platform:'Android', state:'playing', local:false}, Session:{location:'wan', bandwidth:8200},
+     TranscodeSession:{videoDecision:'transcode', audioDecision:'copy', sourceVideoCodec:'hevc', videoCodec:'h264', height:1080, container:'mpegts', speed:1.6, throttled:true, transcodeHwFullPipeline:true},
+     Media:[{videoResolution:'4k', container:'mkv', selected:true, Part:[{decision:'transcode', Stream:[{streamType:1, codec:'hevc'}, {streamType:2, codec:'eac3', channels:6, language:'English', selected:true}, {streamType:3, codec:'pgs', displayTitle:'English (PGS)', decision:'burn', selected:true}]}]}]},
     {sessionKey:'3', type:'movie', ratingKey:m2.ratingKey, title:m2.title, year:m2.year, thumb:m2.thumb, duration:7.4e6, viewOffset:4.1e6,
-     User:{title:'Alex'}, Player:{title:'Chrome', product:'Plex Web', platform:'Windows', state:'paused', local:true}, Session:{location:'lan', bandwidth:12600},
-     TranscodeSession:{videoDecision:'copy', audioDecision:'transcode', sourceAudioCodec:'truehd', audioCodec:'aac'},
-     Media:[{videoResolution:'1080', selected:true, Part:[{decision:'transcode', Stream:[]}]}]},
+     art:m2.thumb, User:{title:'Alex'}, Player:{title:'Chrome', product:'Plex Web', platform:'Windows', state:'paused', local:true}, Session:{location:'lan', bandwidth:12600},
+     TranscodeSession:{videoDecision:'copy', audioDecision:'transcode', sourceAudioCodec:'truehd', audioCodec:'aac', audioChannels:2, container:'mp4', speed:4.2, throttled:true},
+     Media:[{videoResolution:'1080', container:'mkv', selected:true, Part:[{decision:'transcode', Stream:[{streamType:1, codec:'h264'}, {streamType:2, codec:'truehd', channels:8, language:'English', selected:true}, {streamType:3, codec:'srt', displayTitle:'English (SRT)', selected:true}]}]}]},
   ];
 }
 function plexDiscover(u, req){

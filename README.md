@@ -32,7 +32,7 @@ Run it as a **Docker container** (Unraid Community Applications, Synology, any L
 - **TV** — seasons and episodes you have vs. what exists, with episode lists and descriptions (via TVmaze).
 - **Gaps** — search for any movie or show and add it to a list, Plex Watchlist, Radarr or Sonarr; incomplete franchises/collections (missing films first), your most-watched actors and the films of theirs you don't own, and TV shows with missing seasons or episodes.
 - **Discover** — Popular, Upcoming and Recent (last 1–12 months) for movies or TV, filterable by genre. Pick a genre to unlock **Essentials**: the greatest titles in that genre, all time or by decade.
-- **Now playing** — a live readout in the top bar of who's streaming from Plex, with direct play / transcode details, the reason for each transcode, and total bandwidth.
+- **Now playing & Activity** — a live readout in the top bar of who's streaming from Plex, plus an Activity page with full stream details: what's direct playing or transcoding and why, video/audio/subtitle conversions, transcode speed, and local vs remote bandwidth.
 - **Lists** — your own lists (marathons, shopping lists, films to lend a mate), plus your **Plex Watchlist** synced alongside.
 - **Calendar** — month or agenda view of upcoming releases for everything in Radarr, Sonarr, your lists and your Plex Watchlist, labelled *Theatres*, *Streaming* or *Physical media* (episodes for TV).
 - **Connections** — Plex Watchlist, Radarr and Sonarr (documented v3 API only: look up and add titles with your root folder, quality profile, tags and monitoring options).

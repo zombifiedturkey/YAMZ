@@ -95,6 +95,44 @@ header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px
 :root[data-theme="glass"] .actpop{background:rgba(16,18,26,.97);-webkit-backdrop-filter:var(--gfx);backdrop-filter:var(--gfx);border-color:rgba(255,255,255,.12)}
 :root[data-theme="light"] .npwhy,:root[data-theme="light"] .nphead .npwarn{color:#a55f00}
 :root[data-theme="light"] .nptag.tc{color:#a55f00} :root[data-theme="light"] .nptag.dp{color:#23864a} :root[data-theme="light"] .nptag.ds{color:#1f6fa8}
+.linkbtn{background:none;border:0;padding:0;color:var(--accent-t);font:inherit;font-weight:600;cursor:pointer}
+.linkbtn:hover{text-decoration:underline}
+.npfoot .linkbtn{font-size:12px;margin-bottom:4px}
+.apgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(380px,100%),1fr));gap:18px}
+.apcard{background:var(--bg2);border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color .15s}
+.apcard:hover{border-color:var(--accent-t)}
+.aptop{position:relative;display:flex;gap:14px;padding:16px;background:var(--tint);overflow:hidden;min-height:150px}
+.apart{position:absolute;inset:-20px;background:center/cover no-repeat;filter:blur(18px) brightness(.45) saturate(1.2);transform:scale(1.1)}
+.aptop > :not(.apart){position:relative}
+.apposter{width:80px;height:120px;box-shadow:0 8px 22px rgba(0,0,0,.5)}
+.aphead{flex:1;min-width:0;color:#fff;display:flex;flex-direction:column;gap:3px}
+.aphead .nptitle{font-size:17px}
+.aphead .npsub{color:rgba(255,255,255,.82)}
+.aphead .npmeta{margin-top:auto}
+.aphead .nptag.net{background:rgba(255,255,255,.14);color:#fff}
+.apuser{display:flex;align-items:center;gap:7px;font-size:13px;margin-top:4px}
+.apuser img,.apav{width:22px;height:22px;border-radius:50%;object-fit:cover;flex:none}
+.apav{display:grid;place-items:center;background:rgba(255,255,255,.2);font-size:11px;font-weight:700}
+.apbody{padding:12px 16px 16px}
+.aptime{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:10px}
+.aprow{display:flex;gap:12px;font-size:13px;padding:5px 0;border-top:1px solid var(--line)}
+.aprow span{width:112px;flex:none;color:var(--muted)}
+.aprow b{font-weight:500;min-width:0;overflow-wrap:anywhere}
+.aprow em{font-style:normal;color:var(--accent-t);font-weight:700}
+.aprow small{color:var(--muted)}
+.aprow small.apburn,.apburn{color:#e89a2c}
+.apbody .npwhy{margin-top:8px}
+.actidle{text-align:center;padding:80px 20px;color:var(--muted)}
+.actidle b{display:block;font-size:18px;color:var(--text);margin:10px 0 6px}
+.actidle-ico{width:64px;height:64px;margin:0 auto;border-radius:50%;display:grid;place-items:center;background:var(--bg2);border:1px solid var(--line);font-size:22px;color:var(--dim)}
+.actsum{display:flex;flex-direction:column;gap:2px;padding:0 4px}
+.actsum div{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;font-size:13px}
+.actsum i{font-style:normal}
+.actsum b{font-variant-numeric:tabular-nums}
+.actsum span{color:var(--muted)}
+.actsum-sep{border-top:1px solid var(--line);margin-top:6px;padding-top:10px!important}
+:root[data-theme="glass"] .apcard{background:var(--glass);-webkit-backdrop-filter:var(--gfx);backdrop-filter:var(--gfx)}
+:root[data-theme="light"] .aprow small.apburn{color:#a55f00}
 @media (max-width:1560px){ .actpill .abw{display:none} }
 @media (max-width:1240px){ .actpill .alabel{display:none} }
 @media (max-width:760px){ .actpill{padding:7px 10px} .actpop{position:fixed;left:12px;right:12px;width:auto;top:var(--acttop,120px);max-height:calc(100vh - var(--acttop,120px) - 16px)} }
@@ -121,7 +159,7 @@ main{flex:1;min-width:0;padding:22px 26px 60px}
 .banner button{margin-left:auto}
 
 /* grid */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(calc(150px * var(--ps)),100%),calc(150px * var(--ps))));justify-content:start;gap:calc(22px * (var(--ps) + 1) / 2) calc(16px * (var(--ps) + 1) / 2)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(calc(150px * var(--ps)),100%),calc(150px * var(--ps))));justify-content:center;gap:calc(22px * (var(--ps) + 1) / 2) calc(16px * (var(--ps) + 1) / 2)}
 .card{cursor:pointer;border:0;background:none;padding:0;text-align:left;outline:none;display:flex;flex-direction:column;justify-content:flex-start;align-self:start;color:inherit}
 .poster{position:relative;aspect-ratio:2/3;border-radius:var(--pr);overflow:hidden;background:var(--bg3);box-shadow:0 6px 18px var(--shadow);transition:transform .18s ease,box-shadow .18s ease}
 .card:hover .poster,.card:focus-visible .poster{transform:translateY(-4px) scale(1.02);box-shadow:0 14px 30px rgba(0,0,0,.6),0 0 0 2px var(--accent)}
@@ -499,7 +537,7 @@ button.sc:hover{transform:translateY(-1px);box-shadow:0 0 0 2px var(--accent)}
 .side-new input{flex:1;min-width:0;background:var(--bg2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;color:var(--text);outline:none;font-size:13px}
 .side-new input:focus{border-color:var(--accent)}
 
-.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(calc(150px * var(--ps)),100%),calc(150px * var(--ps))));justify-content:start;gap:calc(22px * (var(--ps) + 1) / 2) calc(16px * (var(--ps) + 1) / 2)}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(calc(150px * var(--ps)),100%),calc(150px * var(--ps))));justify-content:center;gap:calc(22px * (var(--ps) + 1) / 2) calc(16px * (var(--ps) + 1) / 2)}
 .dcard{cursor:pointer;border:0;background:none;padding:0;text-align:left;color:inherit;font:inherit;display:flex;flex-direction:column;align-self:start}
 .dcard:hover .poster{transform:translateY(-4px) scale(1.02);box-shadow:0 14px 30px rgba(0,0,0,.6),0 0 0 2px var(--accent)}
 .dcard:hover .lbtn,.dcard:focus-within .lbtn{opacity:1;transform:none}
@@ -801,6 +839,7 @@ select option,select optgroup{background-color:#16181e;color:#ecedf0}
     <button data-s="discover">Discover</button>
     <button data-s="lists">Lists</button>
     <button data-s="calendar">Calendar</button>
+    <button data-s="activity" id="actTab" hidden>Activity</button>
   </div>
   <div class="search">
     <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -1422,6 +1461,7 @@ let io;
 function render(){
   $('#grid').className = 'grid'; $('#sort').style.display = ''; $('#attnBtn').style.display = 'none';
   if(state.s==='calendar') return renderCalendar();
+  if(state.s==='activity') return renderActivity();
   if(state.s==='discover' && !state.q.trim()) return renderDiscover(); if(state.s==='missing' || state.s==='lists') state.attn = false;
   if(!DATA.length){
     $('#title').textContent = 'Welcome'; $('#count').textContent = ''; $('#grid').className = 'mview'; $('#sort').style.display = 'none';
@@ -1465,6 +1505,7 @@ function paint(d, el){
 }
 function renderSide(){
   if(state.s==='calendar') return renderCalendarSide();
+  if(state.s==='activity') return renderActivitySide();
   if(state.s==='discover' && !state.q) return renderDiscoverSide();
   if(state.s==='lists' && !state.q) return renderListsSide();
   if(state.s==='missing' && !state.q) return renderMissingSide();
@@ -4580,7 +4621,7 @@ $('#clearCache').onclick = () => { store.keys().filter(k => k.startsWith('vault:
 let tt; function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 4200); }
 $('#tabs').onclick = e => { const b = e.target.closest('button'); if(!b) return;
   document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x===b));
-  state.s = b.dataset.s; state.c = state.s==='missing' ? missDefault() : state.s==='discover' ? DISC.sec : 'All'; if(state.s==='lists'){ state.attn = false; pwLoad(); } state.q = ''; $('#q').value = ''; renderSide(); render(); scrollTo(0,0); };
+  state.s = b.dataset.s; if(state.s === 'activity' || ACT_EVERY === 10000) setTimeout(actKick, 0); state.c = state.s==='missing' ? missDefault() : state.s==='discover' ? DISC.sec : 'All'; if(state.s==='lists'){ state.attn = false; pwLoad(); } state.q = ''; $('#q').value = ''; renderSide(); render(); scrollTo(0,0); };
 $('#side').addEventListener('click', e => {
   if(state.s !== 'discover') return;
   const k = e.target.closest('[data-dkind]'); if(k){ DISC.kind = k.dataset.dkind; store.set('zn:dkind', DISC.kind); renderSide(); render(); loadDiscover(); }
@@ -4639,13 +4680,31 @@ if(LIB.servers.length && !inPreview && LIB.servers.some(s => Date.now() - (s.at|
 /* ---------- live activity: who's streaming right now (Plex /status/sessions; Jellyfin to follow) ----------
    Read-only. The server owner's token sees every stream; a shared user's token only sees their own. */
 const ACT = {streams:[], at:0, err:null, busy:false, timer:null, open:false};
-const ACT_EVERY = 15000, ACT_WARN = 2;   // poll interval; video transcodes at once before the pill turns amber
+let ACT_EVERY = 15000; const ACT_WARN = 2;   // poll interval; video transcodes at once before the pill turns amber
 const actServers = () => (LIB.servers || []).filter(s => s.type === 'plex' && s.url && s.token);
 const pad2 = n => String(n ?? '').padStart(2, '0');
 const resName = h => !h ? '' : h >= 1800 ? '4K' : h >= 1000 ? '1080p' : h >= 700 ? '720p' : h >= 540 ? '576p' : h + 'p';
 const srcRes = r => ({'4k':'4K', '1080':'1080p', '720':'720p', '576':'576p', '480':'480p', 'sd':'SD'})[String(r || '').toLowerCase()] || (r ? r + 'p' : '');
 const codec = c => ({hevc:'HEVC', h264:'H.264', h265:'HEVC', av1:'AV1', vp9:'VP9', mpeg2video:'MPEG-2', truehd:'TrueHD', eac3:'E-AC3', ac3:'AC3', dca:'DTS', 'dca-ma':'DTS-HD', aac:'AAC', mp3:'MP3', flac:'FLAC', opus:'Opus'})[String(c || '').toLowerCase()] || String(c || '').toUpperCase();
 const hms = ms => { if(!ms) return '0:00'; const t = Math.floor(ms / 1000), h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), sec = t % 60; return (h ? h + ':' + pad2(m) : m) + ':' + pad2(sec); };
+const chName = n => !n ? '' : n === 1 ? 'mono' : n === 2 ? 'stereo' : n === 6 ? '5.1' : n === 8 ? '7.1' : n + ' ch';
+function actVideo(media, streams, ts){
+  const v = streams.find(x => x.streamType === 1) || {};
+  const src = [srcRes(media.videoResolution || ''), codec(v.codec || media.videoCodec), v.DOVIPresent ? 'Dolby Vision' : v.colorTrc === 'smpte2084' ? 'HDR10' : ''].filter(Boolean).join(' ');
+  if(!ts || ts.videoDecision !== 'transcode') return {src, out:'', note:ts?.videoDecision === 'copy' ? 'direct stream' : 'direct play'};
+  return {src, out:[resName(+ts.height), codec(ts.videoCodec)].filter(Boolean).join(' '), note:ts.transcodeHwFullPipeline || ts.transcodeHwEncoding ? 'hardware' : 'software'};
+}
+function actAudio(media, streams, ts){
+  const a = streams.find(x => x.streamType === 2 && x.selected) || streams.find(x => x.streamType === 2) || {};
+  const src = [codec(a.codec || media.audioCodec), chName(+(a.channels || media.audioChannels))].filter(Boolean).join(' ') + (a.language ? ` (${a.language})` : '');
+  if(!ts || ts.audioDecision !== 'transcode') return {src, out:'', note:ts?.audioDecision === 'copy' ? 'direct stream' : 'direct play'};
+  return {src, out:[codec(ts.audioCodec), chName(+ts.audioChannels)].filter(Boolean).join(' '), note:''};
+}
+function actSubs(streams){
+  const t = streams.find(x => x.streamType === 3 && x.selected) || streams.find(x => x.streamType === 3 && x.decision === 'burn');
+  if(!t) return null;
+  return {name:t.displayTitle || t.language || [t.codec].filter(Boolean).join(' ') || 'Subtitles', burn:t.decision === 'burn'};
+}
 function plexStream(s, m){
   const ep = m.type === 'episode', ts = m.TranscodeSession || null;
   const media = (m.Media || []).find(x => x.selected) || (m.Media || [])[0] || {};
@@ -4673,6 +4732,11 @@ function plexStream(s, m){
     user:m.User?.title || 'Someone', device:[m.Player?.title || m.Player?.product, m.Player?.platform].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(' · '),
     state:m.Player?.state || 'playing', remote:m.Session?.location ? m.Session.location !== 'lan' : m.Player?.local === false,
     pos:+m.viewOffset || 0, dur:+m.duration || 0, kbps:+(m.Session?.bandwidth || 0), mode, why,
+    art:PLEX.img(s, ep ? (m.grandparentArt || m.art) : m.art), avatar:m.User?.thumb || '',
+    devRow:[m.Player?.title, m.Player?.product].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(' · ') + (m.Player?.platform && !String(m.Player?.product || '').includes(m.Player.platform) ? ` (${m.Player.platform})` : ''),
+    hw:!!(ts?.transcodeHwFullPipeline || ts?.transcodeHwEncoding), speed:ts?.speed ? +ts.speed : null, throttled:!!ts?.throttled,
+    video:actVideo(media, streams, ts), audio:actAudio(media, streams, ts), subs:actSubs(streams),
+    box:[media.container, ts?.container].filter(Boolean).map(x => String(x).toUpperCase()),
   };
 }
 async function actLoad(){
@@ -4696,7 +4760,9 @@ function actSummary(){
 function actRender(){
   const wrap = $('#actWrap'), btn = $('#actBtn'), pop = $('#actPop'); if(!wrap) return;
   const show = actServers().length && LOOK.act !== 'hide' && !inPreview;
-  wrap.hidden = !show; if(!show){ pop.hidden = true; ACT.open = false; return; }
+  wrap.hidden = !show; $('#actTab').hidden = !show;
+  if(state.s === 'activity'){ renderActivitySide(); renderActivity(); }
+  if(!show){ pop.hidden = true; ACT.open = false; return; }
   const {n, tc, bw} = actSummary(), warn = tc >= ACT_WARN;
   btn.className = 'hbtn actpill ' + (ACT.err && !n ? 'off' : n ? (warn ? 'live warn' : 'live') : 'idle');
   btn.innerHTML = `<span class="adot"></span>${ACT.err && !n ? '<span class="alabel">Activity offline</span>' : n ? `▶ ${n}<span class="alabel"> streaming</span>${bw ? `<span class="abw">· ${esc(bw)}</span>` : ''}` : '<span class="alabel">Idle</span>'}`;
@@ -4717,17 +4783,73 @@ function actRender(){
         ${x.why.length && x.mode !== 'dp' ? `<div class="npwhy">${esc(x.why.join(' · '))}</div>` : ''}</div></div>`;
   }).join('');
   pop.innerHTML = head + (n ? cards : `<div class="npempty">${ACT.err ? `Couldn't read activity from Plex.<br><small>${esc(ACT.err.message || '')}</small>` : 'Nobody is watching right now.'}</div>`)
-    + `<div class="npfoot">Updates every ${ACT_EVERY / 1000} seconds${ACT.at ? ` · last checked ${new Date(ACT.at).toLocaleTimeString([], {hour:'numeric', minute:'2-digit', second:'2-digit'})}` : ''}</div>`;
+    + `<div class="npfoot"><button class="linkbtn" data-act-page>Open the Activity page →</button><br>Updates every ${ACT_EVERY / 1000} seconds${ACT.at ? ` · last checked ${new Date(ACT.at).toLocaleTimeString([], {hour:'numeric', minute:'2-digit', second:'2-digit'})}` : ''}</div>`;
 }
-function actKick(){ clearTimeout(ACT.timer); actLoad().finally(() => { ACT.timer = setTimeout(actTick, ACT_EVERY); }); }
+function actOpenTitle(x){
+  if(!x || (x.kind !== 'movie' && x.kind !== 'tv')) return;
+  const own = DATA.find(d => d.s === x.kind && fold(d.t) === fold(x.t) && (!x.y || !d.y || Math.abs(d.y - x.y) <= 1));
+  openDetail(own || synthFromItem({k:'act:' + fold(x.t) + (x.y || ''), t:x.t, y:x.y, s:x.kind}));
+}
+/* ---- Activity page: the full view of what's playing ---- */
+function renderActivitySide(){
+  const {n, tc, mbps} = actSummary(), by = k => ACT.streams.filter(x => x.mode === k).length;
+  const loc = ACT.streams.filter(x => !x.remote).reduce((a, x) => a + x.kbps, 0) / 1000, rem = mbps - loc;
+  const mb = v => (v >= 10 ? Math.round(v) : v.toFixed(1)) + ' Mbps';
+  $('#side').innerHTML = `<h4>Activity</h4>
+    <button class="cat on" data-c="Now playing">Now playing<span>${n}</span></button>
+    <h4>Right now</h4>
+    <div class="actsum">
+      <div><i class="nptag dp">Direct play</i><b>${by('dp')}</b></div>
+      <div><i class="nptag ds">Direct stream</i><b>${by('ds')}</b></div>
+      <div><i class="nptag tc">Transcoding</i><b>${tc}</b></div>
+      <div class="actsum-sep"><span>Local</span><b>${mb(loc)}</b></div>
+      <div><span>Remote</span><b>${mb(Math.max(0, rem))}</b></div>
+    </div>
+    <div class="side-foot">Updates every 10 seconds while this page is open.${ACT.at ? ` Last checked ${new Date(ACT.at).toLocaleTimeString([], {hour:'numeric', minute:'2-digit', second:'2-digit'})}.` : ''}</div>`;
+}
+function renderActivity(){
+  const g = $('#grid'); g.className = 'mview'; $('#sort').style.display = 'none'; $('#progress').textContent = '';
+  const {n, tc, bw} = actSummary();
+  $('#title').textContent = 'Now playing';
+  $('#count').textContent = n ? `${n} stream${n > 1 ? 's' : ''}${bw ? ' · ' + bw : ''}${tc ? ` · ${tc} transcoding` : ''}` : '';
+  if(!actServers().length){ g.innerHTML = `<div class="mpanel"><p>Connect a Plex server to see who's watching. Jellyfin support is coming.</p><div class="actions"><button class="btn pri" data-act="folders">Connect my library</button></div></div>`; return; }
+  if(!n){ g.innerHTML = `<div class="actidle"><div class="actidle-ico">▶</div><b>${ACT.err ? "Couldn't read activity from Plex" : 'Nobody is watching right now'}</b><p>${ACT.err ? esc(ACT.err.message || '') + '. Check the server is on and that you signed in with the server owner\'s Plex account.' : 'Streams appear here as soon as someone presses play.'}</p></div>`; return; }
+  const TAG = {dp:'Direct play', ds:'Direct stream', tc:'Transcoding'};
+  const row = (label, val) => val ? `<div class="aprow"><span>${label}</span><b>${val}</b></div>` : '';
+  const conv = o => !o || !o.src ? '' : o.out ? `${esc(o.src)} <em>→</em> ${esc(o.out)}${o.note ? ` <small>(${esc(o.note)})</small>` : ''}` : `${esc(o.src)} <small>(${esc(o.note)})</small>`;
+  g.innerHTML = `<div class="apgrid">${ACT.streams.map((x, i) => {
+    const pct = x.dur ? Math.min(100, x.pos / x.dur * 100) : 0, left = Math.max(0, x.dur - x.pos);
+    const ends = x.state === 'playing' && x.dur ? new Date(Date.now() + left).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : '';
+    const tint = `hsl(${hue(x.t)} 45% 28%)`;
+    return `<article class="apcard" data-actp-i="${i}">
+      <div class="aptop" style="--tint:${tint}">${x.art || x.img ? `<div class="apart" style="background-image:url('${esc(x.art || x.img)}')"></div>` : ''}
+        <div class="npposter apposter" style="${x.img ? `background-image:url('${esc(x.img)}')` : `background:linear-gradient(160deg,${tint},#111)`}">${x.state === 'paused' ? '<span class="nppause">❚❚</span>' : ''}</div>
+        <div class="aphead"><div class="nptitle">${esc(x.t)}</div>${x.sub ? `<div class="npsub">${esc(x.sub)}</div>` : ''}
+          <div class="apuser">${x.avatar ? `<img src="${esc(x.avatar)}" alt="" loading="lazy">` : `<span class="apav">${esc((x.user || '?')[0].toUpperCase())}</span>`}<b>${esc(x.user)}</b></div>
+          <div class="npmeta"><span class="nptag ${x.mode}">${TAG[x.mode]}${x.mode === 'tc' && x.hw ? ' · HW' : ''}</span><span class="nptag net">${x.remote ? 'Remote' : 'Local'}</span>${x.state !== 'playing' ? `<span class="nptag net">${x.state === 'paused' ? 'Paused' : 'Buffering'}</span>` : ''}</div></div></div>
+      <div class="apbody">
+        <div class="npbar"><i style="width:${pct.toFixed(1)}%"></i></div>
+        <div class="aptime"><span>${hms(x.pos)} / ${hms(x.dur)}</span><span>${ends ? 'Ends ' + ends : x.state === 'paused' ? hms(left) + ' left' : ''}</span></div>
+        ${row('Device', esc(x.devRow))}
+        ${row('Video', conv(x.video))}
+        ${row('Audio', conv(x.audio))}
+        ${row('Subtitles', x.subs ? esc(x.subs.name) + (x.subs.burn ? ' <small class="apburn">(burned in)</small>' : '') : '')}
+        ${row('Container', x.box.length > 1 && x.box[0] !== x.box[1] ? `${esc(x.box[0])} <em>→</em> ${esc(x.box[1])}` : esc(x.box[0] || ''))}
+        ${row('Bitrate', x.kbps ? (x.kbps / 1000).toFixed(1) + ' Mbps' : '')}
+        ${x.mode === 'tc' && x.speed ? row('Transcode speed', `${x.speed.toFixed(1)}×${x.throttled ? ' <small>(ahead, throttled)</small>' : x.speed < 1 ? ' <small class="apburn">(can\'t keep up)</small>' : ''}`) : ''}
+      </div></article>`;
+  }).join('')}</div>`;
+}
+function actKick(){ clearTimeout(ACT.timer); ACT_EVERY = state.s === 'activity' ? 10000 : 15000; actLoad().finally(() => { ACT.timer = setTimeout(actTick, ACT_EVERY); }); }
 function actTick(){ if(document.visibilityState === 'visible') actKick(); else ACT.timer = setTimeout(actTick, ACT_EVERY); }
 $('#actBtn').onclick = e => { e.stopPropagation(); ACT.open = !ACT.open; actRender(); if(ACT.open) actKick(); };
 document.addEventListener('click', e => {
+  const pc = e.target.closest('[data-actp-i]');
+  if(pc && state.s === 'activity'){ actOpenTitle(ACT.streams[+pc.dataset.actpI]); return; }
   if(!ACT.open) return;
+  if(e.target.closest('[data-act-page]')){ ACT.open = false; actRender(); $('#actTab').click(); return; }
   const c = e.target.closest('[data-act-i]');
-  if(c){ const x = ACT.streams[+c.dataset.actI]; ACT.open = false; actRender();
-    if(x && (x.kind === 'movie' || x.kind === 'tv')){ const own = DATA.find(d => d.s === x.kind && fold(d.t) === fold(x.t) && (!x.y || !d.y || Math.abs(d.y - x.y) <= 1)); openDetail(own || synthFromItem({k:'act:' + fold(x.t) + (x.y || ''), t:x.t, y:x.y, s:x.kind})); }
-    return; }
+  if(c){ const x = ACT.streams[+c.dataset.actI]; ACT.open = false; actRender(); actOpenTitle(x); return; }
   if(!e.target.closest('#actPop')){ ACT.open = false; actRender(); }
 });
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && ACT.open){ ACT.open = false; actRender(); $('#actBtn').focus(); } });
