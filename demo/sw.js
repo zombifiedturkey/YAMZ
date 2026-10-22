@@ -132,7 +132,8 @@ function demoHistory(){
   if(HISTC && now - HISTC.at < 600) return HISTC.list;
   let seed = 20261022; const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
   const people = [[1, 1.0], [2, 0.8], [3, 0.55], [4, 0.35]];
-  const horror = PLEXMOV.filter(m => (m.Genre || []).some(g => g.tag === 'Horror'));
+  const pool = PLEXMOV.filter((m, i) => i % 3 !== 2), horror = pool.filter(m => (m.Genre || []).some(g => g.tag === 'Horror'));
+  const epsOf = {}; PLEXEPS.forEach(e => (epsOf[e.grandparentRatingKey] ||= []).push(e));
   const epN = {}, list = [];
   for(let day = 0; day < 240; day++){
     const date = new Date((now - day * 86400) * 1000), wd = date.getDay(), weekend = wd === 0 || wd === 5 || wd === 6;
@@ -143,7 +144,7 @@ function demoHistory(){
         const d = new Date(date); d.setHours(hour, Math.floor(rnd() * 60), 0, 0);
         const t = Math.floor(d.getTime() / 1000) - k * 5400; if(t > now) continue;
         if(rnd() < 0.55){
-          const m = rnd() < 0.45 && horror.length ? horror[Math.floor(rnd() * horror.length)] : PLEXMOV[Math.floor(rnd() * PLEXMOV.length)];
+          const m = rnd() < 0.45 && horror.length ? horror[Math.floor(rnd() * horror.length)] : pool[Math.floor(rnd() * pool.length)];
           list.push({type:'movie', ratingKey:m.ratingKey, key:'/library/metadata/' + m.ratingKey, title:m.title, year:m.year, thumb:m.thumb, viewedAt:t, accountID:acct});
         } else {
           const sh = PLEXTV[Math.floor(Math.pow(rnd(), 1.6) * PLEXTV.length)], n = (epN[sh.ratingKey] = (epN[sh.ratingKey] || 0) + 1);
@@ -153,7 +154,10 @@ function demoHistory(){
     }
   }
   list.sort((a, b) => a.viewedAt - b.viewedAt);   // number each show's episodes in the order they were watched
-  const seen = {}; list.forEach(h => { if(h.type !== 'episode') return; const n = (seen[h.grandparentKey] = (seen[h.grandparentKey] || 0) + 1); h.parentIndex = 1 + Math.floor((n - 1) / 10); h.index = (n - 1) % 10 + 1; h.title = 'Episode ' + h.index; });
+  // each show is watched through its owned episodes in order, stopping short of the end so there's always a "next"
+  const seen = {}; list.forEach(h => { if(h.type !== 'episode') return; const k = h.grandparentKey.split('/').pop(), E = epsOf[k] || [];
+    const n = (seen[k] = (seen[k] || 0) + 1), e = E.length > 2 ? E[(n - 1) % (E.length - 2)] : {parentIndex:1, index:n};
+    h.parentIndex = e.parentIndex; h.index = e.index; h.title = 'Episode ' + e.index; });
   list.reverse();
   HISTC = {at:now, list}; return list;
 }

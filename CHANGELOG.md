@@ -35,6 +35,21 @@
   - charts of the busiest days of the week and times of day (hover a bar for the exact figure)
 - It all comes from your Plex server's own play history, which needs the server owner's sign-in. History is fetched in pages and cached for 5 minutes. **↻ Refresh** fetches it again.
 
+**For you** (Discover)
+- New **Discover → For you**, built from the last year of plays on your Plex server. Pick who it's for (Everyone or one person) in the side menu. It shows:
+  - **Your taste**: your top genres and decades as a share of plays, with recent plays counting more.
+  - **Up next**: the next episode of each show someone is watching (from the episodes you own), and the next film in a series someone has started. Series come from Gaps → Collections. If the next film isn't in your library, it can go straight to Radarr.
+  - **Because you watched…**: for the last few titles watched, similar titles split into **In your library, not watched yet** and **Not in your library** (one click to Radarr, Sonarr, your Watchlist or a list). These use TMDB when you have a key. Without one, YAMZ suggests unwatched titles from your own library with matching genres and era.
+- Discover lists from TMDB get a **Popular / For you** switch. For you puts titles matching your server's taste first, while still weighing popularity.
+
+**Genre gaps** (Activity → Stats)
+- Compares each genre's share of plays with its share of your library, and does the same for decades of films. Each one shows a bar for plays and a marker for your library.
+- **Watched more than you stock** lists genres and decades people watch more than you collect, with a link to that genre's **Essentials** to fill the gap.
+- **Plenty here, rarely watched** lists genres you own lots of but rarely watch.
+
+**Removed**
+- The Surprise me button.
+
 **Library**
 - The poster grid is now centred in the window, so wide windows no longer leave a gap down the right-hand side.
 

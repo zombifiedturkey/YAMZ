@@ -178,6 +178,35 @@ header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px
 .stcol::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--bg);border:1px solid var(--line);color:var(--text);font-size:12px;padding:5px 8px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .12s;z-index:5;box-shadow:0 6px 18px var(--shadow)}
 .stcol:hover::after{opacity:1}
 :root[data-theme="glass"] .rwlist,:root[data-theme="glass"] .stbox,:root[data-theme="glass"] .sttile{background:var(--glass);-webkit-backdrop-filter:var(--gfx);backdrop-filter:var(--gfx)}
+.fytaste{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:18px}
+.fylbl{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.fychip{font-size:12.5px;padding:4px 10px;border-radius:999px;background:var(--bg2);border:1px solid var(--line)}
+.fychip b{color:var(--accent-t);font-weight:700}
+.fytaste small{color:var(--dim);font-size:11.5px}
+.fysec{margin:8px 0 26px}
+.fysec h3{margin:0;font-size:17px}
+.fysec h3 em{font-style:normal;color:var(--accent-t)}
+.fysub{margin:2px 0 10px;color:var(--muted);font-size:12.5px}
+.fyhead{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:10px 0 8px}
+.fyrow{display:grid;grid-auto-flow:column;grid-auto-columns:calc(140px * var(--ps));gap:14px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin}
+.fywhy{font-size:11.5px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dorder{margin-left:auto}
+.dorder button{padding:5px 12px;font-size:12.5px}
+.gaps h4{margin:0 0 10px;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.gpcols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr));gap:10px 34px}
+.gpkey{display:flex;gap:16px;margin:-6px 0 14px;font-size:12px;color:var(--muted)}
+.gpkey span{display:flex;align-items:center;gap:6px}
+.gpkey i{display:inline-block}
+.gpkey .k1{width:16px;height:8px;border-radius:0 4px 4px 0;background:var(--accent)}
+.gpkey .k2{width:2px;height:14px;background:var(--text)}
+.gprow{margin-bottom:14px}
+.gplab{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin-bottom:5px}
+.gplab b{font-weight:600}
+.gplab span{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.gptrack{position:relative;height:8px;background:var(--bg3);border-radius:0 4px 4px 0}
+.gptrack i{display:block;height:100%;background:var(--accent);border-radius:0 4px 4px 0}
+.gpmark{position:absolute;top:-4px;width:2px;height:16px;background:var(--text);transform:translateX(-1px);border-radius:1px;box-shadow:0 0 0 2px var(--bg2)}
+.gpgo{font-size:12px;margin-top:5px}
 @media (max-width:1560px){ .actpill .abw{display:none} }
 @media (max-width:1240px){ .actpill .alabel{display:none} }
 @media (max-width:760px){ .actpill{padding:7px 10px} .actpop{position:fixed;left:12px;right:12px;width:auto;top:var(--acttop,120px);max-height:calc(100vh - var(--acttop,120px) - 16px)} }
@@ -892,7 +921,6 @@ select option,select optgroup{background-color:#16181e;color:#ecedf0}
   </div>
   <div class="spacer hide-sm"></div>
   <div class="actwrap" id="actWrap" hidden><button class="hbtn actpill" id="actBtn" aria-haspopup="dialog" aria-expanded="false"></button><div class="actpop" id="actPop" role="dialog" aria-label="Now playing" hidden></div></div>
-  <button class="hbtn hide-sm" id="surprise">🎲 Surprise me</button>
   <button class="hbtn" id="settingsBtn" aria-label="Settings">⚙︎<span class="hide-sm"> Settings</span></button>
 </header>
 
@@ -3407,7 +3435,8 @@ const GOAT = 'Essentials';
 const DISC_MAX = 100;   // titles shown per Discover list
 if(DISC.sec === 'The GOAT') DISC.sec = GOAT;
 const ESS_ICO = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2.8l2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.2l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8z"/></svg>';
-const dsecs = () => DISC.genre ? [...DSECS, GOAT] : DSECS;
+const FORYOU = 'For you';
+const dsecs = () => [...(actServers().length ? [FORYOU] : []), ...DSECS, ...(DISC.genre ? [GOAT] : [])];
 const DECADES = [2020, 2010, 2000, 1990, 1980, 1970, 1960, 1950];
 const FILM_T = 'wd:Q11424 wd:Q24869 wd:Q29168811 wd:Q202866';
 const TV_T = 'wd:Q5398426 wd:Q1259759 wd:Q581714 wd:Q526877 wd:Q63952888 wd:Q117467246';
@@ -3464,7 +3493,7 @@ async function tmdbPages(path, params, pages){
 }
 const tmdbItem = (r, kind) => { const date = (r.release_date || r.first_air_date || '').slice(0, 10);
   return {q:'tm' + r.id, tmid:r.id, t:r.title || r.name, y:+date.slice(0, 4) || null, date, art:'', img:r.poster_path ? IMG + 'w342' + r.poster_path : null, s:kind,
-    tm:r.vote_count ? r.vote_average : null, votes:r.vote_count || 0, lang:r.original_language || '?', ids:kind === 'movie' ? {tmdb:String(r.id)} : {}}; };
+    tm:r.vote_count ? r.vote_average : null, votes:r.vote_count || 0, lang:r.original_language || '?', ids:kind === 'movie' ? {tmdb:String(r.id)} : {}, gi:r.genre_ids || []}; };
 async function discTmdb(kind, sec, genre, dec){
   const gp = tmdbGenre(kind, genre); if(gp === null) return null;
   const d0 = kind === 'movie' ? 'primary_release_date' : 'first_air_date', today = isoDay(new Date());
@@ -3592,6 +3621,7 @@ async function discGoat(kind, genre, dec){
 }
 const discMaxAge = sec => sec === 'Popular' ? 6*3600e3 : sec === GOAT ? 7*24*3600e3 : 24*3600e3;
 async function loadDiscover(force){
+  if(DISC.sec === FORYOU){ if(force) fyRefresh(); return; }
   const kind = DISC.kind, sec = DISC.sec, genre = DISC.genre, dec = DISC.dec, key = dkey(kind, sec), c = store.get(key);
   if(!force && c && Date.now() - c.at < discMaxAge(sec)) return;
   if(inPreview){ DISC.err[key] = 'Open the file in your web browser — previews block internet access.'; if(state.s==='discover') render(); return; }
@@ -3618,7 +3648,7 @@ function renderDiscoverSide(){
     <div class="side-seg"><div class="seg"><button data-dkind="movie" class="${DISC.kind==='movie'?'on':''}">Movies</button><button data-dkind="tv" class="${DISC.kind==='tv'?'on':''}">TV</button></div></div>
     <div class="side-sel"><label for="dGenre">Genre</label><select id="dGenre"><option value="">All genres</option>${G.map(g => `<option ${g===DISC.genre?'selected':''}>${g}</option>`).join('')}</select></div>` +
     dsecs().map(s => {
-      const btn = `<button class="cat ${state.c===s?'on':''}" data-c="${s}">${s}<span>${n(s) ?? '–'}</span></button>`;
+      const btn = `<button class="cat ${state.c===s?'on':''}" data-c="${s}">${s}<span>${s === FORYOU ? '' : n(s) ?? '–'}</span></button>`;
       const opts = state.c !== s ? '' : s === 'Recent'
         ? `<div class="side-sel rsel"><label for="dMonths">Released within <b id="dMonthsV">${monthsLabel(DISC.months)}</b></label>
             <input type="range" id="dMonths" min="0" max="${RMONTHS.length - 1}" step="1" value="${RMONTHS.indexOf(DISC.months)}" aria-valuetext="${monthsLabel(DISC.months)}">
@@ -3626,16 +3656,33 @@ function renderDiscoverSide(){
         : s === GOAT ? `<div class="side-sel"><label for="dDec">Decade</label><select id="dDec"><option value="">All time</option>${DECADES.map(d => `<option value="${d}" ${String(d)===String(DISC.dec)?'selected':''}>${d}s</option>`).join('')}</select></div>` : '';
       return opts ? `<div class="catgrp">${btn}<div class="catopts">${opts}</div></div>` : btn;
     }).join('') +
-    `<div class="side-foot">${state.c === GOAT
+    (state.c === FORYOU ? `<h4>Recommend for</h4><div class="side-seg"><select data-hvsel="who" aria-label="Recommend for"><option value="all">Everyone</option>${[...new Set(HIST.items.map(x => x.who))].sort((a, b) => a.localeCompare(b)).map(p => `<option ${HV.who === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>` : '') +
+    `<div class="side-foot">${state.c === FORYOU ? `Built from the last year of plays on your Plex server${tmdbOn() ? ', with suggestions from TMDB' : '. Add a free TMDB key in Settings for suggestions beyond your own library'}.`
+      : state.c === GOAT
       ? (tmdbOn() && TMDB_GEN[DISC.kind][DISC.genre] ? `Essentials ranks ${DISC.genre.toLowerCase()} ${DISC.kind==='movie'?'films':'series'} by TMDB audience rating, counting only titles with plenty of votes so one-off scores don't skew it.`
         : `Essentials ranks every ${DISC.genre.toLowerCase()} ${DISC.kind==='movie'?'film':'series'} on Wikidata by critic scores (Rotten Tomatoes and Metacritic) blended with how widely it's covered around the world.`)
       : tmdbOn() ? `Lists come from TMDB: trending this week, release dates and popularity.${DISC.genre && !TMDB_GEN[DISC.kind][DISC.genre] ? ` TMDB has no ${DISC.genre.toLowerCase()} category for TV, so this genre uses Wikipedia instead.` : ''}${DISC.genre ? '' : ' Pick a genre to unlock Essentials.'}`
       : `Popular is what's trending on Wikipedia right now. Upcoming and Recent come from Wikidata, ranked by how widely covered each title is. Add a free TMDB key in Settings for richer lists.${DISC.genre ? '' : ' Pick a genre to unlock Essentials.'}`}
       <button class="btn" data-drefresh>↻ Refresh</button></div>`;
 }
+const LS_ICO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/><path class="pl" d="M12 7.5v6M9 10.5h6"/></svg>';
+const discCrit = x => x.tm != null ? `★ ${x.tm.toFixed(1)}` : x.rt != null ? `🍅 ${x.rt}%` : x.mc != null ? `MC ${x.mc}` : '';
+/* one Discover card (also used by For you); x.why adds a small reason line under the year */
+function discCardHTML(x, sec, extra = {}){
+  DMAP.set(x.q, x); const h = hue(x.t), p = x.img || PP[x.art], listed = inAnyList('w:'+x.q), crit = discCrit;
+  const badge = extra.badge || (x.have ? `<div class="badge have">✓ In library</div>` : sec==='Upcoming' && x.date ? `<div class="badge date">${esc(fmtWhen(x.date))}</div>` : sec===GOAT && crit(x) ? `<div class="badge score">${crit(x)}</div>` : '');
+  return `<button class="dcard" data-q="${x.q}" data-art="${esc(x.art || '')}"><div class="poster">
+    <div class="ph" style="background:linear-gradient(160deg,hsl(${h} 45% 26%),hsl(${(h+40)%360} 50% 10%))">${esc(x.t)}${x.y?`<em>${x.y}</em>`:''}</div>
+    ${p ? `<img class="ld" src="${esc(p)}" alt="">` : ''}${badge}
+    ${x.rank ? `<span class="rank">${x.rank}</span>` : ''}
+    <span class="lbtn ${listed?'in':''}" role="button" tabindex="0" data-adddisc="${x.q}" title="Add to a list">${LS_ICO}</span>
+    ${x.have ? '' : (pb => pb + arrBtn({t:x.t, y:x.y, s:x.s, q:x.q}, pb ? 2 : 1, `data-pwq="d:${x.q}"`))(pwBtn({t:x.t, y:x.y, s:x.s}, `data-pwq="d:${x.q}"`))}</div>
+    <div class="ct">${esc(x.t)}</div><div class="cy">${extra.sub ? esc(extra.sub) : sec==='Upcoming' || sec==='Recent' ? esc(fmtWhen(x.date)) || (sec==='Upcoming' ? 'TBA' : x.y || '&nbsp;') : x.y || '&nbsp;'}${sec===GOAT && x.have ? ' · <b class="own-t">Owned</b>' : ''}</div></button>`;
+}
 function renderDiscover(){
   if(!dsecs().includes(state.c)) state.c = dsecs().includes(DISC.sec) ? DISC.sec : 'Popular';
   DISC.sec = state.c;
+  if(DISC.sec === FORYOU) return renderForYou();
   const kind = DISC.kind, sec = DISC.sec, genre = DISC.genre, key = dkey(kind, sec), c = store.get(key), g = $('#grid');
   $('#sort').style.display = 'none'; $('#progress').textContent = '';
   const what = `${genre ? genre + ' ' : ''}${kind==='movie' ? 'Movies' : 'TV'}`;
@@ -3655,25 +3702,18 @@ function renderDiscover(){
     if(pool.some(x => x.lang === undefined) && !DISC.langBusy[key]) discLangs(key);
     const before = pool.length; pool = pool.filter(x => !isForeign(x)); nForeign = before - pool.length;
   }
-  let items = pool.slice(0, DISC_MAX).map((x, i) => ({...x, have: owned(x), rank: x.rank ? i + 1 : undefined}));
+  const taste = DISC.order === 'you' && pool.some(x => x.gi?.length) ? tasteProfile(kind) : null;
+  if(taste) pool = tasteSort(pool, kind, taste);
+  let items = pool.slice(0, DISC_MAX).map((x, i) => ({...x, have: owned(x), rank: x.rank && !taste ? i + 1 : undefined}));
   const nHave = items.filter(x => x.have).length;
   if(DISC.hideOwn) items = items.filter(x => !x.have);
   $('#count').textContent = `${items.length} title${items.length===1?'':'s'}${sec === 'Recent' ? ` · released within ${monthsLabel(DISC.months)}` : ''}${sec === GOAT && nHave ? ` · you own ${nHave}` : ''}${nForeign ? ` · ${nForeign} foreign-language hidden` : DISC.noForeign && DISC.langBusy[key] ? ' · checking languages…' : ''}`;
-  const LS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/><path class="pl" d="M12 7.5v6M9 10.5h6"/></svg>';
-  const crit = x => x.tm != null ? `★ ${x.tm.toFixed(1)}` : x.rt != null ? `🍅 ${x.rt}%` : x.mc != null ? `MC ${x.mc}` : '';
+  const crit = discCrit;
   g.innerHTML = `<div class="mtools"><label class="tog"><input type="checkbox" id="dhide" ${DISC.hideOwn?'checked':''}> Hide titles I already have</label>
       <label class="tog" title="Hides titles whose original language isn't English"><input type="checkbox" id="dforeign" ${DISC.noForeign?'checked':''}> Hide foreign-language titles</label>
+      ${pool.some(x => x.gi?.length) && HIST.items.length ? `<div class="seg dorder" title="For you puts titles matching what your server watches first"><button data-dorder="pop" class="${DISC.order !== 'you' ? 'on' : ''}">Popular</button><button data-dorder="you" class="${DISC.order === 'you' ? 'on' : ''}">For you</button></div>` : ''}
       ${DISC.busy[key] ? '<span class="dsrc" style="margin:0">Refreshing…</span>' : ''}</div>
-    ${items.length ? `<div class="dgrid">${items.map(x => {
-      DMAP.set(x.q, x); const h = hue(x.t), p = x.img || PP[x.art], listed = inAnyList('w:'+x.q);
-      const badge = x.have ? `<div class="badge have">✓ In library</div>` : sec==='Upcoming' && x.date ? `<div class="badge date">${esc(fmtWhen(x.date))}</div>` : sec===GOAT && crit(x) ? `<div class="badge score">${crit(x)}</div>` : '';
-      return `<button class="dcard" data-q="${x.q}" data-art="${esc(x.art)}"><div class="poster">
-        <div class="ph" style="background:linear-gradient(160deg,hsl(${h} 45% 26%),hsl(${(h+40)%360} 50% 10%))">${esc(x.t)}${x.y?`<em>${x.y}</em>`:''}</div>
-        ${p ? `<img class="ld" src="${esc(p)}" alt="">` : ''}${badge}
-        ${x.rank ? `<span class="rank">${x.rank}</span>` : ''}
-        <span class="lbtn ${listed?'in':''}" role="button" tabindex="0" data-adddisc="${x.q}" title="Add to a list">${LS}</span>
-        ${x.have ? '' : (pb => pb + arrBtn({t:x.t, y:x.y, s:x.s, q:x.q}, pb ? 2 : 1, `data-pwq="d:${x.q}"`))(pwBtn({t:x.t, y:x.y, s:x.s}, `data-pwq="d:${x.q}"`))}</div>
-        <div class="ct">${esc(x.t)}</div><div class="cy">${sec==='Upcoming' || sec==='Recent' ? esc(fmtWhen(x.date)) || (sec==='Upcoming' ? 'TBA' : x.y || '&nbsp;') : x.y || '&nbsp;'}${sec===GOAT && x.have ? ' · <b class="own-t">Owned</b>' : ''}</div></button>`; }).join('')}</div>`
+    ${items.length ? `<div class="dgrid">${items.map(x => discCardHTML(x, sec)).join('')}</div>`
       : `<div class="empty">${DISC.hideOwn && c.items.length ? 'You already have everything here!' : genre ? `No ${genre.toLowerCase()} titles here right now${sec === 'Popular' ? ' — try Recent or Essentials' : ''}.` : 'Nothing found right now.'}</div>`}`;
   loadPosters(g, '.dcard');
   if(Date.now() - c.at > discMaxAge(sec)) loadDiscover();
@@ -3687,6 +3727,8 @@ $('#side').addEventListener('change', e => {
   }
   if(e.target.id === 'dDec'){ DISC.dec = e.target.value; store.set('zn:ddec', DISC.dec); renderSide(); render(); scrollTo(0,0); }
 });
+DISC.order = store.get('zn:dorder') || 'pop';
+$('#grid').addEventListener('click', e => { const b = e.target.closest('[data-dorder]'); if(b && state.s === 'discover'){ DISC.order = b.dataset.dorder; store.set('zn:dorder', DISC.order); render(); } });
 $('#grid').addEventListener('change', e => { if(e.target.id==='dhide'){ DISC.hideOwn = e.target.checked; store.set('zn:dhide', DISC.hideOwn); render(); }
   if(e.target.id==='dforeign'){ DISC.noForeign = e.target.checked; store.set('zn:dnoforeign', DISC.noForeign); render(); } });
 /* "foreign" = original language isn't English. TMDB lists carry the language; Wikidata lists look it up once (P364 → ISO 639-1) and cache it. */
@@ -4697,7 +4739,6 @@ $('#grid').oninput = e => { if(e.target.id==='mfilter'){ MISS.filter = e.target.
 $('#grid').onchange = e => { if(e.target.id==='kidsTog'){ MISS.kids = e.target.checked; store.set('zn:kids', MISS.kids); render(); } if(e.target.id==='realTog'){ TV.real = e.target.checked; store.set('zn:real', TV.real); renderSide(); render(); } if(e.target.id==='ownTog'){ MISS.showOwn = e.target.checked; store.set('zn:own', MISS.showOwn); render(); } };
 $('#settingsBtn').onclick = openSettings;
 $('#menuBtn').onclick = () => $('#side').classList.toggle('open');
-$('#surprise').onclick = () => { const pool = state.s==='missing' ? DATA.filter(d => d.s==='movie') : visible(); if(pool.length) openDetail(pool[Math.floor(Math.random()*pool.length)]); };
 document.addEventListener('click', e => {
   const x = e.target.closest('[data-close]'); if(x) return closeOv(x.dataset.close);
   if(e.target.classList.contains('ov')) return closeOv(e.target.id);
@@ -4890,6 +4931,142 @@ function renderActivity(){
       </div></article>`;
   }).join('')}</div>`;
 }
+/* ---------- For you: recommendations from your server's play history ---------- */
+const FY = {busy:{}, err:null};
+const YEAR_S = () => Math.floor(Date.now() / 1000) - 365 * 86400;
+const libFind = (kind, t, y) => DATA.find(d => d.s === kind && fold(d.t) === fold(t) && (!y || !d.y || Math.abs(d.y - y) <= 1));
+const libGenres = d => genresOf(d) || d.sg || [];
+function fyHist(kind){ const since = Date.now() - 365 * 86400e3; return HIST.items.filter(x => x.at >= since && x.kind === kind && (HV.who === 'all' || x.who === HV.who)); }
+/* taste: genre and decade shares of the last year's plays, recent plays counting more (90-day half-life) */
+function tasteProfile(kind){
+  const items = fyHist(kind); if(!items.length) return null;
+  const now = Date.now(), g = new Map(), dec = new Map(); let tot = 0;
+  items.forEach(x => { const w = Math.pow(0.5, (now - x.at) / (90 * 86400e3)); tot += w;
+    (x.g || []).forEach(n => g.set(n, (g.get(n) || 0) + w));
+    const yy = x.y || libFind(kind, x.t)?.y; if(yy){ const d = Math.floor(yy / 10) * 10; dec.set(d, (dec.get(d) || 0) + w); } });
+  const norm = m => new Map([...m].map(([k, v]) => [k, v / tot]).sort((a, b) => b[1] - a[1]));
+  return {g:norm(g), dec:norm(dec), n:items.length};
+}
+const TMDB_NAME = {movie:{}, tv:{}};
+Object.entries(TMDB_GEN).forEach(([k, m]) => Object.entries(m).forEach(([name, id]) => { if(typeof id === 'number' && !TMDB_NAME[k][id]) TMDB_NAME[k][id] = name; }));
+function tasteSort(pool, kind, T){
+  const n = pool.length || 1;
+  return pool.map((x, i) => {
+    const gs = (x.gi || []).map(id => TMDB_NAME[kind][id]).filter(Boolean);
+    const gm = gs.reduce((a, gn) => a + (T.g.get(gn) || 0), 0), dm = x.y ? (T.dec.get(Math.floor(x.y / 10) * 10) || 0) : 0;
+    return [x, (1 - i / n) * 0.6 + Math.min(gm, 1.2) + dm * 0.4];
+  }).sort((a, b) => b[1] - a[1]).map(e => e[0]);
+}
+function fyIds(x){   // library ids for a history entry (tmdb / imdb / tvdb), via the server's synced library
+  const [sid, k] = x.key.split(':'), s = (LIB.servers || []).find(v => String(v.id) === sid);
+  const it = s && [...(s.movies || []), ...(s.shows || [])].find(v => String(v.k) === k);
+  return it?.ids || libFind(x.kind, x.t, x.y)?.ids || {};
+}
+async function fyTmdbRecs(x){
+  const kind = x.kind, ids = fyIds(x), ck = `zn:fyrec:${kind}:${ids.tmdb || ids.imdb || ids.tvdb || fold(x.t)}`, c = store.get(ck);
+  if(c && Date.now() - c.at < 7 * 864e5) return c.items;
+  let id = ids.tmdb;
+  if(!id && (ids.imdb || ids.tvdb)){
+    const f = await getJSON(TMDB.url(`/find/${ids.imdb || ids.tvdb}`, {external_source:ids.imdb ? 'imdb_id' : 'tvdb_id'}), TMDB.opts());
+    id = (kind === 'movie' ? f.movie_results : f.tv_results)?.[0]?.id;
+  }
+  if(!id){ const r = await getJSON(TMDB.url(`/search/${kind}`, {query:x.t, ...(x.y ? {[kind === 'movie' ? 'year' : 'first_air_date_year']:x.y} : {})}), TMDB.opts()); id = r.results?.[0]?.id; }
+  if(!id) return [];
+  const items = (await tmdbPages(`/${kind}/${id}/recommendations`, {}, 1)).map(r => tmdbItem(r, kind)).slice(0, 20);
+  store.set(ck, {at:Date.now(), items});
+  store.keys().filter(k => k.startsWith('zn:fyrec:')).map(k => [k, store.get(k)?.at || 0]).sort((a, b) => b[1] - a[1]).slice(40).forEach(([k]) => store.del(k));
+  return items;
+}
+function fyLibRecs(x, watched){   // no TMDB key: unwatched titles you own that share the most genres (and era)
+  const src = x.g?.length ? x.g : libGenres(libFind(x.kind, x.t, x.y) || {}); if(!src.length) return [];
+  const sy = x.y || libFind(x.kind, x.t)?.y;
+  return DATA.filter(d => d.s === x.kind && !watched.has(fold(d.t)) && fold(d.t) !== fold(x.t)).map(d => {
+    const gs = libGenres(d), shared = gs.filter(g => src.includes(g)).length;
+    return [d, shared / Math.max(src.length, 1) + (sy && d.y && Math.abs(d.y - sy) <= 10 ? 0.25 : 0)];
+  }).filter(e => e[1] >= 0.5).sort((a, b) => b[1] - a[1]).slice(0, 12).map(e => e[0]);
+}
+function fyUpNext(kind){
+  const H = fyHist(kind), out = [], watched = new Set(H.map(x => fold(x.t) + (x.se ? ':' + x.se.join('x') : '')));
+  if(kind === 'tv'){
+    const last = new Map();   // latest episode per person + show
+    H.forEach(x => { if(!x.se) return; const k = x.who + '|' + fold(x.t); const L = last.get(k); if(!L || x.at > L.at) last.set(k, x); });
+    [...last.values()].filter(x => Date.now() - x.at < 120 * 864e5).sort((a, b) => b.at - a.at).forEach(x => {
+      const d = libFind('tv', x.t), eps = d && (TV.eps?.[d.t] || d.eps); if(!eps) return;
+      const all = Object.entries(eps).flatMap(([sn, es]) => es.map(e => [+sn, +e])).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+      const nx = all.find(([sn, e]) => sn > x.se[0] || (sn === x.se[0] && e > x.se[1]));
+      if(nx) out.push({own:d, t:d.t, sub:`Next: S${pad2(nx[0])}E${pad2(nx[1])}`, why:`${x.who} watched S${pad2(x.se[0])}E${pad2(x.se[1])} ${ago(x.at)}`});
+    });
+  } else {
+    const coll = MISS.data?.coll || [];
+    const seen = new Map(); H.forEach(x => { const k = fold(x.t); const p = seen.get(k); if(!p || x.at > p.at) seen.set(k, x); });
+    coll.forEach(C => {
+      let li = -1, lx = null;
+      C.items.forEach((M, i) => { const h = seen.get(fold(M.t)); if(h && (!lx || h.at > lx.at)){ li = i; lx = h; } });
+      if(li < 0) return;
+      const nx = C.items.slice(li + 1).find(M => M.st !== 'up' && !seen.has(fold(M.t))); if(!nx) return;
+      const own = nx.st === 'own' ? libFind('movie', nx.t, nx.y) : null;
+      out.push({own, t:nx.t, y:nx.y, q:nx.q, art:nx.art, sub:`Next in ${C.name.replace(/ (film )?series$/i, '')}`, why:`after ${lx.t}${own ? '' : ' · not in your library'}`, at:lx.at});
+    });
+    out.sort((a, b) => b.at - a.at);
+  }
+  return out.slice(0, 18);
+}
+function fyOwnCard(d, sub, why){
+  const i = DATA.indexOf(d), h = hue(d.t), p = d.sp || cached(d)?.poster;
+  return `<button class="dcard fyown" data-q="fyd:${i}"><div class="poster"><div class="ph" style="background:linear-gradient(160deg,hsl(${h} 45% 26%),hsl(${(h+40)%360} 50% 10%))">${esc(d.t)}${d.y ? `<em>${d.y}</em>` : ''}</div>${p ? `<img class="ld" src="${esc(p)}" alt="">` : ''}<div class="badge have">✓ In library</div></div>
+    <div class="ct">${esc(d.t)}</div><div class="cy">${esc(sub || d.y || '')}</div>${why ? `<div class="fywhy">${esc(why)}</div>` : ''}</button>`;
+}
+function fyRefresh(){ store.keys().filter(k => k.startsWith('zn:fyrec:')).forEach(k => store.del(k)); FY.recs = null; histLoad(true, YEAR_S()).then(() => { if(state.s === 'discover' && state.c === FORYOU){ renderSide(); render(); } }); render(); }
+async function fyLoadRecs(kind, sources){
+  const key = kind + '|' + HV.who + '|' + sources.map(x => x.key).join(',');
+  if(FY.recs?.key === key || FY.busy[key]) return;
+  FY.busy[key] = true; FY.err = null;
+  const watched = new Set(fyHist(kind).map(x => fold(x.t)));
+  const rows = [];
+  for(const x of sources){
+    try{
+      if(tmdbOn()){
+        const recs = await fyTmdbRecs(x), ownT = ownedTest(kind);
+        const have = [], need = [];
+        recs.forEach(r => { const d = libFind(kind, r.t, r.y); if(d){ if(!watched.has(fold(d.t))) have.push(d); } else if(!ownT(r)) need.push(r); });
+        rows.push({x, have:have.slice(0, 10), need:need.slice(0, 12)});
+      } else rows.push({x, have:fyLibRecs(x, watched), need:[]});
+    }catch(e){ FY.err = e; rows.push({x, have:[], need:[]}); }
+  }
+  FY.recs = {key, rows}; FY.busy[key] = false;
+  if(state.s === 'discover' && state.c === FORYOU) renderForYou();
+}
+function renderForYou(){
+  const g = $('#grid'), kind = DISC.kind; g.className = 'mview'; $('#sort').style.display = 'none'; $('#progress').textContent = '';
+  $('#title').textContent = `For you · ${kind === 'movie' ? 'Movies' : 'TV'}`; $('#count').textContent = HV.who !== 'all' ? 'for ' + HV.who : '';
+  if(!actServers().length){ g.innerHTML = `<div class="mpanel"><p>Connect a Plex server so YAMZ can learn what you watch.</p></div>`; return; }
+  if(HIST.since == null || HIST.since > YEAR_S() + 3600){
+    g.innerHTML = `<div class="loading"><div class="spin"></div>Reading a year of play history…</div>`;
+    if(!HIST.busy) histLoad(false, YEAR_S()).then(() => { if(state.s === 'discover' && state.c === FORYOU){ renderSide(); renderForYou(); } });
+    return;
+  }
+  const T = tasteProfile(kind);
+  if(!T){ g.innerHTML = `<div class="actidle"><b>Nothing watched yet${HV.who !== 'all' ? ' by ' + esc(HV.who) : ''}</b><p>Recommendations appear once there's some ${kind === 'movie' ? 'movie' : 'TV'} play history on your server.</p></div>`; return; }
+  const pct = v => Math.round(v * 100) + '%';
+  const chips = `<div class="fytaste"><span class="fylbl">Your taste</span>${[...T.g].slice(0, 6).map(([n, v]) => `<span class="fychip">${esc(n)} <b>${pct(v)}</b></span>`).join('')}${kind === 'movie' ? [...T.dec].slice(0, 3).map(([d, v]) => `<span class="fychip dec">${d}s <b>${pct(v)}</b></span>`).join('') : ''}<small>share of plays in the last year</small></div>`;
+  const up = fyUpNext(kind);
+  const upHTML = up.length ? `<section class="fysec"><h3>Up next</h3><p class="fysub">${kind === 'tv' ? 'The next episode of shows being watched.' : 'The next film in series being watched, from Gaps.'}</p><div class="fyrow">${up.map(u => u.own ? fyOwnCard(u.own, u.sub, u.why) : discCardHTML({q:u.q, t:u.t, y:u.y, s:'movie', art:u.art || '', have:false}, '', {sub:u.sub})).join('')}</div></section>`
+    : kind === 'movie' && !MISS.data ? `<section class="fysec"><h3>Up next</h3><p class="fysub">Run <b>Gaps → Collections</b> once and YAMZ will suggest the next film in series you've started.</p></section>` : '';
+  const seen = new Set(), sources = [];
+  fyHist(kind).forEach(x => { const k = fold(x.t); if(!seen.has(k) && sources.length < 4){ seen.add(k); sources.push(x); } });
+  fyLoadRecs(kind, sources);
+  const R = FY.recs?.key?.startsWith(kind + '|' + HV.who + '|') ? FY.recs.rows : null;
+  const recHTML = !R ? `<div class="loading"><div class="spin"></div>Finding titles like what you've watched…</div>`
+    : R.map(({x, have, need}) => (have.length || need.length) ? `<section class="fysec"><h3>Because ${HV.who === 'all' ? esc(x.who) : 'you'} watched <em>${esc(x.t)}</em></h3><p class="fysub">${ago(x.at)}</p>
+        ${have.length ? `<div class="fyhead">In your library${tmdbOn() ? ', not watched yet' : ', not watched yet · similar genres'}</div><div class="fyrow">${have.map(d => fyOwnCard(d)).join('')}</div>` : ''}
+        ${need.length ? `<div class="fyhead">Not in your library</div><div class="fyrow">${need.map(r => discCardHTML({...r, have:false}, '')).join('')}</div>` : ''}</section>` : '').join('')
+      + (R && !R.some(r => r.have.length || r.need.length) ? `<section class="fysec"><h3>Because you watched…</h3><p class="fysub">${tmdbOn() ? "TMDB didn't have suggestions for these titles yet." : `Everything similar in your library has already been watched. Add a free TMDB key in Settings to get suggestions beyond your own library.`}</p></section>` : '')
+      + (FY.err ? `<p class="fysub">Some suggestions couldn't load (${esc(FY.err.message || '')}).</p>` : '');
+  g.innerHTML = chips + upHTML + recHTML;
+  loadPosters(g, '.dcard');
+}
+document.addEventListener('click', e => { const c = e.target.closest('.fyown'); if(c && !e.target.closest('[data-adddisc],.arrbtn,.pwbtn')){ const d = DATA[+c.dataset.q.slice(4)]; if(d) openDetail(d); } });
+
 /* ---- play history (Plex /status/sessions/history/all) for Recently watched and Stats ---- */
 const HIST = {items:[], since:null, at:0, busy:null, err:null};
 const HPER = [['30', '30 days'], ['90', '90 days'], ['365', '1 year'], ['all', 'All time']];
@@ -4904,10 +5081,11 @@ function histItem(s, m, users, G){
     t:ep ? (m.grandparentTitle || m.title) : m.title, y:ep ? null : (+m.year || +(m.originallyAvailableAt || '').slice(0, 4) || null),
     sub:ep ? `S${pad2(m.parentIndex)}E${pad2(m.index)}${m.title ? ' · ' + m.title : ''}` : '',
     img:PLEX.img(s, ep ? (m.grandparentThumb || m.parentThumb || m.thumb) : m.thumb),
-    who:users[m.accountID] || (m.accountID ? 'User ' + m.accountID : 'Someone'), key:s.id + ':' + (gk || m.title), g:G[String(gk)] || []};
+    who:users[m.accountID] || (m.accountID ? 'User ' + m.accountID : 'Someone'), key:s.id + ':' + (gk || m.title), g:G[String(gk)] || [],
+    se:ep ? [+m.parentIndex || 0, +m.index || 0] : null};
 }
-async function histLoad(force){
-  const sv = actServers(), since = histSince(); if(!sv.length) return;
+async function histLoad(force, want){
+  const sv = actServers(), since = want ?? histSince(); if(!sv.length) return;
   if(!force && HIST.since != null && HIST.since <= since && Date.now() - HIST.at < 5 * 60e3) return;
   if(HIST.busy) return HIST.busy;
   HIST.busy = (async () => {
@@ -4990,6 +5168,29 @@ function colsHTML(title, vals, labels, tipFmt, every = 1){
   return `<section class="stbox"><h3>${title}</h3><div class="stcols" role="img" aria-label="${esc(title)}: ${vals.map((v, i) => `${labels[i]} ${v}`).join(', ')}">
     ${vals.map((v, i) => `<div class="stcol" data-tip="${esc(tipFmt(i, v))}"><div class="stcolbar"><i style="height:${(v / max * 100).toFixed(1)}%"></i>${i === top && v ? `<em>${v.toLocaleString()}</em>` : ''}</div><span>${i % every === 0 ? esc(labels[i]) : ''}</span></div>`).join('')}</div></section>`;
 }
+/* genre & decade gaps: share of plays vs share of the library */
+function gapsHTML(items){
+  const kinds = HV.kind === 'all' ? ['movie', 'tv'] : [HV.kind];
+  const lib = DATA.filter(d => kinds.includes(d.s)); if(lib.length < 10 || items.length < 10) return '';
+  const share = (arr, fn) => { const m = new Map(); arr.forEach(x => new Set(fn(x)).forEach(k => m.set(k, (m.get(k) || 0) + 1))); return new Map([...m].map(([k, v]) => [k, v / arr.length])); };
+  const pg = share(items, x => x.g || []), lg = share(lib, d => libGenres(d));
+  const decOf = y => y ? [Math.floor(y / 10) * 10 + 's'] : [];
+  const mv = items.filter(x => x.kind === 'movie'), lm = lib.filter(d => d.s === 'movie');
+  const pd = share(mv, x => decOf(x.y || libFind('movie', x.t)?.y)), ld = share(lm, d => decOf(d.y));
+  const rows = (P, L, minLib) => [...new Set([...P.keys(), ...L.keys()])].map(k => ({k, p:P.get(k) || 0, l:L.get(k) || 0}));
+  const G = rows(pg, lg), D = mv.length >= 10 && lm.length >= 10 ? rows(pd, ld) : [];
+  const more = [...G.map(r => ({...r, t:'g'})), ...D.map(r => ({...r, t:'d'}))].filter(r => r.p >= 0.05 && r.p - r.l >= 0.04 && r.p / Math.max(r.l, 0.005) >= 1.3).sort((a, b) => (b.p - b.l) - (a.p - a.l)).slice(0, 6);
+  const less = [...G.map(r => ({...r, t:'g'})), ...D.map(r => ({...r, t:'d'}))].filter(r => r.l >= 0.05 && r.p / r.l <= 0.5).sort((a, b) => (b.l - b.p) - (a.l - a.p)).slice(0, 5);
+  if(!more.length && !less.length) return '';
+  const mx = Math.max(...[...more, ...less].flatMap(r => [r.p, r.l]), 0.01);
+  const pc = v => Math.round(v * 100) + '%';
+  const essKind = HV.kind === 'tv' ? 'tv' : 'movie';
+  const row = r => `<div class="gprow"><div class="gplab"><b>${esc(r.t === 'd' ? r.k + ' films' : r.k)}</b><span>${pc(r.p)} of plays · ${pc(r.l)} of library</span></div>
+      <div class="gptrack" title="${esc(`${r.k}: ${pc(r.p)} of plays, ${pc(r.l)} of your library`)}"><i style="width:${(r.p / mx * 100).toFixed(1)}%"></i><b class="gpmark" style="left:${(r.l / mx * 100).toFixed(1)}%"></b></div>
+      ${r.t === 'g' && DGEN[r.k] && r.p > r.l ? `<button class="linkbtn gpgo" data-gap-ess="${esc(r.k)}" data-gap-kind="${r.t === 'd' ? 'movie' : essKind}">Essential ${esc(r.k.toLowerCase())} →</button>` : r.t === 'd' && r.p > r.l ? `<button class="linkbtn gpgo" data-gap-dec="${parseInt(r.k)}">Essentials of the ${esc(r.k)} →</button>` : ''}</div>`;
+  return `<section class="stbox gaps"><h3>Genre gaps</h3><p class="gpkey"><span><i class="k1"></i>share of plays</span><span><i class="k2"></i>share of your library</span></p>
+    <div class="gpcols">${more.length ? `<div><h4>Watched more than you stock</h4>${more.map(row).join('')}</div>` : ''}${less.length ? `<div><h4>Plenty here, rarely watched</h4>${less.map(row).join('')}</div>` : ''}</div></section>`;
+}
 function renderStats(){
   const g = $('#grid'); histNeed();
   $('#title').textContent = 'Stats'; $('#count').textContent = '';
@@ -5012,6 +5213,7 @@ function renderStats(){
   const busiest = wk.indexOf(Math.max(...wk)), peak = hr.indexOf(Math.max(...hr));
   g.innerHTML = `<div class="stwrap">
     <div class="sttiles">${tile('Plays', items.length)}${tile('Movies watched', new Set(mov.map(x => x.key)).size)}${tile('Episodes watched', eps.length)}${tile('People watching', new Set(items.map(x => x.who)).size)}${tile('Busiest day', fullDays[busiest])}${tile('Peak time', hl(peak))}</div>
+    ${gapsHTML(items)}
     <div class="stgrid">
       ${HV.kind !== 'tv' ? rankHTML('Most-watched movies', topM, ['play', 'plays'], {poster:true}) : ''}
       ${HV.kind !== 'movie' ? rankHTML('Most-watched shows', topS, ['episode', 'episodes'], {poster:true}) : ''}
@@ -5026,12 +5228,20 @@ $('#side').addEventListener('click', e => {
   const b = e.target.closest('.hseg button'); if(b){ HV[b.closest('[data-hv]').dataset.hv] = b.dataset.v; HV.show = 80; hvSave(); renderHistSide(); histNeed() || renderActivity(); return; }
   if(e.target.closest('[data-hreload]')){ histLoad(true).then(() => { renderHistSide(); renderActivity(); }); renderActivity(); }
 });
-$('#side').addEventListener('change', e => { const sel = e.target.closest('[data-hvsel]'); if(!sel || state.s !== 'activity') return; HV[sel.dataset.hvsel] = sel.value; HV.show = 80; hvSave(); renderActivity(); });
+$('#side').addEventListener('change', e => { const sel = e.target.closest('[data-hvsel]'); if(!sel || (state.s !== 'activity' && state.s !== 'discover')) return; HV[sel.dataset.hvsel] = sel.value; HV.show = 80; hvSave(); state.s === 'discover' ? render() : renderActivity(); });
 document.addEventListener('click', e => {
   if(state.s !== 'activity') return;
   if(e.target.closest('[data-hmore]')){ HV.show += 120; renderRecent(); return; }
   const r = e.target.closest('[data-hist-i]'); if(r){ actOpenTitle(HIST.view?.[+r.dataset.histI]); return; }
   const t = e.target.closest('[data-st-t]'); if(t) actOpenTitle({t:t.dataset.stT, kind:t.dataset.stK, y:+t.dataset.stY || null});
+  const ge = e.target.closest('[data-gap-ess],[data-gap-dec]');
+  if(ge){   // jump to Discover → Essentials for that genre (or decade)
+    DISC.kind = ge.dataset.gapKind || 'movie'; store.set('zn:dkind', DISC.kind);
+    if(ge.dataset.gapEss){ DISC.genre = ge.dataset.gapEss; DISC.dec = ''; }
+    else { DISC.dec = ge.dataset.gapDec; if(!DISC.genre) DISC.genre = [...(tasteProfile('movie')?.g.keys() || [])].find(g => DGEN[g]) || 'Action'; }
+    store.set('zn:dgenre', DISC.genre); store.set('zn:ddec', DISC.dec); DISC.sec = GOAT; store.set('zn:dsec', GOAT);
+    $('#tabs button[data-s="discover"]').click(); state.c = GOAT; renderSide(); render(); scrollTo(0, 0);
+  }
 });
 function actKick(){ clearTimeout(ACT.timer); ACT_EVERY = state.s === 'activity' ? 10000 : 15000; actLoad().finally(() => { ACT.timer = setTimeout(actTick, ACT_EVERY); }); }
 function actTick(){ if(document.visibilityState === 'visible') actKick(); else ACT.timer = setTimeout(actTick, ACT_EVERY); }
