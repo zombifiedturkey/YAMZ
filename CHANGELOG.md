@@ -2,10 +2,12 @@
 
 ## Unreleased
 
-**Discover genres**
+**Genre buttons and floating dock (Media and Discover)**
 - The Genre dropdown in Discover's side menu is gone. Genres now sit as buttons, centred above Popular, Upcoming, Recent and Essentials.
 - Scroll down and they break off into a floating dock just under the top bar, so you can switch genre from anywhere in the list. Picking one from the dock takes you back to the top of the new list.
 - The dock follows your theme (Dark, Light or Glass) and the Interface corners setting. On narrow windows and phones it scrolls sideways.
+- The **Media** tab works the same way: your library's genres, with how many titles are in each, moved out of the side menu into the centred buttons and the floating dock.
+- Fixed the genre buttons showing on tabs they don't belong to, such as Gaps.
 
 **Interface corners**
 - New Settings → Appearance → **Interface corners** squares off parts of YAMZ on their own: the **top bar** itself, the **side menu**, **pop-ups & cards**, and **pill buttons & switches** (including the tabs, search and buttons inside the top bar). Pick any mix.

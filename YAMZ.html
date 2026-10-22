@@ -183,9 +183,11 @@ header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px
 #gdock .gd,#gfloat .gd{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;max-width:100%}
 .gchip{font-size:13.5px;font-weight:500;padding:6px 14px;border-radius:var(--rp,999px);background:var(--bg2);border:1px solid var(--line);color:var(--text2);cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,color .15s}
 .gchip:hover{border-color:rgba(var(--acc-rgb),.55);color:var(--text)}
+.gchip b{font-weight:600;color:var(--dim);margin-left:3px;font-size:.9em}
+.gchip.on b{color:inherit;opacity:.7}
 .gchip.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:700}
 #gfloat{position:fixed;z-index:19;top:var(--gft,74px);left:var(--gfl,0);width:var(--gfw,100%);display:flex;justify-content:center;pointer-events:none}
-#gfloat[hidden]{display:none}
+#gfloat[hidden],#gdock[hidden]{display:none}
 #gfloat .gd{position:relative;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;pointer-events:auto;padding:8px;background:var(--hdr);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);border:1px solid var(--line);border-radius:calc(16px * var(--rk,1));box-shadow:0 12px 32px rgba(0,0,0,.4);animation:gdin .22s ease-out}
 #gfloat .gd::-webkit-scrollbar{display:none}
 #gfloat .gd{justify-content:flex-start} #gfloat .gchip:first-child{margin-left:auto} #gfloat .gchip:last-child{margin-right:auto}   /* centred when it fits, scrollable from the first chip when it doesn't */
@@ -1615,6 +1617,7 @@ function render(){
   }
   if(state.s==='lists' && !state.q.trim()) return renderLists();
   if(state.s==='missing' && !state.q.trim()) return renderMissing();
+  if((state.s==='movie' || state.s==='tv') && !state.q.trim()) mediaDockRender();
   const list = visible();
   const q = state.q.trim();
   $('#title').textContent = q ? `“${q}”` : (state.c==='All' ? (state.s==='tv'?'All TV':'All Movies') : state.c);
@@ -1655,8 +1658,6 @@ function renderSide(){
   items.forEach(d => { const g = genresOf(d); if(g && g.length) g.forEach(x => counts[x] = (counts[x]||0)+1); else if(cached(d)) counts.Uncategorised = (counts.Uncategorised||0)+1; });
   const total = items.length, pending = items.filter(d => !genresOf(d) && !cached(d)?.none).length;
   $('#side').innerHTML = `<h4>Media</h4><div class="side-seg"><div class="seg"><button data-mediakind="movie" class="${state.s==='tv'?'':'on'}">Movies</button><button data-mediakind="tv" class="${state.s==='tv'?'on':''}">TV</button></div></div>` +
-    [['All',total], ...cats[state.s].map(c => [c, counts[c]])]
-      .map(([c,n]) => `<button class="cat ${state.c===c&&!state.q?'on':''}" data-c="${esc(c)}">${esc(c)}<span>${n||0}</span></button>`).join('') +
     libSyncHTML() + (pending && !inPreview ? `<div class="side-foot">Sorting your ${state.s==='tv'?'shows':'movies'} into genres using ${state.s==='tv' ? (P()===FREE ? 'TVmaze' : P().name) : P().name}… <b>${pending.toLocaleString()}</b> to go. Categories fill in as it works.</div>` : '');
 }
 /* quiet line at the foot of the Movies / TV menu: when the media server last refreshed, and when YAMZ last pulled from it */
@@ -3779,10 +3780,19 @@ async function loadDiscover(force){
   finally{ DISC.busy[key] = false; if(state.s==='discover'){ renderSide(); render(); } }
 }
 /* Discover genre dock: centred chips above the list that break off into a floating dock under the top bar as you scroll */
-function gdockRender(){
-  const on = DISC.genre || '', html = ['', ...Object.keys(DGEN)].map(g => `<button class="gchip ${g === on ? 'on' : ''}" data-gchip="${esc(g)}" aria-pressed="${g === on}">${g ? esc(g) : 'All genres'}</button>`).join('');
+function gdockFill(list, on){
+  const html = list.map(([g, label, n]) => `<button class="gchip ${g === on ? 'on' : ''}" data-gchip="${esc(g)}" aria-pressed="${g === on}">${esc(label)}${n != null ? ` <b>${n.toLocaleString()}</b>` : ''}</button>`).join('');
   $('#gdInner').innerHTML = html; $('#gfInner').innerHTML = html;
   $('#gdock').hidden = false; gdockCheck();
+  if(GF_ON){ const g = $('#gfInner'), c = g.querySelector('.gchip.on'); if(c) g.scrollLeft = Math.max(0, c.offsetLeft - (g.clientWidth - c.offsetWidth) / 2); }
+}
+function gdockRender(){ gdockFill([['', 'All genres'], ...Object.keys(DGEN).map(g => [g, g])], DISC.genre || ''); }
+/* Media tab: the library's own genres with counts */
+function mediaDockRender(){
+  const counts = {}, items = DATA.filter(d => d.s === state.s);
+  items.forEach(d => { const g = genresOf(d); if(g && g.length) g.forEach(x => counts[x] = (counts[x] || 0) + 1); else if(cached(d)) counts.Uncategorised = (counts.Uncategorised || 0) + 1; });
+  if(state.c !== 'All' && !cats[state.s].includes(state.c)) state.c = 'All';
+  gdockFill([['All', 'All', items.length], ...cats[state.s].map(c => [c, c, counts[c] || 0])], state.c);
 }
 let GF_ON = false;
 function gfloatSet(on){
@@ -3797,7 +3807,7 @@ function gfloatSet(on){
   if(on){ const g = $('#gfInner'), c = g.querySelector('.gchip.on'); g.scrollLeft = c ? Math.max(0, c.offsetLeft - (g.clientWidth - c.offsetWidth) / 2) : 0; }   // centre the picked genre without moving the page
 }
 function gdockCheck(){
-  const d = $('#gdock'); if(d.hidden || state.s !== 'discover') return gfloatSet(false);
+  const d = $('#gdock'); if(d.hidden || state.q.trim() || !['discover', 'movie', 'tv'].includes(state.s)) return gfloatSet(false);
   const hb = document.querySelector('body > header')?.getBoundingClientRect().bottom || 0;
   gfloatSet(d.getBoundingClientRect().bottom < hb + 4);
 }
@@ -3805,11 +3815,16 @@ let GD_RAF = 0;
 addEventListener('scroll', () => { if(!GD_RAF) GD_RAF = requestAnimationFrame(() => { GD_RAF = 0; gdockCheck(); }); }, {passive:true});
 addEventListener('resize', () => GF_ON && gfloatSet(true));
 document.addEventListener('click', e => {
-  const b = e.target.closest('[data-gchip]'); if(!b || state.s !== 'discover') return;
-  const g = b.dataset.gchip; if(g === (DISC.genre || '')) return;
-  const floating = GF_ON;
-  DISC.genre = g; store.set('zn:dgenre', DISC.genre);
-  if(!DISC.genre && state.c === GOAT){ state.c = DISC.sec = 'Popular'; store.set('zn:dsec', DISC.sec); }
+  const b = e.target.closest('[data-gchip]'); if(!b) return;
+  const g = b.dataset.gchip, floating = GF_ON;
+  if(state.s === 'discover'){
+    if(g === (DISC.genre || '')) return;
+    DISC.genre = g; store.set('zn:dgenre', DISC.genre);
+    if(!DISC.genre && state.c === GOAT){ state.c = DISC.sec = 'Popular'; store.set('zn:dsec', DISC.sec); }
+  } else if(state.s === 'movie' || state.s === 'tv'){
+    if(g === state.c) return;
+    state.c = g;
+  } else return;
   renderSide(); render();
   if(floating) scrollTo({top:0, behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
 });
