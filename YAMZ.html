@@ -218,6 +218,25 @@ header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px
 .gpgo{font-size:12px;margin-top:5px}
 @media (max-width:1180px){ #settingsBtn .hide-sm{display:none} #settingsBtn{padding:7px 11px} .tabs button{padding:6px 12px} }
 :root[data-lists="hide"] #tabs button[data-s="lists"],:root[data-lists="hide"] .lbtn,:root[data-lists="hide"] [data-addlist-modal]{display:none!important}
+a.rt.rtl{color:inherit;text-decoration:none;transition:border-color .15s}
+a.rt.rtl:hover{border-color:var(--accent-t)}
+.rvlinks{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:0 0 14px;font-size:13px}
+.rvlinks span{color:var(--muted)}
+.rvlinks a{display:inline-flex;align-items:center;gap:6px;color:var(--text);text-decoration:none;padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:var(--bg2)}
+.rvlinks a:hover{border-color:var(--accent-t)}
+.rvlinks i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.rvlist{display:grid;align-items:start;grid-template-columns:repeat(auto-fill,minmax(min(380px,100%),1fr));gap:14px}
+.rvcard{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.rvhead{display:flex;align-items:center;gap:9px;margin-bottom:8px;flex-wrap:wrap}
+.rvhead small{margin-left:auto;color:var(--muted);font-size:12px}
+.rvav{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--bg3);font-weight:700;font-size:13px;flex:none}
+.rvrate{font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(var(--acc-rgb),.14);color:var(--accent-t)}
+.rvtext{font-size:14px;line-height:1.6;color:var(--text2)}
+.rvtext p{margin:0 0 8px}
+.rvtext.clip{max-height:9.6em;overflow:hidden;-webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}
+.rvmore{font-size:13px;margin-top:2px}
+.rvsrc{font-size:12px;color:var(--muted);margin:10px 0 0}
+.rvsrc a{color:var(--accent-t)}
 @media (max-width:1560px){ .actpill .abw{display:none} }
 @media (max-width:1240px){ .actpill .alabel{display:none} }
 @media (max-width:760px){ .actpill{padding:7px 10px} .actpop{position:fixed;left:12px;right:12px;width:auto;top:var(--acttop,120px);max-height:calc(100vh - var(--acttop,120px) - 16px)} }
@@ -1648,7 +1667,8 @@ function ratingsHTML(x){
   if(!rs.length) return hint;
   const avg = Math.round(rs.reduce((s,r) => s + pct(r.val), 0) / rs.length);
   return `<div class="ratings">
-    ${rs.map(r => `<div class="rt"><small><i style="background:${RCOL[r.src]||'#888'}"></i>${esc(r.src)}</small><b>${esc(r.val.replace(/\s/g,''))}</b></div>`).join('')}
+    ${rs.map(r => { const u = (x.rlinks || {})[r.src], inner = `<small><i style="background:${RCOL[r.src]||'#888'}"></i>${esc(r.src)}${u ? ' ↗' : ''}</small><b>${esc(r.val.replace(/\s/g,''))}</b>`;
+      return u ? `<a class="rt rtl" href="${esc(u)}" target="_blank" rel="noopener" title="Open on ${esc(r.src)}">${inner}</a>` : `<div class="rt">${inner}</div>`; }).join('')}
     ${rs.length > 1 ? `<div class="rt avg"><small><i style="background:var(--accent)"></i>Average</small><b>${avg}<span style="font-size:13px;color:var(--muted)">/100</span></b></div>` : ''}
   </div>${rs.some(r => r.src==='IMDb') ? '' : hint}`;
 }
@@ -1700,7 +1720,7 @@ async function openDetail(d, ctx){
       </div>
       <div class="mbody">
         <div id="relBox" class="relbox" hidden></div>
-        ${ratingsHTML(x)}
+        <div id="rateBox">${ratingsHTML(x)}</div>
         ${ep ? `<div class="epbox" id="epBox">${epBoxHTML(ep, null, x.overview)}</div>` : `<p class="ovw">${esc(x.overview || 'No description available.')}</p>`}
         <div class="actions">
           ${(d.play||[]).map(p => `<a class="btn play ${p.type}" href="${esc(p.url)}" target="_blank" rel="noopener">▶ Play in ${esc(p.label)}</a>`).join('')}
@@ -1718,9 +1738,11 @@ async function openDetail(d, ctx){
           <b>${esc(c.name)}</b><small>${esc(c.role||'')}</small></div>`).join('')}</div></div>`:''}
         ${d.s!=='tv' ? `<div class="sec" id="seriesSec" hidden></div>` : ''}
         ${d.s==='tv' ? `<div class="sec" id="seasonSec"><h3 class="bebas">Seasons</h3><div class="misslist">Checking seasons…</div></div>` : ''}
+        <div class="sec" id="revSec" hidden></div>
         ${x.photos?.length?`<div class="sec"><h3 class="bebas">Photos</h3><div class="gallery">${x.photos.map(p=>`<img src="${p.thumb}" data-full="${p.full}" alt="" loading="lazy">`).join('')}</div></div>`:''}
       </div>`;
     if(d.s==='tv') fillSeasons(d, m); else fillSeries(d, m, x);
+    fillCritics(d, m, x);
     if(ep) fillEpisode(d, x, ep); else fillRelease(d, m, x);
   }catch(e){
     const why = e.net && inPreview
@@ -1796,8 +1818,65 @@ async function qidFor(d, m, x){
     qid = j.query?.pages?.[0]?.pageprops?.wikibase_item || null;
   }
   if(!qid && x.imdb && /^tt\d+$/.test(x.imdb)){ const r = await sparql(`SELECT ?f WHERE { ?f wdt:P345 "${x.imdb}" } LIMIT 1`); qid = r[0] ? qidOf(r[0].f.value) : null; }
+  if(!qid && P() === TMDB && /^\d+$/.test(String(m.id || ''))){ const r = await sparql(`SELECT ?f WHERE { ?f wdt:${m.type === 'tv' ? 'P4983' : 'P4947'} "${m.id}" } LIMIT 1`); qid = r[0] ? qidOf(r[0].f.value) : null; }
   QIDS.set(key, qid); return qid;
 }
+
+/* ---------- pop-up: critic scores (Wikidata: Rotten Tomatoes Tomatometer, Metacritic Metascore + page links) and TMDB member reviews ---------- */
+const CRIT = new Map();
+async function critLoad(qid){
+  if(CRIT.has(qid)) return CRIT.get(qid);
+  const rows = await sparql(`#yamz:crit
+SELECT ?score ?by ?date ?methLabel ?rt ?mc WHERE {
+  { wd:${qid} p:P444 ?st . ?st ps:P444 ?score ; pq:P447 ?by . FILTER(?by IN (wd:Q105584, wd:Q150248))
+    OPTIONAL { ?st pq:P585 ?date } OPTIONAL { ?st pq:P459 ?meth } }
+  UNION { wd:${qid} wdt:P1258 ?rt } UNION { wd:${qid} wdt:P1712 ?mc }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } }`);
+  const pick = (by, ok) => rows.filter(r => r.by?.value.endsWith('/' + by) && ok(r.score.value, (r.methLabel?.value || '').toLowerCase()))
+    .sort((a, b) => (b.date?.value || '').localeCompare(a.date?.value || ''))[0]?.score.value || null;
+  const out = {
+    rt:pick('Q105584', (v, m) => /^\d{1,3}\s*%$/.test(v) && !/audience|popcorn|user/.test(m)),
+    mc:pick('Q150248', (v, m) => /^\d{1,3}(\s*\/\s*100)?$/.test(v) && !/user/.test(m)),
+    rtUrl:rows.find(r => r.rt)?.rt.value ? 'https://www.rottentomatoes.com/' + rows.find(r => r.rt).rt.value : null,
+    mcUrl:rows.find(r => r.mc)?.mc.value ? 'https://www.metacritic.com/' + rows.find(r => r.mc).mc.value : null,
+  };
+  if(out.mc && !/\//.test(out.mc)) out.mc = out.mc.trim() + '/100';
+  CRIT.set(qid, out); return out;
+}
+async function fillCritics(d, m, x){
+  const me = CUR; let C = {};
+  try{ const qid = await qidFor(d, m, x); if(qid) C = await critLoad(qid); }catch{}
+  if(CUR !== me) return;
+  x.rlinks = {...(x.rlinks || {}), ...(C.rtUrl ? {'Rotten Tomatoes':C.rtUrl} : {}), ...(C.mcUrl ? {'Metacritic':C.mcUrl} : {}), ...(x.imdb ? {IMDb:`https://www.imdb.com/title/${x.imdb}/`} : {}), ...(x.link && P() === TMDB ? {TMDB:x.link} : {})};
+  const has = src => (x.ratings || []).some(r => r.src === src);
+  if(C.rt && !has('Rotten Tomatoes')) setRating(x, 'Rotten Tomatoes', C.rt);
+  if(C.mc && !has('Metacritic')) setRating(x, 'Metacritic', C.mc);
+  const box = $('#rateBox'); if(box) box.innerHTML = ratingsHTML(x);
+  fillReviews(d, m, x, C);
+}
+const mdText = t => esc(String(t || '').replace(/\r/g, '').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/[*_]{1,3}([^*_]+)[*_]{1,3}/g, '$1').replace(/^#+\s*/gm, '').trim()).replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br>');
+async function fillReviews(d, m, x, C){
+  const el = $('#revSec'), me = CUR; if(!el) return;
+  let revs = [], total = 0;
+  if(P() === TMDB && /^\d+$/.test(String(m.id || '')) && (m.type === 'movie' || m.type === 'tv')){
+    try{ const j = await getJSON(TMDB.url(`/${m.type}/${m.id}/reviews`, {language:'en-US', page:1}), TMDB.opts()); revs = (j.results || []).slice(0, 6); total = j.total_results || revs.length; }catch{}
+  }
+  if(CUR !== me) return;
+  const links = [C.rtUrl ? `<a href="${esc(C.rtUrl)}" target="_blank" rel="noopener"><i style="background:${RCOL['Rotten Tomatoes']}"></i>Rotten Tomatoes ↗</a>` : '',
+    C.mcUrl ? `<a href="${esc(C.mcUrl.replace(/\/$/, ''))}${/\/critic-reviews/.test(C.mcUrl) ? '' : '/critic-reviews/'}" target="_blank" rel="noopener"><i style="background:${RCOL.Metacritic}"></i>Metacritic ↗</a>` : '',
+    x.imdb ? `<a href="https://www.imdb.com/title/${esc(x.imdb)}/reviews/" target="_blank" rel="noopener"><i style="background:${RCOL.IMDb}"></i>IMDb user reviews ↗</a>` : ''].filter(Boolean);
+  if(!revs.length && !links.length) return;
+  const card = r => { const a = r.author_details || {}, rate = a.rating != null ? `<span class="rvrate">★ ${(+a.rating).toFixed(0)}/10</span>` : '', when = (r.created_at || '').slice(0, 10);
+    const full = mdText(r.content), long = (r.content || '').length > 650;
+    return `<article class="rvcard"><div class="rvhead"><span class="rvav">${esc((r.author || '?')[0].toUpperCase())}</span><b>${esc(r.author || a.username || 'TMDB member')}</b>${rate}<small>${when ? new Date(when + 'T00:00:00').toLocaleDateString(undefined, {day:'numeric', month:'short', year:'numeric'}) : ''}</small></div>
+      <div class="rvtext ${long ? 'clip' : ''}"><p>${full}</p></div>${long ? '<button class="linkbtn rvmore" data-rvmore>Read more</button>' : ''}</article>`; };
+  el.innerHTML = `<h3 class="bebas">Reviews</h3>
+    ${links.length ? `<div class="rvlinks"><span>Critics' reviews on</span>${links.join('')}</div>` : ''}
+    ${revs.length ? `<div class="rvlist">${revs.map(card).join('')}</div><p class="rvsrc">From TMDB members${total > revs.length ? ` · <a href="${esc(x.link)}/reviews" target="_blank" rel="noopener">all ${total} on TMDB ↗</a>` : ''}</p>`
+      : P() !== TMDB ? `<p class="rvsrc">Add a free TMDB key in Settings to read written reviews here.</p>` : ''}`;
+  el.hidden = false;
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-rvmore]'); if(!b) return; const t = b.previousElementSibling; const open = t.classList.toggle('clip'); b.textContent = open ? 'Read more' : 'Show less'; });
 
 /* ---------- pop-up: release dates for anything not out yet (theatres / streaming / physical; next episode for TV) ---------- */
 const relDay = iso => new Date(iso + 'T00:00:00').toLocaleDateString(undefined, {weekday:'short', day:'numeric', month:'short', year:'numeric'});

@@ -275,6 +275,15 @@ const B = o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, {value:v
 async function sparql(req){
   const body = req.method === 'POST' ? await req.text() : new URL(req.url).search;
   const q = decodeURIComponent(body.replace(/^\??query=/, '').replace(/\+/g, ' '));
+  { const im = /wdt:P345 "(tt\d+)"/.exec(q); if(im) return J({results:{bindings:[B({f:E + QID(im[1])})]}}); }
+  if(q.includes('#yamz:crit')){
+    const id = /wd:(Q\d+) p:P444/.exec(q)?.[1] || 'Q1', h = hash(id), slug = 'demo_' + id.toLowerCase();
+    return J({results:{bindings:[
+      B({score:(55 + h % 45) + '%', by:E + 'Q105584', date:'2025-01-01T00:00:00Z', methLabel:'Tomatometer score'}),
+      B({score:(60 + h % 38) + '%', by:E + 'Q105584', date:'2025-01-01T00:00:00Z', methLabel:'audience score'}),
+      B({score:String(48 + h % 47), by:E + 'Q150248', date:'2025-01-01T00:00:00Z', methLabel:'Metascore'}),
+      B({rt:'m/' + slug}), B({mc:'movie/' + slug.replace(/_/g, '-')})]}});
+  }
   if(q.includes('p:P444')){
     const dec = /"(\d{4})-01-01T00:00:00Z"\^\^xsd:dateTime && \?d </.exec(q)?.[1], seen = new Set();
     const L = dec ? [...GOAT80, ...GOATALL].filter(([t, y]) => y >= +dec && y < +dec + 10 && !seen.has(t) && seen.add(t)) : GOATALL;

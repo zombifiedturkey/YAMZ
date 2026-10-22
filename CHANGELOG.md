@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+**Critic scores and reviews**
+- Pop-ups now show the **Rotten Tomatoes** Tomatometer and **Metascore** for most films and many shows, read from Wikidata. No extra key is needed (OMDb is still used first when you've added one).
+- Click the Rotten Tomatoes, Metacritic, IMDb or TMDB tile to open that title's page on the site.
+- New **Reviews** section above Photos. It shows written reviews from TMDB members (name, score, date, with Read more for long ones) when TMDB is your details source, plus links to the critics' reviews on Rotten Tomatoes and Metacritic and the IMDb user reviews.
+
 **Now playing**
 - New readout in the top bar shows who's streaming from your Plex server right now, for example "▶ 3 streaming · 42 Mbps out". It shows a dim "Idle" when nobody's watching and refreshes every 15 seconds while YAMZ is open.
 - Click it to see every stream: poster, title (S02E04 for TV), who's watching, on which device, a progress bar, Local or Remote, and the bitrate.
