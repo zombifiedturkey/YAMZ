@@ -1,102 +1,67 @@
 # Changelog
 
-## Unreleased
+## 1.2.0 — 22 October 2026
 
-**Compact search**
-- The search box in the top bar is now a small magnifier button. Click it (or press **/**) and it slides open to type. It stays open while there's a search, and shrinks back to the icon when it's empty and you click away.
-- **Esc** clears the search and closes it. On phones it opens onto its own full-width row.
+The big one: YAMZ now watches your server as well as your library. Live streams, play history, stats and recommendations, plus critic scores, written reviews and a tidier look.
 
-**Genre buttons and floating dock (Media and Discover)**
-- The Genre dropdown in Discover's side menu is gone. Genres now sit as buttons, centred above Popular, Upcoming, Recent and Essentials.
-- Scroll down and they break off into a floating dock just under the top bar, so you can switch genre from anywhere in the list. Picking one from the dock takes you back to the top of the new list.
-- The dock follows your theme (Dark, Light or Glass) and the Interface corners setting. On narrow windows and phones it scrolls sideways.
-- The **Media** tab works the same way: your library's genres, with how many titles are in each, moved out of the side menu into the centred buttons and the floating dock.
-- Fixed the genre buttons showing on tabs they don't belong to, such as Gaps.
-
-**Interface corners**
-- New Settings → Appearance → **Interface corners** squares off parts of YAMZ on their own: the **top bar** itself, the **side menu**, **pop-ups & cards**, and **pill buttons & switches** (including the tabs, search and buttons inside the top bar). Pick any mix.
-- Posters keep their own Poster corners setting, and small dots and profile icons stay round.
-- Saved per device and applied before the page draws, so there's no flash of rounded corners.
-
-**Critic scores and reviews**
-- Pop-ups now show the **Rotten Tomatoes** Tomatometer and **Metascore** for most films and many shows, read from Wikidata. No extra key is needed (OMDb is still used first when you've added one).
-- Click the Rotten Tomatoes, Metacritic, IMDb or TMDB tile to open that title's page on the site.
-- New **Reviews** section above Photos. It shows written reviews from TMDB members (name, score, date, with Read more for long ones) when TMDB is your details source, plus links to the critics' reviews on Rotten Tomatoes and Metacritic and the IMDb user reviews.
+### Activity (new tab)
 
 **Now playing**
-- New readout in the top bar shows who's streaming from your Plex server right now, for example "▶ 3 streaming · 42 Mbps out". It shows a dim "Idle" when nobody's watching and refreshes every 15 seconds while YAMZ is open.
-- Click it to see every stream: poster, title (S02E04 for TV), who's watching, on which device, a progress bar, Local or Remote, and the bitrate.
+- A readout in the top bar shows who's streaming right now, for example "▶ 3 streaming · 42 Mbps out", or a dim "Idle". It refreshes every 15 seconds and turns amber when 2 or more streams are transcoding.
+- Click it for every stream: poster, title (S02E04 for TV), who's watching, on which device, progress, Local or Remote, and the bitrate.
 - Each stream is tagged **Direct play**, **Direct stream** or **Transcoding**, with the reason: "4K → 1080p", "HEVC → H.264", "subtitles burned in", "audio TrueHD → AAC", or "hardware" when the GPU is doing the work.
-- The readout turns amber when 2 or more streams are transcoding at once.
-- Click a stream to open that title's pop-up.
 - Settings → Appearance → Now playing turns it off on a device.
-- Only the Plex server owner's sign-in can see everyone's streams. A shared user only sees their own.
-- Jellyfin support for Now playing is coming next.
 
 **Activity page**
-- New **Activity** tab, shown when a Plex server is connected. It gives a big card per stream, with the artwork behind it and who's watching. Each card shows:
-  - progress, and when the stream will end ("Ends 2:55 PM"), or how much is left if it's paused
-  - the device and Plex app
-  - video, audio and subtitles, each showing what the file is and what's actually being sent ("4K HEVC → 1080p H.264 (hardware)", "TrueHD 7.1 → AAC stereo", "English (PGS) (burned in)")
-  - the container, the bitrate and the transcode speed
-- The side menu totals Direct play, Direct stream and Transcoding, and splits bandwidth into Local and Remote.
-- The page refreshes every 10 seconds while it's open. Click a card to open that title.
-- The Now playing dropdown has a link to the page.
+- A big card per stream, with the artwork behind it, when it will end, the device and app, and video, audio and subtitles showing what the file is and what's actually being sent ("4K HEVC → 1080p H.264 (hardware)").
+- The side menu totals Direct play, Direct stream and Transcoding, and splits bandwidth into Local and Remote. The page refreshes every 10 seconds.
 
 **Recently watched**
-- New **Activity → Recently watched**: everything watched on your Plex server, newest first, grouped by day ("Today", "Yesterday", "Tue, Oct 20"). Each entry shows the poster, the title (S01E03 for TV), who watched it and when. Click one to open the title.
-- Filters in the side menu: **Period** (30 days, 90 days, 1 year, all time), **Show** (all, movies or TV) and **Who** (everyone or one person). They're shared with Stats.
+- Everything watched on your server, newest first, grouped by day, with who watched it. Filter by period (30 days to all time), movies or TV, and person.
 
 **Stats**
-- New **Activity → Stats** for the chosen period and person:
-  - tiles for plays, movies watched, episodes watched, people watching, the busiest day and the peak time
-  - the 10 most-watched movies and shows
-  - the most active people
-  - top genres
-  - charts of the busiest days of the week and times of day (hover a bar for the exact figure)
-- It all comes from your Plex server's own play history, which needs the server owner's sign-in. History is fetched in pages and cached for 5 minutes. **↻ Refresh** fetches it again.
+- Tiles for plays, movies and episodes watched, people watching, the busiest day and the peak time.
+- The 10 most-watched movies and shows, the most active people, top genres, and charts of the busiest days and times.
+- **Genre gaps** compares each genre's and decade's share of plays with its share of your library: what's watched more than you stock (with a link to that genre's Essentials) and what you own plenty of but rarely watch.
+- **Actor, director & franchise gaps** does the same for people and series: for example, a director who's 12% of your movie plays but 4% of your movies. Links go straight to their missing films in Gaps.
 
-**For you** (Discover)
-- New **Discover → For you**, built from the last year of plays on your Plex server. Pick who it's for (Everyone or one person) in the side menu. It shows:
-  - **Your taste**: your top genres and decades as a share of plays, with recent plays counting more.
-  - **Up next**: the next episode of each show someone is watching (from the episodes you own), and the next film in a series someone has started. Series come from Gaps → Collections. If the next film isn't in your library, it can go straight to Radarr.
-  - **Because you watched…**: for the last few titles watched, similar titles split into **In your library, not watched yet** and **Not in your library** (one click to Radarr, Sonarr, your Watchlist or a list). These use TMDB when you have a key. Without one, YAMZ suggests unwatched titles from your own library with matching genres and era.
-- Discover lists from TMDB get a **Popular / For you** switch. For you puts titles matching your server's taste first, while still weighing popularity.
+Only the server owner's sign-in can see everyone's streams and history. A shared user only sees their own.
 
-**Genre gaps** (Activity → Stats)
-- Compares each genre's share of plays with its share of your library, and does the same for decades of films. Each one shows a bar for plays and a marker for your library.
-- **Watched more than you stock** lists genres and decades people watch more than you collect, with a link to that genre's **Essentials** to fill the gap.
-- **Plenty here, rarely watched** lists genres you own lots of but rarely watch.
+### Discover
 
-**Jellyfin in Activity**
-- **Now playing**, the **Activity** page, **Recently watched**, **Stats** and **For you** now work with Jellyfin as well as Plex, using the admin API key YAMZ already connects with.
-- Live streams show the same details as Plex: direct play / direct stream / transcoding, Jellyfin's own transcode reasons (for example "subtitles burned in" or "video codec not supported"), hardware acceleration, video, audio and subtitle conversions, bitrate, and whether the viewer is local or remote.
-- Jellyfin doesn't keep a log of every play, only the last time each title was played. Repeat viewings therefore count once in Recently watched and Stats, and the side menu says so.
+**For you** (new)
+- Built from the last year of plays. Pick who it's for (Everyone or one person).
+- **Your taste**: your top genres and decades, with recent plays counting more.
+- **Up next**: the next episode of each show someone's watching, and the next film in a series they've started. If it isn't in your library, it can go straight to Radarr.
+- **Because you watched…**: similar titles, split into **In your library, not watched yet** and **Not in your library** (one click to Radarr, Sonarr, your Watchlist or a list). Uses TMDB when you have a key, and your own library when you don't.
+- A **Hide titles already in my library** switch leaves only suggestions to add. Each row has **‹ ›** scroll buttons.
+- TMDB lists get a **Popular / For you** switch that puts titles matching your taste first.
 
-**For you**
-- Each row now has **‹ ›** scroll buttons, which only appear when there's more to see. The rows also scroll with a trackpad or touch.
-- **Up next** only suggests real film series. Wikidata lists like "BBC's 100 Greatest Films of the 21st Century" and unnamed series are left out.
+### Gaps
 
-**Media tab**
-- **Movies** and **TV** are now one **Media** tab, with a Movies / TV switch at the top of its side menu, the same as Gaps and Discover. It remembers which one you last used.
+- New **Directors** page: the directors behind 3 or more of your movies and the rest of their films. Run **↻ Re-analyse** once to fill it in.
 
-**Lists tab is optional**
-- **Settings → Appearance → Lists tab** turns the Lists tab on or off. Hiding it also hides the bookmark (add to list) buttons on posters and in pop-ups. Your lists are kept and come back when you turn it on again.
+### Pop-ups
 
-**For you**
-- New **Hide titles already in my library** switch. It hides the "In your library, not watched yet" rows and owned titles in Up next, leaving only suggestions to add.
+- **Rotten Tomatoes** and **Metacritic** scores for most films and many shows, read from Wikidata. No extra key needed.
+- Click a Rotten Tomatoes, Metacritic, IMDb or TMDB tile to open that title's page on the site.
+- New **Reviews** section: written reviews from TMDB members (when TMDB is your details source), plus links to the critics' reviews on Rotten Tomatoes and Metacritic and the IMDb user reviews.
 
-**Header**
+### Look and layout
+
+- **Movies** and **TV** are now one **Media** tab with a Movies / TV switch.
+- **Genre buttons**: on Media and Discover, genres sit as buttons centred above the posters (Media shows how many titles are in each). Scroll down and they break off into a floating dock under the top bar. This replaces the genre list in the side menu and Discover's Genre dropdown.
+- **Compact search**: the search box is now a magnifier button that slides open when clicked or when you press **/**, and closes again when it's empty. **Esc** clears it.
+- **Interface corners** (Settings → Appearance): square off the top bar, the side menu, pop-ups & cards, and pill buttons & switches, each on its own.
+- **Lists tab** (Settings → Appearance) can be turned off. Your lists are kept.
+- The poster grid is centred in the window.
+- The Surprise me button is gone.
 - The Settings button no longer gets pushed off the edge on mid-sized windows.
 
-**Removed**
-- The Surprise me button.
+### Jellyfin
 
-**Library**
-- The poster grid is now centred in the window, so wide windows no longer leave a gap down the right-hand side.
-
-**Fixes**
-- Jellyfin: connecting with an API key failed with "HTTP 401" on newer Jellyfin servers, which turn off the old way of passing the key in the web address ([#1](https://github.com/zombifiedturkey/YAMZ/issues/1)). YAMZ now signs in to Jellyfin only with the `Authorization: MediaBrowser …` header, for API keys and for username/password, and never puts a key in a URL. A key Jellyfin rejects now shows "API key was rejected" straight away, instead of failing later during library sync. Existing Jellyfin connections pick up the fix automatically. Thanks to @RoWe90 for the detailed report, the fix and the regression tests.
+- Now playing, Activity, Recently watched, Stats and For you work with Jellyfin as well as Plex, using the admin API key YAMZ already connects with, including Jellyfin's own transcode reasons. Jellyfin only records the last time each title was played, so repeat viewings count once, and the side menu says so. These are still being tested on real Jellyfin servers. Please report anything odd.
+- **Fixed:** connecting with an API key failed with "HTTP 401" on newer Jellyfin servers ([#1](https://github.com/zombifiedturkey/YAMZ/issues/1)). YAMZ now signs in only with the `Authorization: MediaBrowser …` header and never puts a key in a URL. A rejected key now says so straight away. Existing connections pick up the fix automatically. Thanks to @RoWe90 for the detailed report, the fix and the regression tests.
 
 ## 1.1.0 — 15 October 2026
 
