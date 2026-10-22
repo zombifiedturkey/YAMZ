@@ -247,7 +247,8 @@ if(await tryClick('#side .sidepin', {post:1400})){
 // TV
 if(pickShow){
   await card('TV', 'Every season, every episode', 1700);
-  await click('#tabs button[data-s="tv"]', {post:1300});
+  await click('#tabs button[data-s="media"]', {post:600});
+  if(!(await tryClick('#side [data-mediakind="tv"]', {post:1300}))){ await tryClick('#menuBtn', {post:500}); await tryClick('#side [data-mediakind="tv"]', {post:1300}); }
   if(await openTitle(pickShow)){
     await page.locator('#modal').hover(); await page.locator('#seasonSec').scrollIntoViewIfNeeded().catch(() => {}); await wait(1500);
     await cap('Seasons', 'Green is complete, amber is partly there, red is missing. Click a season for every episode.', 2400);
@@ -321,12 +322,14 @@ if(await ess.count()){
 }
 await tryClick('#dforeign', {post:600});
 
-// Lists
-await card('Lists', 'Your lists and Plex Watchlist', 1700);
-await click('#tabs button[data-s="lists"]', {post:1600});
-await cap('Lists', 'Marathons, shopping lists, films to lend a mate, with your Plex Watchlist right alongside.', 2200);
-if(info.watchlist) await tryClick('[data-open-list="plexwl"]', {post:1800});
-if(info.lists) await tryClick(page.locator('#side .cat').nth(info.watchlist ? 2 : 1), {post:1800});
+// Lists (skipped if the Lists tab is hidden in Settings)
+if(await page.locator('#tabs button[data-s="lists"]').isVisible()){
+  await card('Lists', 'Your lists and Plex Watchlist', 1700);
+  await click('#tabs button[data-s="lists"]', {post:1600});
+  await cap('Lists', 'Marathons, shopping lists, films to lend a mate, with your Plex Watchlist right alongside.', 2200);
+  if(info.watchlist) await tryClick('[data-open-list="plexwl"]', {post:1800});
+  if(info.lists) await tryClick(page.locator('#side .cat').nth(info.watchlist ? 2 : 1), {post:1800});
+}
 
 // Calendar
 await card('Calendar', 'Never miss a release', 1700);

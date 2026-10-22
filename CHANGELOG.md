@@ -56,6 +56,15 @@
 - Each row now has **‹ ›** scroll buttons, which only appear when there's more to see. The rows also scroll with a trackpad or touch.
 - **Up next** only suggests real film series. Wikidata lists like "BBC's 100 Greatest Films of the 21st Century" and unnamed series are left out.
 
+**Media tab**
+- **Movies** and **TV** are now one **Media** tab, with a Movies / TV switch at the top of its side menu, the same as Gaps and Discover. It remembers which one you last used.
+
+**Lists tab is optional**
+- **Settings → Appearance → Lists tab** turns the Lists tab on or off. Hiding it also hides the bookmark (add to list) buttons on posters and in pop-ups. Your lists are kept and come back when you turn it on again.
+
+**For you**
+- New **Hide titles already in my library** switch. It hides the "In your library, not watched yet" rows and owned titles in Up next, leaving only suggestions to add.
+
 **Header**
 - The Settings button no longer gets pushed off the edge on mid-sized windows.
 

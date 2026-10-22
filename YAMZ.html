@@ -217,6 +217,7 @@ header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px
 .gpmark{position:absolute;top:-4px;width:2px;height:16px;background:var(--text);transform:translateX(-1px);border-radius:1px;box-shadow:0 0 0 2px var(--bg2)}
 .gpgo{font-size:12px;margin-top:5px}
 @media (max-width:1180px){ #settingsBtn .hide-sm{display:none} #settingsBtn{padding:7px 11px} .tabs button{padding:6px 12px} }
+:root[data-lists="hide"] #tabs button[data-s="lists"],:root[data-lists="hide"] .lbtn,:root[data-lists="hide"] [data-addlist-modal]{display:none!important}
 @media (max-width:1560px){ .actpill .abw{display:none} }
 @media (max-width:1240px){ .actpill .alabel{display:none} }
 @media (max-width:760px){ .actpill{padding:7px 10px} .actpop{position:fixed;left:12px;right:12px;width:auto;top:var(--acttop,120px);max-height:calc(100vh - var(--acttop,120px) - 16px)} }
@@ -917,8 +918,7 @@ select option,select optgroup{background-color:#16181e;color:#ecedf0}
   <button class="hbtn menu-btn" id="menuBtn" aria-label="Categories">☰</button>
   <div class="logo"><svg class="zicon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><clipPath id="zc1"><circle cx="32" cy="32" r="30"/></clipPath><radialGradient id="zbg1" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#4a2f6b"/><stop offset="1" stop-color="#160d24"/></radialGradient></defs><circle cx="32" cy="32" r="30" fill="url(#zbg1)"/><g clip-path="url(#zc1)"><circle cx="50" cy="13" r="6.5" fill="#f4e7b0" opacity=".92"/><circle cx="48" cy="11.5" r="1.3" fill="#d9c98a"/><path d="M11 66 Q13 50 32 49 Q51 50 53 66Z" fill="#5b3f2a" stroke="#24160c" stroke-width="1.4"/><path d="M26 50 L32 58 L38 50" fill="#3d2a1c"/><path d="M20 60 l3 -4 l2 5 M42 58 l3 3 l1 -5" stroke="#24160c" stroke-width="1.3" fill="none"/><path d="M16.5 30 Q15.5 12 32 11 Q48.5 12 47.5 30 Q47.5 44 40 49 Q32 53.5 24 49 Q16.5 44 16.5 30Z" fill="#94c35c" stroke="#24331a" stroke-width="1.6"/><path d="M16 27 Q11.5 28.5 13.5 34 Q15 36.5 17.5 35.5" fill="#7fae4a" stroke="#24331a" stroke-width="1.4"/><path d="M15.5 25 Q17 9.5 32 9.5 Q47 9.5 48.5 22 L45 17.5 L42 22 L38.5 15 L34.5 20.5 L30.5 14 L26.5 20.5 L23 15.5 L20.5 21.5 L18 19Z" fill="#2e2018"/><path d="M23 24.5 L33.5 27.5" stroke="#24331a" stroke-width="1.5"/><path d="M25 22.5 L24.2 26.2 M28.2 23.4 L27.4 27.1 M31.4 24.3 L30.6 28" stroke="#24331a" stroke-width="1.2"/><circle cx="25.5" cy="32.5" r="5.6" fill="#f7f3dc" stroke="#24331a" stroke-width="1.4"/><circle cx="26.8" cy="33.3" r="2" fill="#d0402b"/><circle cx="26.3" cy="32.7" r=".6" fill="#fff"/><ellipse cx="39.6" cy="33" rx="4.3" ry="3.4" fill="#f7f3dc" stroke="#24331a" stroke-width="1.4"/><circle cx="39" cy="33.8" r="1.4" fill="#1b1b1b"/><path d="M35 31.6 Q39.6 28.4 44.2 31.6 L44 33 Q39.6 30.6 35.2 33Z" fill="#7aa845" stroke="#24331a" stroke-width="1.2"/><path d="M20.5 38.2 Q25.5 40.6 30.5 38.2" stroke="#678f3a" stroke-width="1.3" fill="none"/><path d="M31.5 35.5 L33 39.3 L30.4 39.3" stroke="#24331a" stroke-width="1.3" fill="none" stroke-linejoin="round"/><path d="M23.5 42.5 Q32 48.5 41.5 41.5 Q37 47 32 47 Q26.5 47 23.5 42.5Z" fill="#4a1616" stroke="#24331a" stroke-width="1.3" stroke-linejoin="round"/><path d="M27.6 43.6 h2.8 v2.6 h-2.8z M32.6 44 h2.6 v2.4 h-2.6z" fill="#f1e9c8"/><path d="M42.5 37.5 l3.2 -1.2 l-1 3.4z" fill="#7a1e1e"/><path d="M19 45 q1.5 1.5 3 0" stroke="#5f8a34" stroke-width="1.1" fill="none"/></g><circle cx="32" cy="32" r="30" fill="none" style="stroke:var(--accent)" stroke-width="2.6"/></svg><span class="lockup"><span class="bebas">YAM<span class="net">Z</span></span><small>Yet Another Media Zombie</small></span></div>
   <div class="tabs" id="tabs">
-    <button data-s="movie" class="on">Movies</button>
-    <button data-s="tv">TV</button>
+    <button data-s="media" class="on">Media</button>
     <button data-s="missing">Gaps</button>
     <button data-s="discover">Discover</button>
     <button data-s="lists">Lists</button>
@@ -974,6 +974,9 @@ select option,select optgroup{background-color:#16181e;color:#ecedf0}
       <div class="seg" id="cornerSeg"><button data-corner="round"><span class="cshape" style="border-radius:4px"></span>Rounded</button><button data-corner="square"><span class="cshape"></span>Square</button></div></div>
     <div class="field"><label>Side menu</label>
       <div class="seg" id="sideSeg"><button data-side="show">Always shown</button><button data-side="auto">Auto-hide</button></div></div>
+    <div class="field"><label>Lists tab</label>
+      <div class="seg" id="listsSeg"><button data-lists="show">Show</button><button data-lists="hide">Hide</button></div>
+      <small class="fhint">Hiding it also hides the bookmark (add to list) buttons. Your lists are kept and come back when you show it again.</small></div>
     <div class="field"><label>Now playing (top bar)</label>
       <div class="seg" id="actSeg"><button data-act="show">Show</button><button data-act="hide">Hide</button></div>
       <small class="fhint">Shows who's streaming from your Plex or Jellyfin server right now. Seeing everyone's streams needs the Plex server owner's sign-in or a Jellyfin admin API key.</small></div>
@@ -1066,7 +1069,7 @@ if(YSRV){
 let cfg = store.get('vault:cfg') || {prov:'free', key:'', pin:''};
 
 /* ---------- state ---------- */
-let state = { s:'movie', c:'All', q:'', sort:'az', attn:false };
+let state = { s:store.get('zn:mediakind') === 'tv' ? 'tv' : 'movie', c:'All', q:'', sort:'az', attn:false };
 let cats = {movie:[], tv:[]};
 
 /* ---------- providers ---------- */
@@ -1595,7 +1598,7 @@ function renderSide(){
   const counts = {}, items = DATA.filter(d => d.s===state.s);
   items.forEach(d => { const g = genresOf(d); if(g && g.length) g.forEach(x => counts[x] = (counts[x]||0)+1); else if(cached(d)) counts.Uncategorised = (counts.Uncategorised||0)+1; });
   const total = items.length, pending = items.filter(d => !genresOf(d) && !cached(d)?.none).length;
-  $('#side').innerHTML = `<h4>${state.s==='tv'?'TV Shows':'Movies'}</h4>` +
+  $('#side').innerHTML = `<h4>Media</h4><div class="side-seg"><div class="seg"><button data-mediakind="movie" class="${state.s==='tv'?'':'on'}">Movies</button><button data-mediakind="tv" class="${state.s==='tv'?'on':''}">TV</button></div></div>` +
     [['All',total], ...cats[state.s].map(c => [c, counts[c]])]
       .map(([c,n]) => `<button class="cat ${state.c===c&&!state.q?'on':''}" data-c="${esc(c)}">${esc(c)}<span>${n||0}</span></button>`).join('') +
     libSyncHTML() + (pending && !inPreview ? `<div class="side-foot">Sorting your ${state.s==='tv'?'shows':'movies'} into genres using ${state.s==='tv' ? (P()===FREE ? 'TVmaze' : P().name) : P().name}… <b>${pending.toLocaleString()}</b> to go. Categories fill in as it works.</div>` : '');
@@ -3050,7 +3053,7 @@ const ACCENTS = [
   ['Amber','#e8b04b'], ['Zombie Green','#8cc152'], ['Teal','#2bb5a4'], ['Sky Blue','#4f9cf7'], ['Violet','#9b7cf2'],
   ['Pink','#ec5f9e'], ['Blood Red','#e0524a'], ['Orange','#f08a3c'], ['Silver','#aeb6c2']
 ];
-let LOOK = Object.assign({theme:'dark', accent:'#e8b04b', psize:2, corner:'round', frost:2, amb:true, side:'show', act:'show'}, store.get('zn:look') || {});
+let LOOK = Object.assign({theme:'dark', accent:'#e8b04b', psize:2, corner:'round', frost:2, amb:true, side:'show', act:'show', lists:'show'}, store.get('zn:look') || {});
 const PSIZES = [[0.8,'Small'], [1,'Medium'], [1.33,'Large'], [1.67,'X-Large'], [2,'Huge']];
 const mqLight = window.matchMedia ? matchMedia('(prefers-color-scheme: light)') : null;
 const mqClear = window.matchMedia ? matchMedia('(prefers-reduced-transparency: reduce)') : null;
@@ -3064,6 +3067,8 @@ function applyLook(){
   root.dataset.frost = LOOK.frost || 2;
   root.dataset.amb = LOOK.amb === false ? 'off' : 'on';
   root.dataset.side = LOOK.side === 'auto' ? 'auto' : 'show';
+  root.dataset.lists = LOOK.lists === 'hide' ? 'hide' : 'show';
+  if(LOOK.lists === 'hide' && state.s === 'lists') $('#tabs button[data-s="media"]')?.click();   // don't strand anyone on a hidden tab
   if(theme === 'glass') ambReset();
   if(typeof PIN_HIDE !== 'undefined') sidePin();
   root.style.setProperty('--accent', LOOK.accent);
@@ -3087,6 +3092,7 @@ function renderLook(){
   document.querySelectorAll('#frostSeg button').forEach(b => b.classList.toggle('on', +b.dataset.frost === (LOOK.frost || 2)));
   document.querySelectorAll('#ambSeg button').forEach(b => b.classList.toggle('on', b.dataset.amb === (LOOK.amb === false ? 'off' : 'on')));
   document.querySelectorAll('#sideSeg button').forEach(b => b.classList.toggle('on', b.dataset.side === (LOOK.side === 'auto' ? 'auto' : 'show')));
+  document.querySelectorAll('#listsSeg button').forEach(b => b.classList.toggle('on', b.dataset.lists === (LOOK.lists === 'hide' ? 'hide' : 'show')));
   document.querySelectorAll('#actSeg button').forEach(b => b.classList.toggle('on', b.dataset.act === (LOOK.act === 'hide' ? 'hide' : 'show')));
   $('#glassOpts').style.display = LOOK.theme === 'glass' ? '' : 'none';
   $('#glassNote').textContent = LOOK.theme !== 'glass' ? '' : mqClear?.matches
@@ -3102,6 +3108,7 @@ const setLook = patch => { Object.assign(LOOK, patch); store.set('zn:look', LOOK
 $('#frostSeg').onclick = e => { const b = e.target.closest('button'); if(b) setLook({frost: +b.dataset.frost}); };
 $('#ambSeg').onclick = e => { const b = e.target.closest('button'); if(b) setLook({amb: b.dataset.amb === 'on'}); };
 $('#sideSeg').onclick = e => { const b = e.target.closest('button'); if(b) setLook({side: b.dataset.side}); };
+$('#listsSeg').onclick = e => { const b = e.target.closest('button'); if(b) setLook({lists: b.dataset.lists}); };
 $('#actSeg').onclick = e => { const b = e.target.closest('button'); if(b){ setLook({act: b.dataset.act}); actKick(); } };
 mqClear?.addEventListener?.('change', () => { applyLook(); renderLook(); });
 
@@ -3739,6 +3746,7 @@ $('#side').addEventListener('change', e => {
 });
 DISC.order = store.get('zn:dorder') || 'pop';
 $('#grid').addEventListener('click', e => { const b = e.target.closest('[data-dorder]'); if(b && state.s === 'discover'){ DISC.order = b.dataset.dorder; store.set('zn:dorder', DISC.order); render(); } });
+$('#grid').addEventListener('change', e => { if(e.target.id === 'fyhide'){ store.set('zn:fyhideown', e.target.checked); renderForYou(); } });
 $('#grid').addEventListener('change', e => { if(e.target.id==='dhide'){ DISC.hideOwn = e.target.checked; store.set('zn:dhide', DISC.hideOwn); render(); }
   if(e.target.id==='dforeign'){ DISC.noForeign = e.target.checked; store.set('zn:dnoforeign', DISC.noForeign); render(); } });
 /* "foreign" = original language isn't English. TMDB lists carry the language; Wikidata lists look it up once (P364 → ISO 639-1) and cache it. */
@@ -4718,7 +4726,11 @@ $('#clearCache').onclick = () => { store.keys().filter(k => k.startsWith('vault:
 let tt; function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 4200); }
 $('#tabs').onclick = e => { const b = e.target.closest('button'); if(!b) return;
   document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x===b));
-  state.s = b.dataset.s; if(state.s === 'activity' || ACT_EVERY === 10000) setTimeout(actKick, 0); state.c = state.s==='missing' ? missDefault() : state.s==='discover' ? DISC.sec : state.s==='activity' ? 'Now playing' : 'All'; if(state.s==='lists'){ state.attn = false; pwLoad(); } state.q = ''; $('#q').value = ''; renderSide(); render(); scrollTo(0,0); };
+  state.s = b.dataset.s === 'media' ? (store.get('zn:mediakind') === 'tv' ? 'tv' : 'movie') : b.dataset.s; if(state.s === 'activity' || ACT_EVERY === 10000) setTimeout(actKick, 0); state.c = state.s==='missing' ? missDefault() : state.s==='discover' ? DISC.sec : state.s==='activity' ? 'Now playing' : 'All'; if(state.s==='lists'){ state.attn = false; pwLoad(); } state.q = ''; $('#q').value = ''; renderSide(); render(); scrollTo(0,0); };
+$('#side').addEventListener('click', e => {   // Media: Movies / TV switch
+  const k = e.target.closest('[data-mediakind]'); if(!k || (state.s !== 'movie' && state.s !== 'tv')) return;
+  state.s = k.dataset.mediakind; store.set('zn:mediakind', state.s); state.c = 'All'; renderSide(); render(); scrollTo(0, 0);
+});
 $('#side').addEventListener('click', e => {
   if(state.s !== 'discover') return;
   const k = e.target.closest('[data-dkind]'); if(k){ DISC.kind = k.dataset.dkind; store.set('zn:dkind', DISC.kind); renderSide(); render(); loadDiscover(); }
@@ -5107,20 +5119,21 @@ function renderForYou(){
   if(!T){ g.innerHTML = `<div class="actidle"><b>Nothing watched yet${HV.who !== 'all' ? ' by ' + esc(HV.who) : ''}</b><p>Recommendations appear once there's some ${kind === 'movie' ? 'movie' : 'TV'} play history on your server.</p></div>`; return; }
   const pct = v => Math.round(v * 100) + '%';
   const chips = `<div class="fytaste"><span class="fylbl">Your taste</span>${[...T.g].slice(0, 6).map(([n, v]) => `<span class="fychip">${esc(n)} <b>${pct(v)}</b></span>`).join('')}${kind === 'movie' ? [...T.dec].slice(0, 3).map(([d, v]) => `<span class="fychip dec">${d}s <b>${pct(v)}</b></span>`).join('') : ''}<small>share of plays in the last year</small></div>`;
-  const up = fyUpNext(kind);
+  const up = fyUpNext(kind).filter(u => !(store.get('zn:fyhideown') && u.own));
   const upHTML = up.length ? `<section class="fysec"><h3>Up next</h3><p class="fysub">${kind === 'tv' ? 'The next episode of shows being watched.' : 'The next film in series being watched, from Gaps.'}</p>${fyRow(up.map(u => u.own ? fyOwnCard(u.own, u.sub, u.why) : discCardHTML({q:u.q, t:u.t, y:u.y, s:'movie', art:u.art || '', have:false}, '', {sub:u.sub})).join(''))}</section>`
     : kind === 'movie' && !MISS.data ? `<section class="fysec"><h3>Up next</h3><p class="fysub">Run <b>Gaps → Collections</b> once and YAMZ will suggest the next film in series you've started.</p></section>` : '';
   const seen = new Set(), sources = [];
   fyHist(kind).forEach(x => { const k = fold(x.t); if(!seen.has(k) && sources.length < 4){ seen.add(k); sources.push(x); } });
   fyLoadRecs(kind, sources);
-  const R = FY.recs?.key?.startsWith(kind + '|' + HV.who + '|') ? FY.recs.rows : null;
+  const R = FY.recs?.key?.startsWith(kind + '|' + HV.who + '|') ? FY.recs.rows : null, hideOwn = !!store.get('zn:fyhideown');
   const recHTML = !R ? `<div class="loading"><div class="spin"></div>Finding titles like what you've watched…</div>`
-    : R.map(({x, have, need}) => (have.length || need.length) ? `<section class="fysec"><h3>Because ${HV.who === 'all' ? esc(x.who) : 'you'} watched <em>${esc(x.t)}</em></h3><p class="fysub">${ago(x.at)}</p>
+    : R.map(({x, have, need}) => { have = hideOwn ? [] : have; return (have.length || need.length) ? `<section class="fysec"><h3>Because ${HV.who === 'all' ? esc(x.who) : 'you'} watched <em>${esc(x.t)}</em></h3><p class="fysub">${ago(x.at)}</p>
         ${have.length ? `<div class="fyhead">In your library${tmdbOn() ? ', not watched yet' : ', not watched yet · similar genres'}</div>${fyRow(have.map(d => fyOwnCard(d)).join(''))}` : ''}
-        ${need.length ? `<div class="fyhead">Not in your library</div>${fyRow(need.map(r => discCardHTML({...r, have:false}, '')).join(''))}` : ''}</section>` : '').join('')
-      + (R && !R.some(r => r.have.length || r.need.length) ? `<section class="fysec"><h3>Because you watched…</h3><p class="fysub">${tmdbOn() ? "TMDB didn't have suggestions for these titles yet." : `Everything similar in your library has already been watched. Add a free TMDB key in Settings to get suggestions beyond your own library.`}</p></section>` : '')
+        ${need.length ? `<div class="fyhead">Not in your library</div>${fyRow(need.map(r => discCardHTML({...r, have:false}, '')).join(''))}` : ''}</section>` : ''; }).join('')
+      + (R && !R.some(r => (!hideOwn && r.have.length) || r.need.length) ? `<section class="fysec"><h3>Because you watched…</h3><p class="fysub">${tmdbOn() ? "TMDB didn't have suggestions for these titles yet." : `Everything similar in your library has already been watched. Add a free TMDB key in Settings to get suggestions beyond your own library.`}</p></section>` : '')
       + (FY.err ? `<p class="fysub">Some suggestions couldn't load (${esc(FY.err.message || '')}).</p>` : '');
-  g.innerHTML = chips + upHTML + recHTML;
+  const tools = `<div class="mtools"><label class="tog"><input type="checkbox" id="fyhide" ${hideOwn ? 'checked' : ''}> Hide titles already in my library</label></div>`;
+  g.innerHTML = tools + chips + upHTML + recHTML;
   loadPosters(g, '.dcard'); requestAnimationFrame(() => fyArrows(g));
 }
 document.addEventListener('click', e => { const c = e.target.closest('.fyown'); if(c && !e.target.closest('[data-adddisc],.arrbtn,.pwbtn')){ const d = DATA[+c.dataset.q.slice(4)]; if(d) openDetail(d); } });
