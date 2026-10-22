@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+**Compact search**
+- The search box in the top bar is now a small magnifier button. Click it (or press **/**) and it slides open to type. It stays open while there's a search, and shrinks back to the icon when it's empty and you click away.
+- **Esc** clears the search and closes it. On phones it opens onto its own full-width row.
+
 **Genre buttons and floating dock (Media and Discover)**
 - The Genre dropdown in Discover's side menu is gone. Genres now sit as buttons, centred above Popular, Upcoming, Recent and Essentials.
 - Scroll down and they break off into a floating dock just under the top bar, so you can switch genre from anywhere in the list. Picking one from the dock takes you back to the top of the new list.

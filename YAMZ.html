@@ -51,10 +51,22 @@ header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px
 .tabs{display:flex;background:var(--bg2);border:1px solid var(--line);border-radius:var(--rp,999px);padding:3px}
 .tabs button{border:0;background:none;padding:6px 16px;border-radius:var(--rp,999px);cursor:pointer;color:var(--muted);font-weight:600;font-size:13px}
 .tabs button.on{background:var(--accent);color:var(--on-accent)}
-.search{flex:1;max-width:420px;position:relative}
-.search input{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:var(--rp,999px);padding:8px 14px 8px 36px;outline:none}
-.search input:focus{border-color:var(--accent-t)}
-.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--dim)}
+.search{flex:0 1 auto;min-width:var(--sbh,36px);width:var(--sbh,36px);max-width:420px;position:relative;transition:width .25s ease}
+.search input{width:100%;height:var(--sbh,36px);box-sizing:border-box;background:var(--bg2);border:1px solid var(--line);border-radius:var(--rp,999px);padding:0;outline:none;cursor:pointer;color:transparent;transition:border-color .15s,background .15s}
+.search input::placeholder{color:transparent;transition:color .15s}
+.search input:hover{border-color:rgba(var(--acc-rgb),.55)}
+.search svg{position:absolute;left:calc(var(--sbh,36px) / 2 - 8px);top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--muted);pointer-events:none;transition:left .25s ease,stroke .15s}
+.search input:hover + svg,.search:hover svg{stroke:var(--text)}
+/* collapsed to the magnifier until clicked; stays open while focused or holding a search */
+.search:focus-within,.search.has{width:340px;min-width:150px}
+header > :not(.search):not(.spacer){flex-shrink:0}
+.search:focus-within input,.search.has input{cursor:text;padding:0 14px 0 34px;color:var(--text)}
+.search input::-webkit-search-cancel-button{display:none}
+.search:focus-within input::-webkit-search-cancel-button{display:revert}
+.search:focus-within input::placeholder,.search.has input::placeholder{color:var(--dim)}
+.search:focus-within input{border-color:var(--accent-t)}
+.search:focus-within svg,.search.has svg{left:12px;stroke:var(--dim)}
+@media (prefers-reduced-motion:reduce){ .search,.search svg{transition:none} }
 .hbtn{background:var(--bg2);border:1px solid var(--line);border-radius:var(--rp,999px);padding:7px 14px;cursor:pointer;font-weight:600;font-size:13px;white-space:nowrap;display:flex;align-items:center;gap:6px}
 .hbtn:hover{border-color:var(--accent-t);color:var(--accent-t)}
 /* live activity: pill in the header + dropdown of current streams */
@@ -832,7 +844,7 @@ details.manual summary{cursor:pointer;color:var(--text)}
 @media (max-width:860px){
   aside{position:fixed;left:0;top:0;z-index:40;background:var(--bg);transform:translateX(-100%);transition:transform .2s;height:100vh;padding-top:20px}
   header{flex-wrap:wrap}
-  .search{order:9;flex-basis:100%}
+  .search:focus-within,.search.has{order:9;flex-basis:100%;width:100%}
   .logo{font-size:26px;margin-right:auto;gap:8px}
   .zicon{width:32px;height:32px}
   .tabs button{padding:5px 10px;flex:none}
@@ -850,7 +862,7 @@ details.manual summary{cursor:pointer;color:var(--text)}
   .minfo h2{font-size:38px}
   .mbody{padding:18px}
   header{gap:10px;padding:10px 14px}
-  .search{max-width:none}
+  .search:focus-within,.search.has{max-width:none}
 }
 /* ---------- side menu: docked or auto-hide ---------- */
 .sidepin{position:absolute;top:12px;right:8px;z-index:2;width:30px;height:30px;border-radius:calc(9px * var(--rk,1));border:0;background:transparent;color:var(--dim);display:grid;place-items:center;cursor:pointer}
@@ -972,9 +984,9 @@ body > header > *{--rk:var(--rk-panel,1)}   /* the bar's buttons, tabs and searc
     <button data-s="calendar">Calendar</button>
     <button data-s="activity" id="actTab" hidden>Activity</button>
   </div>
-  <div class="search">
-    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-    <input id="q" type="search" placeholder="Search the whole library…" autocomplete="off">
+  <div class="search" title="Search (press /)">
+    <input id="q" type="search" placeholder="Search the whole library…" autocomplete="off" aria-label="Search the whole library">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
   </div>
   <div class="spacer hide-sm"></div>
   <div class="actwrap" id="actWrap" hidden><button class="hbtn actpill" id="actBtn" aria-haspopup="dialog" aria-expanded="false"></button><div class="actpop" id="actPop" role="dialog" aria-label="Now playing" hidden></div></div>
@@ -4892,7 +4904,7 @@ $('#clearCache').onclick = () => { store.keys().filter(k => k.startsWith('vault:
 let tt; function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 4200); }
 $('#tabs').onclick = e => { const b = e.target.closest('button'); if(!b) return;
   document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x===b));
-  state.s = b.dataset.s === 'media' ? (store.get('zn:mediakind') === 'tv' ? 'tv' : 'movie') : b.dataset.s; if(state.s === 'activity' || ACT_EVERY === 10000) setTimeout(actKick, 0); state.c = state.s==='missing' ? missDefault() : state.s==='discover' ? DISC.sec : state.s==='activity' ? 'Now playing' : 'All'; if(state.s==='lists'){ state.attn = false; pwLoad(); } state.q = ''; $('#q').value = ''; renderSide(); render(); scrollTo(0,0); };
+  state.s = b.dataset.s === 'media' ? (store.get('zn:mediakind') === 'tv' ? 'tv' : 'movie') : b.dataset.s; if(state.s === 'activity' || ACT_EVERY === 10000) setTimeout(actKick, 0); state.c = state.s==='missing' ? missDefault() : state.s==='discover' ? DISC.sec : state.s==='activity' ? 'Now playing' : 'All'; if(state.s==='lists'){ state.attn = false; pwLoad(); } state.q = ''; $('#q').value = ''; searchHas(); renderSide(); render(); scrollTo(0,0); };
 $('#side').addEventListener('click', e => {   // Media: Movies / TV switch
   const k = e.target.closest('[data-mediakind]'); if(!k || (state.s !== 'movie' && state.s !== 'tv')) return;
   state.s = k.dataset.mediakind; store.set('zn:mediakind', state.s); state.c = 'All'; renderSide(); render(); scrollTo(0, 0);
@@ -4903,7 +4915,11 @@ $('#side').addEventListener('click', e => {
   if(e.target.closest('[data-drefresh]')) loadDiscover(true);
 });
 $('#side').onclick = e => { if(e.target.closest('[data-act=scan]')) return runScan(); if(e.target.closest('[data-act=tvcheck]')) return tvCheck(); const b = e.target.closest('.cat'); if(!b) return;
-  state.c = b.dataset.c; state.q = ''; $('#q').value = ''; MISS.filter = ''; if(state.s==='discover'){ DISC.sec = state.c; store.set('zn:dsec', DISC.sec); } renderSide(); render(); scrollTo(0,0); $('#side').classList.remove('open'); };
+  state.c = b.dataset.c; state.q = ''; $('#q').value = ''; searchHas(); MISS.filter = ''; if(state.s==='discover'){ DISC.sec = state.c; store.set('zn:dsec', DISC.sec); } renderSide(); render(); scrollTo(0,0); $('#side').classList.remove('open'); };
+function searchHas(){ return $('#q').closest('.search').classList.toggle('has', !!$('#q').value); }
+$('#q').addEventListener('input', searchHas);
+$('#q').addEventListener('keydown', e => { if(e.key === 'Escape'){ if($('#q').value){ $('#q').value = ''; searchHas(); $('#q').dispatchEvent(new Event('input')); } $('#q').blur(); } });
+document.addEventListener('keydown', e => { if(e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input,textarea,select,[contenteditable]') || document.querySelector('.ov.open')) return; e.preventDefault(); $('#q').focus(); });
 let qt; $('#q').oninput = e => { clearTimeout(qt); qt = setTimeout(() => { state.q = e.target.value; renderSide(); render(); }, 180); };
 $('#sort').onchange = e => { state.sort = e.target.value; render(); };
 $('#attnBtn').onclick = () => { state.attn = !state.attn; render(); scrollTo(0,0); };
