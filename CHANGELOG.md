@@ -3,7 +3,7 @@
 ## Unreleased
 
 **Interface corners**
-- New Settings → Appearance → **Interface corners** squares off parts of YAMZ on their own: the **top bar**, the **side menu**, **pop-ups & cards**, and **pill buttons & switches**. Pick any mix.
+- New Settings → Appearance → **Interface corners** squares off parts of YAMZ on their own: the **top bar** itself, the **side menu**, **pop-ups & cards**, and **pill buttons & switches** (including the tabs, search and buttons inside the top bar). Pick any mix.
 - Posters keep their own Poster corners setting, and small dots and profile icons stay round.
 - Saved per device and applied before the page draws, so there's no flash of rounded corners.
 
