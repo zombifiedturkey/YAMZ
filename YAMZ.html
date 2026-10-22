@@ -247,6 +247,8 @@ header > :not(.search):not(.spacer){flex-shrink:0}
 .gptrack i{display:block;height:100%;background:var(--accent);border-radius:0 calc(4px * var(--rk,1)) calc(4px * var(--rk,1)) 0}
 .gpmark{position:absolute;top:-4px;width:2px;height:16px;background:var(--text);transform:translateX(-1px);border-radius:calc(1px * var(--rk,1));box-shadow:0 0 0 2px var(--bg2)}
 .gpgo{font-size:12px;margin-top:5px}
+.gpcols.three{grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr))}
+.gpnote{color:var(--muted);font-size:13px;margin:0 0 10px}
 @media (max-width:1180px){ #settingsBtn .hide-sm{display:none} #settingsBtn{padding:7px 11px} .tabs button{padding:6px 12px} }
 :root[data-lists="hide"] #tabs button[data-s="lists"],:root[data-lists="hide"] .lbtn,:root[data-lists="hide"] [data-addlist-modal]{display:none!important}
 a.rt.rtl{color:inherit;text-decoration:none;transition:border-color .15s}
@@ -2150,12 +2152,14 @@ async function runScan(){
       .sort((a,b) => (b.own/b.items.length) - (a.own/a.items.length) || b.own - a.own);
 
     /* 3. actors */
-    const count = {}; n = 0;
-    setProg(4, 'Counting actors across your movies', 0, qc.length);
+    const count = {}, dcount = {}; n = 0;
+    setProg(4, 'Counting actors and directors across your movies', 0, qc.length);
     for(const c of qc){
-      const rows = await sparql(`SELECT DISTINCT ?f ?a WHERE { VALUES ?f { ${c.map(q => 'wd:'+q).join(' ')} } ?f wdt:P161 ?a }`);
-      rows.forEach(r => { const a = qidOf(r.a.value), f = qidOf(r.f.value); const C = count[a] ||= {all:0, adult:0}; C.all++; if(!isKid(catOf[f])) C.adult++; });
-      setProg(4, 'Counting actors across your movies', ++n, qc.length);
+      const rows = await sparql(`SELECT DISTINCT ?f ?a ?d WHERE { VALUES ?f { ${c.map(q => 'wd:'+q).join(' ')} } { ?f wdt:P161 ?a } UNION { ?f wdt:P57 ?d } }`);
+      rows.forEach(r => { const f = qidOf(r.f.value);
+        if(r.a){ const a = qidOf(r.a.value), C = count[a] ||= {all:0, adult:0}; C.all++; if(!isKid(catOf[f])) C.adult++; }
+        if(r.d){ const d = qidOf(r.d.value), C = dcount[d] ||= {all:0, adult:0}; C.all++; if(!isKid(catOf[f])) C.adult++; } });
+      setProg(4, 'Counting actors and directors across your movies', ++n, qc.length);
     }
     const top = k => Object.entries(count).filter(([,c]) => c[k] >= 4).sort((a,b) => b[1][k] - a[1][k]).slice(0, 30).map(([a]) => a);
     const actorIds = uniq([...top('adult'), ...top('all')]);
@@ -2189,9 +2193,40 @@ async function runScan(){
       });
       setProg(5, 'Looking up their filmographies', ++n, ac.length);
     }
-    MISS.data = {at:Date.now(), total:items.length, matched:owned.length, coll, actors};
+    /* 3b. directors: same idea, people who directed 3 or more of your movies */
+    const dtop = k => Object.entries(dcount).filter(([,c]) => c[k] >= 3).sort((a,b) => b[1][k] - a[1][k]).slice(0, 25).map(([d]) => d);
+    const directors = []; n = 0;
+    const dc = chunk(uniq([...dtop('adult'), ...dtop('all')]), 8);
+    setProg(5, 'Looking up directors’ films', 0, dc.length);
+    for(const c of dc){
+      const rows = await sparql(`SELECT ?a ?aLabel ?img ?m ?mLabel ?date ?art WHERE {
+        VALUES ?a { ${c.map(q => 'wd:'+q).join(' ')} }
+        ?m wdt:P57 ?a ; wdt:P31 ?ft . ${FTYPES}
+        OPTIONAL { ?a wdt:P18 ?img }
+        OPTIONAL { ?m wdt:P577 ?date }
+        OPTIONAL { ?art schema:about ?m ; schema:isPartOf <https://en.wikipedia.org/> }
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } }`);
+      const by = {};
+      rows.forEach(r => {
+        const a = qidOf(r.a.value), m = qidOf(r.m.value);
+        const A = by[a] ||= {id:a, name:r.aLabel?.value || a, img:r.img ? r.img.value.replace(/^http:/,'https:')+'?width=180' : null, m:{}};
+        const M = A.m[m] ||= {q:m, t:r.mLabel?.value || m, d:'', art:artTitle(r.art?.value)};
+        const dt = (r.date?.value||'').slice(0,10); if(dt && (!M.d || dt < M.d)) M.d = dt;
+      });
+      Object.values(by).forEach(A => {
+        const films = Object.values(A.m).filter(M => !/^Q\d+$/.test(M.t)).map(M => {
+          const y = +M.d.slice(0,4) || null;
+          return {q:M.q, t:M.t, y, art:M.art, st:(ownedQ.has(M.q) || ownT(M.t, y)) ? 'own' : (!M.d || M.d > today) ? 'up' : 'miss'};
+        }).sort((a,b) => (b.y||0) - (a.y||0));
+        const miss = films.filter(f => f.st==='miss');
+        directors.push({id:A.id, name:A.name, img:A.img, all:dcount[A.id].all, adult:dcount[A.id].adult,
+          items:[...films.filter(f => f.st==='up').slice(0,6), ...miss.slice(0,60), ...films.filter(f => f.st==='own')], miss:miss.length});
+      });
+      setProg(5, 'Looking up directors’ films', ++n, dc.length);
+    }
+    MISS.data = {at:Date.now(), total:items.length, matched:owned.length, coll, actors, directors};
     store.set('zn:miss', MISS.data);
-    toast(`Done — ${coll.length} incomplete collections and ${actors.length} actors found.`);
+    toast(`Done — ${coll.length} incomplete collections, ${actors.length} actors and ${directors.length} directors found.`);
   }catch(e){
     MISS.err = e.net ? `Couldn't reach ${e.host}. Check your connection or ad blocker, then try again.` : (e.message || 'Something went wrong.');
   }finally{
@@ -2238,16 +2273,19 @@ async function loadPosters(row, sel='.mini'){
 
 const TV_CATS = ['Incomplete shows', 'Missing seasons', 'Complete shows'];
 const WAIT_C = {movie:'Waiting in Radarr', tv:'Waiting in Sonarr'};
-const missCats = () => MISS.kind === 'tv' ? [...TV_CATS, WAIT_C.tv] : ['Collections', 'Actors', WAIT_C.movie];
+const missCats = () => MISS.kind === 'tv' ? [...TV_CATS, WAIT_C.tv] : ['Collections', 'Actors', 'Directors', WAIT_C.movie];
+const PEOPLE_MIN = {Actors:4, Directors:3};
+const missPeople = (D, c) => (c === 'Directors' ? D?.directors : D?.actors) || [];
 const missDefault = () => MISS.kind === 'tv' ? 'Incomplete shows' : 'Collections';
 function renderMissingSide(){
   const D = MISS.data, tv = MISS.kind === 'tv';
   if(state.c !== MAN_C && !missCats().includes(state.c)) state.c = missDefault();
   const nA = D ? D.actors.filter(a => (MISS.kids ? a.all : a.adult) >= 4).length : 0;
+  const nD = D?.directors ? D.directors.filter(a => (MISS.kids ? a.all : a.adult) >= 3 && a.miss > 0).length : '–';
   const rows = TV.res ? tvList() : null;
   const wsvc = tv ? 'sonarr' : 'radarr', W = WAIT[wsvc];
   if(!W && arrOn(wsvc)) setTimeout(() => waitLoad(wsvc), 0);
-  const counts = {Collections: D ? D.coll.length : '–', Actors: D ? nA : '–',
+  const counts = {Collections: D ? D.coll.length : '–', Actors: D ? nA : '–', Directors: D ? nD : '–',
     'Incomplete shows': rows ? rows.filter(r => r.missEp > 0).length : '–', 'Missing seasons': rows ? rows.filter(r => r.missS > 0).length : '–',
     'Complete shows': rows ? rows.filter(r => r.missEp === 0).length : '–', [WAIT_C[MISS.kind]]: W?.items ? W.items.length : '–'};
   const foot = state.c === MAN_C ? `Search for any ${tv ? 'TV show' : 'movie'}, then add it to a list, your Plex Watchlist, or ${tv ? 'Sonarr' : 'Radarr'}.`
@@ -2356,7 +2394,7 @@ function renderMissing(){
   if(TV_CATS.includes(state.c)) return renderTvMissing();
   if(MISS.running){
     const p = MISS.prog || {stage:1, label:'Starting…', done:0, total:1};
-    const labels = ['Matching your movies to Wikipedia','Checking matches','Finding franchises and collections','Counting actors across your movies','Looking up their filmographies'];
+    const labels = ['Matching your movies to Wikipedia','Checking matches','Finding franchises and collections','Counting actors and directors across your movies','Looking up their filmographies'];
     $('#title').textContent = 'Analysing…'; $('#count').textContent = '';
     g.innerHTML = `<div class="mpanel"><h2 class="bebas">Analysing your collection</h2>
       <p>${esc(p.label)}${p.total > 1 ? ` — ${p.done} of ${p.total}` : ''}</p>
@@ -2370,7 +2408,8 @@ function renderMissing(){
     g.innerHTML = `<div class="mpanel"><h2 class="bebas">Find the gaps in your collection</h2>
       <p>YAMZ will look up every movie you own on Wikidata (the free database behind Wikipedia) and work out:</p>
       <ul><li><b>Incomplete collections</b>: franchises and series where you own some films but not all, like a John Wick or Mad Max set with gaps.</li>
-      <li><b>Your most-watched actors</b>: the people who turn up most often in your movies, and the films of theirs you don't have yet.</li></ul>
+      <li><b>Your most-watched actors</b>: the people who turn up most often in your movies, and the films of theirs you don't have yet.</li>
+      <li><b>Your favourite directors</b>: the directors behind 3 or more of your movies, and the rest of their films.</li></ul>
       <p>No key or sign-up needed. It runs in your browser and the results are saved, so you only need to re-run it after adding movies.</p>
       ${MISS.err ? `<p class="err">${esc(MISS.err)}</p>` : ''}
       <div class="actions"><button class="btn pri" data-act="scan">Analyse my collection</button></div></div>`;
@@ -2378,16 +2417,22 @@ function renderMissing(){
   }
   const err = MISS.err ? `<p class="err">${esc(MISS.err)}</p>` : '';
   const filt = it => MISS.showOwn ? it : it.filter(x => x.st !== 'own');
-  if(state.c==='Actors'){
-    const k = MISS.kids ? 'all' : 'adult';
-    const list = D.actors.filter(a => a[k] >= 4 && a.miss > 0).sort((a,b) => b[k] - a[k]);
-    $('#title').textContent = 'Actors'; $('#count').textContent = `${list.length} actors you watch a lot`;
+  if(state.c==='Directors' && !D.directors){
+    $('#title').textContent = 'Directors'; $('#count').textContent = '';
+    g.innerHTML = err + `<div class="mpanel"><h2 class="bebas">Find your favourite directors</h2><p>Your last analysis was done before YAMZ looked at directors. Re-analyse to see the directors behind 3 or more of your movies and the films of theirs you don't have yet.</p>
+      <div class="actions"><button class="btn pri" data-act="scan" ${MISS.running ? 'disabled' : ''}>${MISS.running ? 'Analysing…' : '↻ Re-analyse'}</button></div></div>`;
+    return;
+  }
+  if(state.c==='Actors' || state.c==='Directors'){
+    const k = MISS.kids ? 'all' : 'adult', dir = state.c === 'Directors';
+    const list = missPeople(D, state.c).filter(a => a[k] >= PEOPLE_MIN[state.c] && a.miss > 0).sort((a,b) => b[k] - a[k]);
+    $('#title').textContent = state.c; $('#count').textContent = `${list.length} ${dir ? 'directors whose films you collect' : 'actors you watch a lot'}`;
     g.innerHTML = err + `<div class="mtools"><div class="mfilter"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="mfilter" type="search" placeholder="Find a title or name…" value="${esc(MISS.filter)}" autocomplete="off"></div>
         <label class="tog"><input type="checkbox" id="kidsTog" ${MISS.kids?'checked':''}> Include family, kids &amp; Christmas movies</label>
         <label class="tog"><input type="checkbox" id="ownTog" ${MISS.showOwn?'checked':''}> Show movies I already own</label></div>` +
       list.map(a => `<div class="coll actor" data-s="${esc((a.name+' '+a.items.map(i => i.t).join(' ')).toLowerCase())}"><div class="chead">
         <div class="aimg" style="${a.img ? `background-image:url('${esc(a.img)}')` : ''}">${a.img ? '' : esc(a.name[0])}</div>
-        <div><h3 class="bebas">${esc(a.name)}</h3><div class="sub">In <b>${a[k]}</b> of your movies</div></div>
+        <div><h3 class="bebas">${esc(a.name)}</h3><div class="sub">${dir ? 'Directed' : 'In'} <b>${a[k]}</b> of your movies</div></div>
         <span class="chip miss">${a.miss} missing</span></div>
         <div class="mrow">${filt(a.items).map(miniHTML).join('')}</div></div>`).join('');
   } else {
@@ -5469,6 +5514,38 @@ function gapsHTML(items){
   return `<section class="stbox gaps"><h3>Genre gaps</h3><p class="gpkey"><span><i class="k1"></i>share of plays</span><span><i class="k2"></i>share of your library</span></p>
     <div class="gpcols">${more.length ? `<div><h4>Watched more than you stock</h4>${more.map(row).join('')}</div>` : ''}${less.length ? `<div><h4>Plenty here, rarely watched</h4>${less.map(row).join('')}</div>` : ''}</div></section>`;
 }
+/* Gaps by actor, director and franchise: who and what gets watched more than the library stocks (movies; uses the Gaps analysis) */
+function peopleGapsHTML(items){
+  if(HV.kind === 'tv') return '';
+  const D = MISS.data, mv = items.filter(x => x.kind === 'movie'), lm = DATA.filter(d => d.s === 'movie');
+  if(mv.length < 10 || lm.length < 10) return '';
+  if(!D) return `<section class="stbox gaps"><h3>Actor, director &amp; franchise gaps</h3><p class="gpnote">Run <b>Gaps → Analyse collection</b> once and this compares the actors, directors and franchises you watch with what you own.</p><button class="btn" data-gap-goto="Collections">Open Gaps</button></section>`;
+  const qOf = x => { const d = libFind('movie', x.t, x.y); return d ? MISS.qmap[keyOf(d)] || null : null; };
+  const plays = mv.map(x => ({q:qOf(x), t:fold(x.t)}));
+  const group = (list, cat, minOwn) => (list || []).map(a => {
+    const own = a.items.filter(i => i.st === 'own'); if(own.length < minOwn || !a.miss) return null;
+    const qs = new Set(own.map(i => i.q)), ts = new Set(own.map(i => fold(i.t)));
+    const n = plays.filter(p => (p.q && qs.has(p.q)) || ts.has(p.t)).length;
+    return {cat, k:a.name, n, own:own.length, miss:a.miss, p:n / plays.length, l:own.length / lm.length};
+  }).filter(r => r && r.n >= 3 && r.p >= 0.03 && r.p / Math.max(r.l, 0.002) >= 1.5).sort((a, b) => (b.p - b.l) - (a.p - a.l)).slice(0, 4);
+  const cols = [['Actors', group(D.actors, 'Actors', 2)], ['Directors', D.directors ? group(D.directors, 'Directors', 2) : null], ['Franchises', group(D.coll, 'Collections', 1)]];
+  const any = cols.some(([, r]) => r?.length);
+  const mx = Math.max(0.01, ...cols.flatMap(([, r]) => (r || []).flatMap(x => [x.p, x.l])));
+  const pc = v => Math.round(v * 100) + '%';
+  const row = r => `<div class="gprow"><div class="gplab"><b>${esc(r.k)}</b><span>${pc(r.p)} of plays · ${pc(r.l)} of library</span></div>
+      <div class="gptrack" title="${esc(`${r.k}: ${r.n} of ${plays.length} movie plays, ${r.own} of your ${lm.length} movies`)}"><i style="width:${(r.p / mx * 100).toFixed(1)}%"></i><b class="gpmark" style="left:${(r.l / mx * 100).toFixed(1)}%"></b></div>
+      <button class="linkbtn gpgo" data-gap-goto="${esc(r.cat)}" data-gap-name="${esc(r.k)}">${r.cat === 'Collections' ? `Complete the set: ${r.miss} missing` : `${r.miss} more of their films`} →</button></div>`;
+  return `<section class="stbox gaps"><h3>Actor, director &amp; franchise gaps</h3><p class="gpkey"><span><i class="k1"></i>share of movie plays</span><span><i class="k2"></i>share of your movies</span></p>
+    ${any ? `<div class="gpcols three">${cols.map(([h, r]) => `<div><h4>${h}</h4>${r === null ? `<p class="gpnote">Re-analyse in Gaps to include directors.</p>` : r.length ? r.map(row).join('') : `<p class="gpnote">Nothing stands out yet.</p>`}</div>`).join('')}</div>`
+      : `<p class="gpnote">Nobody stands out: what gets watched matches the actors, directors and franchises you own.${D.directors ? '' : ' Re-analyse in Gaps to include directors.'}</p>`}</section>`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-gap-goto]'); if(!b) return;
+  MISS.kind = MAN.kind = 'movie'; store.set('zn:misskind', 'movie'); store.set('zn:mankind', 'movie');
+  $('#tabs button[data-s="missing"]').click();
+  state.c = b.dataset.gapGoto; MISS.filter = b.dataset.gapName || '';
+  renderSide(); render(); scrollTo(0, 0);
+});
 function renderStats(){
   const g = $('#grid'); histNeed();
   $('#title').textContent = 'Stats'; $('#count').textContent = '';
@@ -5492,6 +5569,7 @@ function renderStats(){
   g.innerHTML = `<div class="stwrap">
     <div class="sttiles">${tile('Plays', items.length)}${tile('Movies watched', new Set(mov.map(x => x.key)).size)}${tile('Episodes watched', eps.length)}${tile('People watching', new Set(items.map(x => x.who)).size)}${tile('Busiest day', fullDays[busiest])}${tile('Peak time', hl(peak))}</div>
     ${gapsHTML(items)}
+    ${peopleGapsHTML(items)}
     <div class="stgrid">
       ${HV.kind !== 'tv' ? rankHTML('Most-watched movies', topM, ['play', 'plays'], {poster:true}) : ''}
       ${HV.kind !== 'movie' ? rankHTML('Most-watched shows', topS, ['episode', 'episodes'], {poster:true}) : ''}
