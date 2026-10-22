@@ -188,7 +188,16 @@ header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px
 .fysec h3 em{font-style:normal;color:var(--accent-t)}
 .fysub{margin:2px 0 10px;color:var(--muted);font-size:12.5px}
 .fyhead{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:10px 0 8px}
-.fyrow{display:grid;grid-auto-flow:column;grid-auto-columns:calc(140px * var(--ps));gap:14px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin}
+.fyscroll{position:relative}
+.fyrow{display:grid;grid-auto-flow:column;grid-auto-columns:calc(140px * var(--ps));gap:14px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.fyrow > *{scroll-snap-align:start}
+.fyrow::-webkit-scrollbar{height:8px} .fyrow::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+.fyarr{position:absolute;top:calc(105px * var(--ps));transform:translateY(-50%);z-index:3;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--bg2);color:var(--text);font-size:24px;line-height:1;cursor:pointer;box-shadow:0 6px 18px var(--shadow);display:grid;place-items:center;padding-bottom:3px}
+.fyarr:hover{border-color:var(--accent-t);color:var(--accent-t)}
+.fyarr[hidden]{display:none}
+.fyarr.l{left:-12px} .fyarr.r{right:-12px}
+:root[data-theme="glass"] .fyarr{background:rgba(20,22,30,.85);-webkit-backdrop-filter:var(--gfx);backdrop-filter:var(--gfx)}
+@media (hover:none){ .fyarr{display:none} }
 .fywhy{font-size:11.5px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dorder{margin-left:auto}
 .dorder button{padding:5px 12px;font-size:12.5px}
@@ -207,6 +216,7 @@ header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px
 .gptrack i{display:block;height:100%;background:var(--accent);border-radius:0 4px 4px 0}
 .gpmark{position:absolute;top:-4px;width:2px;height:16px;background:var(--text);transform:translateX(-1px);border-radius:1px;box-shadow:0 0 0 2px var(--bg2)}
 .gpgo{font-size:12px;margin-top:5px}
+@media (max-width:1180px){ #settingsBtn .hide-sm{display:none} #settingsBtn{padding:7px 11px} .tabs button{padding:6px 12px} }
 @media (max-width:1560px){ .actpill .abw{display:none} }
 @media (max-width:1240px){ .actpill .alabel{display:none} }
 @media (max-width:760px){ .actpill{padding:7px 10px} .actpop{position:fixed;left:12px;right:12px;width:auto;top:var(--acttop,120px);max-height:calc(100vh - var(--acttop,120px) - 16px)} }
@@ -966,7 +976,7 @@ select option,select optgroup{background-color:#16181e;color:#ecedf0}
       <div class="seg" id="sideSeg"><button data-side="show">Always shown</button><button data-side="auto">Auto-hide</button></div></div>
     <div class="field"><label>Now playing (top bar)</label>
       <div class="seg" id="actSeg"><button data-act="show">Show</button><button data-act="hide">Hide</button></div>
-      <small class="fhint">Shows who's streaming from your Plex server right now. Only the server owner's sign-in can see everyone's streams.</small></div>
+      <small class="fhint">Shows who's streaming from your Plex or Jellyfin server right now. Seeing everyone's streams needs the Plex server owner's sign-in or a Jellyfin admin API key.</small></div>
     <h4>Connections</h4>
     <div id="connBox"></div>
     <h4>Metadata source</h4>
@@ -3657,7 +3667,7 @@ function renderDiscoverSide(){
       return opts ? `<div class="catgrp">${btn}<div class="catopts">${opts}</div></div>` : btn;
     }).join('') +
     (state.c === FORYOU ? `<h4>Recommend for</h4><div class="side-seg"><select data-hvsel="who" aria-label="Recommend for"><option value="all">Everyone</option>${[...new Set(HIST.items.map(x => x.who))].sort((a, b) => a.localeCompare(b)).map(p => `<option ${HV.who === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>` : '') +
-    `<div class="side-foot">${state.c === FORYOU ? `Built from the last year of plays on your Plex server${tmdbOn() ? ', with suggestions from TMDB' : '. Add a free TMDB key in Settings for suggestions beyond your own library'}.`
+    `<div class="side-foot">${state.c === FORYOU ? `Built from the last year of plays on your ${actSrvName() === 'your servers' ? 'servers' : actSrvName() + ' server'}${tmdbOn() ? ', with suggestions from TMDB' : '. Add a free TMDB key in Settings for suggestions beyond your own library'}.`
       : state.c === GOAT
       ? (tmdbOn() && TMDB_GEN[DISC.kind][DISC.genre] ? `Essentials ranks ${DISC.genre.toLowerCase()} ${DISC.kind==='movie'?'films':'series'} by TMDB audience rating, counting only titles with plenty of votes so one-off scores don't skew it.`
         : `Essentials ranks every ${DISC.genre.toLowerCase()} ${DISC.kind==='movie'?'film':'series'} on Wikidata by critic scores (Rotten Tomatoes and Metacritic) blended with how widely it's covered around the world.`)
@@ -4767,7 +4777,45 @@ if(LIB.servers.length && !inPreview && LIB.servers.some(s => Date.now() - (s.at|
    Read-only. The server owner's token sees every stream; a shared user's token only sees their own. */
 const ACT = {streams:[], at:0, err:null, busy:false, timer:null, open:false};
 let ACT_EVERY = 15000; const ACT_WARN = 2;   // poll interval; video transcodes at once before the pill turns amber
-const actServers = () => (LIB.servers || []).filter(s => s.type === 'plex' && s.url && s.token);
+const actServers = () => (LIB.servers || []).filter(s => (s.type === 'plex' || s.type === 'jellyfin') && s.url && s.token);
+const actSrvName = () => { const t = [...new Set(actServers().map(s => s.type))]; return t.length === 1 ? (t[0] === 'plex' ? 'Plex' : 'Jellyfin') : 'your servers'; };
+/* Jellyfin sessions → the same stream shape as Plex */
+const JF_WHY = {ContainerNotSupported:'container not supported', VideoCodecNotSupported:'video codec not supported', AudioCodecNotSupported:'audio codec not supported',
+  SubtitleCodecNotSupported:'subtitles burned in', VideoResolutionNotSupported:'resolution too high for the device', VideoBitrateNotSupported:'bitrate too high', ContainerBitrateExceedsLimit:'bitrate over the limit',
+  AudioChannelsNotSupported:'audio channels not supported', VideoProfileNotSupported:'video profile not supported', VideoLevelNotSupported:'video level not supported', DirectPlayError:'direct play failed'};
+const privIp = ip => /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|127\.|::1|fe80|fc|fd|localhost)/i.test(String(ip || '').replace(/^\[|\]$/g, ''));
+function jfStream(s, x){
+  const it = x.NowPlayingItem, ps = x.PlayState || {}, ti = x.TranscodingInfo || null, ep = it.Type === 'Episode';
+  const ms = it.MediaStreams || [], v = ms.find(m => m.Type === 'Video') || {};
+  const a = ms.find(m => m.Type === 'Audio' && m.Index === ps.AudioStreamIndex) || ms.find(m => m.Type === 'Audio' && m.IsDefault) || ms.find(m => m.Type === 'Audio') || {};
+  const sub = ps.SubtitleStreamIndex >= 0 ? ms.find(m => m.Type === 'Subtitle' && m.Index === ps.SubtitleStreamIndex) : null;
+  const method = ps.PlayMethod || (ti ? 'Transcode' : 'DirectPlay');
+  const vt = ti && ti.IsVideoDirect === false, at = ti && ti.IsAudioDirect === false;
+  const reasons = (ti?.TranscodeReasons || []).map(r => JF_WHY[r] || r.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase());
+  const burn = !!sub && (ti?.TranscodeReasons || []).includes('SubtitleCodecNotSupported');
+  const mode = method === 'DirectPlay' ? 'dp' : (vt || burn) ? 'tc' : 'ds';
+  const why = [];
+  if(vt){ const f = resName(+v.Height), t = resName(+ti.Height); if(f && t && f !== t) why.push(`${f} → ${t}`); if(v.Codec && ti.VideoCodec && v.Codec !== ti.VideoCodec) why.push(`${codec(v.Codec)} → ${codec(ti.VideoCodec)}`); }
+  if(at && a.Codec && ti.AudioCodec) why.push(`audio ${codec(a.Codec)} → ${codec(ti.AudioCodec)}`);
+  reasons.forEach(r => { if(!why.includes(r)) why.push(r); });
+  const hw = !!(ti?.HardwareAccelerationType && ti.HardwareAccelerationType !== 'none');
+  if(mode === 'tc' && hw) why.push('hardware');
+  const kbps = ti?.Bitrate ? ti.Bitrate / 1000 : ms.filter(m => m.Type !== 'Subtitle').reduce((n, m) => n + (+m.BitRate || 0), 0) / 1000;
+  const tick = t => (+t || 0) / 10000;   // Jellyfin ticks → ms
+  return {
+    src:'jellyfin', server:s.name, key:x.Id || it.Id,
+    kind:ep ? 'tv' : it.Type === 'Movie' ? 'movie' : 'other', t:ep ? (it.SeriesName || it.Name) : it.Name, y:ep ? null : it.ProductionYear || null,
+    sub:ep ? `S${pad2(it.ParentIndexNumber)}E${pad2(it.IndexNumber)}${it.Name ? ' · ' + it.Name : ''}` : (it.ProductionYear ? String(it.ProductionYear) : ''),
+    img:JF.img(s, ep ? (it.SeriesId || it.Id) : it.Id), art:px(`${s.url}/Items/${ep ? (it.SeriesId || it.Id) : it.Id}/Images/Backdrop?maxWidth=800&quality=70`), avatar:'',
+    user:x.UserName || 'Someone', device:[x.DeviceName, x.Client].filter(Boolean).join(' · '), devRow:[x.DeviceName, x.Client].filter(Boolean).join(' · '),
+    state:ps.IsPaused ? 'paused' : 'playing', remote:!privIp(x.RemoteEndPoint), pos:tick(ps.PositionTicks), dur:tick(it.RunTimeTicks), kbps, mode, why,
+    hw, speed:null, throttled:false,
+    video:{src:[resName(+v.Height), codec(v.Codec), v.VideoRange && v.VideoRange !== 'SDR' ? v.VideoRange : ''].filter(Boolean).join(' '), out:vt ? [resName(+ti.Height), codec(ti.VideoCodec)].filter(Boolean).join(' ') : '', note:vt ? (hw ? 'hardware' : 'software') : method === 'DirectPlay' ? 'direct play' : 'direct stream'},
+    audio:{src:[codec(a.Codec), chName(+a.Channels)].filter(Boolean).join(' ') + (a.Language ? ` (${a.Language})` : ''), out:at ? [codec(ti.AudioCodec), chName(+ti.AudioChannels)].filter(Boolean).join(' ') : '', note:at ? '' : method === 'DirectPlay' ? 'direct play' : 'direct stream'},
+    subs:sub ? {name:sub.DisplayTitle || sub.Language || 'Subtitles', burn} : null,
+    box:[it.Container, ti?.Container].filter(Boolean).map(c => String(c).split(',')[0].toUpperCase()),
+  };
+}
 const pad2 = n => String(n ?? '').padStart(2, '0');
 const resName = h => !h ? '' : h >= 1800 ? '4K' : h >= 1000 ? '1080p' : h >= 700 ? '720p' : h >= 540 ? '576p' : h + 'p';
 const srcRes = r => ({'4k':'4K', '1080':'1080p', '720':'720p', '576':'576p', '480':'480p', 'sd':'SD'})[String(r || '').toLowerCase()] || (r ? r + 'p' : '');
@@ -4831,7 +4879,10 @@ async function actLoad(){
   if(ACT.busy) return; ACT.busy = true;
   const out = []; let err = null, okAny = false;
   await Promise.all(sv.map(async s => {
-    try{ const mc = await PLEX.get(s, '/status/sessions', {}, 8000); okAny = true; (mc.Metadata || []).forEach(m => out.push(plexStream(s, m))); }
+    try{
+      if(s.type === 'jellyfin'){ const ss = await JF.get(s, '/Sessions', {activeWithinSeconds:960}, 8000); okAny = true; (ss || []).filter(x => x.NowPlayingItem).forEach(x => out.push(jfStream(s, x))); }
+      else { const mc = await PLEX.get(s, '/status/sessions', {}, 8000); okAny = true; (mc.Metadata || []).forEach(m => out.push(plexStream(s, m))); }
+    }
     catch(e){ err = e; }
   }));
   out.sort((a, b) => (a.state === 'paused') - (b.state === 'paused') || a.user.localeCompare(b.user));
@@ -4852,7 +4903,7 @@ function actRender(){
   const {n, tc, bw} = actSummary(), warn = tc >= ACT_WARN;
   btn.className = 'hbtn actpill ' + (ACT.err && !n ? 'off' : n ? (warn ? 'live warn' : 'live') : 'idle');
   btn.innerHTML = `<span class="adot"></span>${ACT.err && !n ? '<span class="alabel">Activity offline</span>' : n ? `▶ ${n}<span class="alabel"> streaming</span>${bw ? `<span class="abw">· ${esc(bw)}</span>` : ''}` : '<span class="alabel">Idle</span>'}`;
-  btn.title = ACT.err && !n ? `Couldn't read activity from Plex (${ACT.err.message || 'error'})` : n ? `${n} stream${n > 1 ? 's' : ''}${tc ? `, ${tc} transcoding` : ''}${bw ? `, ${bw}` : ''}` : 'Nobody is streaming right now';
+  btn.title = ACT.err && !n ? `Couldn't read activity from ${actSrvName()} (${ACT.err.message || 'error'})` : n ? `${n} stream${n > 1 ? 's' : ''}${tc ? `, ${tc} transcoding` : ''}${bw ? `, ${bw}` : ''}` : 'Nobody is streaming right now';
   btn.setAttribute('aria-expanded', ACT.open ? 'true' : 'false');
   pop.hidden = !ACT.open; if(!ACT.open) return;
   pop.style.setProperty('--acttop', Math.round(btn.getBoundingClientRect().bottom + 8) + 'px');   // phones: full-width sheet just under the pill
@@ -4868,7 +4919,7 @@ function actRender(){
         <div class="npmeta"><span class="nptag ${x.mode}">${TAG[x.mode]}</span><span class="nptag net">${x.remote ? 'Remote' : 'Local'}</span>${x.state === 'paused' ? '<span>Paused</span>' : x.state === 'buffering' ? '<span>Buffering…</span>' : ''}<span>${hms(x.pos)} / ${hms(x.dur)}</span>${x.kbps ? `<span>${(x.kbps / 1000).toFixed(1)} Mbps</span>` : ''}</div>
         ${x.why.length && x.mode !== 'dp' ? `<div class="npwhy">${esc(x.why.join(' · '))}</div>` : ''}</div></div>`;
   }).join('');
-  pop.innerHTML = head + (n ? cards : `<div class="npempty">${ACT.err ? `Couldn't read activity from Plex.<br><small>${esc(ACT.err.message || '')}</small>` : 'Nobody is watching right now.'}</div>`)
+  pop.innerHTML = head + (n ? cards : `<div class="npempty">${ACT.err ? `Couldn't read activity from ${actSrvName()}.<br><small>${esc(ACT.err.message || '')}</small>` : 'Nobody is watching right now.'}</div>`)
     + `<div class="npfoot"><button class="linkbtn" data-act-page>Open the Activity page →</button><br>Updates every ${ACT_EVERY / 1000} seconds${ACT.at ? ` · last checked ${new Date(ACT.at).toLocaleTimeString([], {hour:'numeric', minute:'2-digit', second:'2-digit'})}` : ''}</div>`;
 }
 function actOpenTitle(x){
@@ -4903,8 +4954,8 @@ function renderActivity(){
   const {n, tc, bw} = actSummary();
   $('#title').textContent = 'Now playing';
   $('#count').textContent = n ? `${n} stream${n > 1 ? 's' : ''}${bw ? ' · ' + bw : ''}${tc ? ` · ${tc} transcoding` : ''}` : '';
-  if(!actServers().length){ g.innerHTML = `<div class="mpanel"><p>Connect a Plex server to see who's watching. Jellyfin support is coming.</p><div class="actions"><button class="btn pri" data-act="folders">Connect my library</button></div></div>`; return; }
-  if(!n){ g.innerHTML = `<div class="actidle"><div class="actidle-ico">▶</div><b>${ACT.err ? "Couldn't read activity from Plex" : 'Nobody is watching right now'}</b><p>${ACT.err ? esc(ACT.err.message || '') + '. Check the server is on and that you signed in with the server owner\'s Plex account.' : 'Streams appear here as soon as someone presses play.'}</p></div>`; return; }
+  if(!actServers().length){ g.innerHTML = `<div class="mpanel"><p>Connect a Plex or Jellyfin server to see who's watching.</p><div class="actions"><button class="btn pri" data-act="folders">Connect my library</button></div></div>`; return; }
+  if(!n){ g.innerHTML = `<div class="actidle"><div class="actidle-ico">▶</div><b>${ACT.err ? `Couldn't read activity from ${actSrvName()}` : 'Nobody is watching right now'}</b><p>${ACT.err ? esc(ACT.err.message || '') + ". Check the server is on, and that YAMZ is connected with the Plex server owner's sign-in or a Jellyfin admin API key." : 'Streams appear here as soon as someone presses play.'}</p></div>`; return; }
   const TAG = {dp:'Direct play', ds:'Direct stream', tc:'Transcoding'};
   const row = (label, val) => val ? `<div class="aprow"><span>${label}</span><b>${val}</b></div>` : '';
   const conv = o => !o || !o.src ? '' : o.out ? `${esc(o.src)} <em>→</em> ${esc(o.out)}${o.note ? ` <small>(${esc(o.note)})</small>` : ''}` : `${esc(o.src)} <small>(${esc(o.note)})</small>`;
@@ -4999,7 +5050,8 @@ function fyUpNext(kind){
   } else {
     const coll = MISS.data?.coll || [];
     const seen = new Map(); H.forEach(x => { const k = fold(x.t); const p = seen.get(k); if(!p || x.at > p.at) seen.set(k, x); });
-    coll.forEach(C => {
+    const notSeries = /\b(greatest|best|top \d|\d+ (films|movies)|list|canon|registry|selection|anthology|cinematic universe)\b|^Q\d+$/i;
+    coll.filter(C => !notSeries.test(C.name || '')).forEach(C => {
       let li = -1, lx = null;
       C.items.forEach((M, i) => { const h = seen.get(fold(M.t)); if(h && (!lx || h.at > lx.at)){ li = i; lx = h; } });
       if(li < 0) return;
@@ -5016,6 +5068,12 @@ function fyOwnCard(d, sub, why){
   return `<button class="dcard fyown" data-q="fyd:${i}"><div class="poster"><div class="ph" style="background:linear-gradient(160deg,hsl(${h} 45% 26%),hsl(${(h+40)%360} 50% 10%))">${esc(d.t)}${d.y ? `<em>${d.y}</em>` : ''}</div>${p ? `<img class="ld" src="${esc(p)}" alt="">` : ''}<div class="badge have">✓ In library</div></div>
     <div class="ct">${esc(d.t)}</div><div class="cy">${esc(sub || d.y || '')}</div>${why ? `<div class="fywhy">${esc(why)}</div>` : ''}</button>`;
 }
+const fyRow = cards => `<div class="fyscroll"><button class="fyarr l" data-fyarr="-1" aria-label="Scroll left" hidden>‹</button><div class="fyrow">${cards}</div><button class="fyarr r" data-fyarr="1" aria-label="Scroll right">›</button></div>`;
+function fyArrows(root = document){ root.querySelectorAll('.fyscroll').forEach(w => { const r = w.querySelector('.fyrow'), max = r.scrollWidth - r.clientWidth - 4;
+  w.querySelector('.l').hidden = r.scrollLeft <= 4; w.querySelector('.r').hidden = r.scrollLeft >= max; }); }
+document.addEventListener('click', e => { const b = e.target.closest('[data-fyarr]'); if(!b) return; const r = b.parentElement.querySelector('.fyrow'); r.scrollBy({left:+b.dataset.fyarr * Math.max(200, r.clientWidth * 0.85), behavior:'smooth'}); });
+document.addEventListener('scroll', e => { if(e.target.classList?.contains('fyrow')) fyArrows(e.target.parentElement.parentElement); }, true);
+addEventListener('resize', () => { if(state.s === 'discover' && state.c === FORYOU) fyArrows(); });
 function fyRefresh(){ store.keys().filter(k => k.startsWith('zn:fyrec:')).forEach(k => store.del(k)); FY.recs = null; histLoad(true, YEAR_S()).then(() => { if(state.s === 'discover' && state.c === FORYOU){ renderSide(); render(); } }); render(); }
 async function fyLoadRecs(kind, sources){
   const key = kind + '|' + HV.who + '|' + sources.map(x => x.key).join(',');
@@ -5039,7 +5097,7 @@ async function fyLoadRecs(kind, sources){
 function renderForYou(){
   const g = $('#grid'), kind = DISC.kind; g.className = 'mview'; $('#sort').style.display = 'none'; $('#progress').textContent = '';
   $('#title').textContent = `For you · ${kind === 'movie' ? 'Movies' : 'TV'}`; $('#count').textContent = HV.who !== 'all' ? 'for ' + HV.who : '';
-  if(!actServers().length){ g.innerHTML = `<div class="mpanel"><p>Connect a Plex server so YAMZ can learn what you watch.</p></div>`; return; }
+  if(!actServers().length){ g.innerHTML = `<div class="mpanel"><p>Connect a Plex or Jellyfin server so YAMZ can learn what you watch.</p></div>`; return; }
   if(HIST.since == null || HIST.since > YEAR_S() + 3600){
     g.innerHTML = `<div class="loading"><div class="spin"></div>Reading a year of play history…</div>`;
     if(!HIST.busy) histLoad(false, YEAR_S()).then(() => { if(state.s === 'discover' && state.c === FORYOU){ renderSide(); renderForYou(); } });
@@ -5050,7 +5108,7 @@ function renderForYou(){
   const pct = v => Math.round(v * 100) + '%';
   const chips = `<div class="fytaste"><span class="fylbl">Your taste</span>${[...T.g].slice(0, 6).map(([n, v]) => `<span class="fychip">${esc(n)} <b>${pct(v)}</b></span>`).join('')}${kind === 'movie' ? [...T.dec].slice(0, 3).map(([d, v]) => `<span class="fychip dec">${d}s <b>${pct(v)}</b></span>`).join('') : ''}<small>share of plays in the last year</small></div>`;
   const up = fyUpNext(kind);
-  const upHTML = up.length ? `<section class="fysec"><h3>Up next</h3><p class="fysub">${kind === 'tv' ? 'The next episode of shows being watched.' : 'The next film in series being watched, from Gaps.'}</p><div class="fyrow">${up.map(u => u.own ? fyOwnCard(u.own, u.sub, u.why) : discCardHTML({q:u.q, t:u.t, y:u.y, s:'movie', art:u.art || '', have:false}, '', {sub:u.sub})).join('')}</div></section>`
+  const upHTML = up.length ? `<section class="fysec"><h3>Up next</h3><p class="fysub">${kind === 'tv' ? 'The next episode of shows being watched.' : 'The next film in series being watched, from Gaps.'}</p>${fyRow(up.map(u => u.own ? fyOwnCard(u.own, u.sub, u.why) : discCardHTML({q:u.q, t:u.t, y:u.y, s:'movie', art:u.art || '', have:false}, '', {sub:u.sub})).join(''))}</section>`
     : kind === 'movie' && !MISS.data ? `<section class="fysec"><h3>Up next</h3><p class="fysub">Run <b>Gaps → Collections</b> once and YAMZ will suggest the next film in series you've started.</p></section>` : '';
   const seen = new Set(), sources = [];
   fyHist(kind).forEach(x => { const k = fold(x.t); if(!seen.has(k) && sources.length < 4){ seen.add(k); sources.push(x); } });
@@ -5058,12 +5116,12 @@ function renderForYou(){
   const R = FY.recs?.key?.startsWith(kind + '|' + HV.who + '|') ? FY.recs.rows : null;
   const recHTML = !R ? `<div class="loading"><div class="spin"></div>Finding titles like what you've watched…</div>`
     : R.map(({x, have, need}) => (have.length || need.length) ? `<section class="fysec"><h3>Because ${HV.who === 'all' ? esc(x.who) : 'you'} watched <em>${esc(x.t)}</em></h3><p class="fysub">${ago(x.at)}</p>
-        ${have.length ? `<div class="fyhead">In your library${tmdbOn() ? ', not watched yet' : ', not watched yet · similar genres'}</div><div class="fyrow">${have.map(d => fyOwnCard(d)).join('')}</div>` : ''}
-        ${need.length ? `<div class="fyhead">Not in your library</div><div class="fyrow">${need.map(r => discCardHTML({...r, have:false}, '')).join('')}</div>` : ''}</section>` : '').join('')
+        ${have.length ? `<div class="fyhead">In your library${tmdbOn() ? ', not watched yet' : ', not watched yet · similar genres'}</div>${fyRow(have.map(d => fyOwnCard(d)).join(''))}` : ''}
+        ${need.length ? `<div class="fyhead">Not in your library</div>${fyRow(need.map(r => discCardHTML({...r, have:false}, '')).join(''))}` : ''}</section>` : '').join('')
       + (R && !R.some(r => r.have.length || r.need.length) ? `<section class="fysec"><h3>Because you watched…</h3><p class="fysub">${tmdbOn() ? "TMDB didn't have suggestions for these titles yet." : `Everything similar in your library has already been watched. Add a free TMDB key in Settings to get suggestions beyond your own library.`}</p></section>` : '')
       + (FY.err ? `<p class="fysub">Some suggestions couldn't load (${esc(FY.err.message || '')}).</p>` : '');
   g.innerHTML = chips + upHTML + recHTML;
-  loadPosters(g, '.dcard');
+  loadPosters(g, '.dcard'); requestAnimationFrame(() => fyArrows(g));
 }
 document.addEventListener('click', e => { const c = e.target.closest('.fyown'); if(c && !e.target.closest('[data-adddisc],.arrbtn,.pwbtn')){ const d = DATA[+c.dataset.q.slice(4)]; if(d) openDetail(d); } });
 
@@ -5084,13 +5142,38 @@ function histItem(s, m, users, G){
     who:users[m.accountID] || (m.accountID ? 'User ' + m.accountID : 'Someone'), key:s.id + ':' + (gk || m.title), g:G[String(gk)] || [],
     se:ep ? [+m.parentIndex || 0, +m.index || 0] : null};
 }
+/* Jellyfin keeps no per-play log: each user's played items carry the LAST time they were played (and a play count) */
+async function jfHist(s, since){
+  const users = await JF.get(s, '/Users', {}, 8000), G = genreMap(s), out = [];
+  for(const u of users || []){
+    let start = 0;
+    for(let page = 0; page < 60; page++){
+      const r = await JF.get(s, '/Items', {userId:u.Id, Recursive:true, IncludeItemTypes:'Movie,Episode', Filters:'IsPlayed', SortBy:'DatePlayed', SortOrder:'Descending',
+        Fields:'Genres,ProductionYear,UserData,SeriesId', StartIndex:start, Limit:200, EnableImages:false}, 30000);
+      const items = r.Items || []; let stop = false;
+      for(const it of items){
+        const at = Date.parse(it.UserData?.LastPlayedDate || ''); if(!at){ continue; }
+        if(since && at < since * 1000){ stop = true; break; }
+        const ep = it.Type === 'Episode', gk = ep ? it.SeriesId : it.Id;
+        out.push({at, kind:ep ? 'tv' : 'movie', t:ep ? (it.SeriesName || it.Name) : it.Name, y:ep ? null : it.ProductionYear || null,
+          sub:ep ? `S${pad2(it.ParentIndexNumber)}E${pad2(it.IndexNumber)}${it.Name ? ' · ' + it.Name : ''}` : '',
+          img:JF.img(s, gk), who:u.Name || 'Someone', key:s.id + ':' + gk, g:G[String(gk)] || it.Genres || [], se:ep ? [+it.ParentIndexNumber || 0, +it.IndexNumber || 0] : null});
+      }
+      start += items.length;
+      if(stop || items.length < 200 || start >= (r.TotalRecordCount || 0)) break;
+    }
+  }
+  return out;
+}
 async function histLoad(force, want){
   const sv = actServers(), since = want ?? histSince(); if(!sv.length) return;
   if(!force && HIST.since != null && HIST.since <= since && Date.now() - HIST.at < 5 * 60e3) return;
   if(HIST.busy) return HIST.busy;
   HIST.busy = (async () => {
     const out = []; let err = null;
+    let approx = false;
     for(const s of sv){
+      if(s.type === 'jellyfin'){ try{ approx = true; out.push(...await jfHist(s, since)); }catch(e){ err = e; } continue; }
       try{
         const users = {};
         try{ ((await PLEX.get(s, '/accounts', {}, 8000)).Account || []).forEach(u => users[u.id] = u.name || (u.id === 1 ? 'Server owner' : 'User ' + u.id)); }catch{}
@@ -5107,7 +5190,7 @@ async function histLoad(force, want){
       }catch(e){ err = e; }
     }
     out.sort((a, b) => b.at - a.at);
-    Object.assign(HIST, {items:out, since, at:Date.now(), err:out.length ? null : err, busy:null});
+    Object.assign(HIST, {items:out, since, at:Date.now(), err:out.length ? null : err, busy:null, approx});
   })();
   return HIST.busy;
 }
@@ -5126,12 +5209,12 @@ function renderHistSide(){
     <h4>Period</h4><div class="side-seg"><div class="seg hseg" data-hv="period">${HPER.map(([k, l]) => `<button data-v="${k}" class="${HV.period === k ? 'on' : ''}">${l.replace(' days', 'd').replace('1 year', '1y').replace('All time', 'All')}</button>`).join('')}</div></div>
     <h4>Show</h4><div class="side-seg"><div class="seg hseg" data-hv="kind">${[['all', 'All'], ['movie', 'Movies'], ['tv', 'TV']].map(([k, l]) => `<button data-v="${k}" class="${HV.kind === k ? 'on' : ''}">${l}</button>`).join('')}</div></div>
     <h4>Who</h4><div class="side-seg"><select data-hvsel="who" aria-label="Who watched"><option value="all">Everyone</option>${people.map(p => `<option ${HV.who === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>
-    <div class="side-foot">From your Plex server's play history.${HIST.at ? ` Loaded ${ago(HIST.at)}.` : ''}<button class="btn sm" data-hreload>↻ Refresh</button></div>`;
+    <div class="side-foot">From ${actSrvName() === 'your servers' ? 'your servers\'' : 'your ' + actSrvName() + ' server\'s'} play history.${HIST.approx ? ' Jellyfin only records the last time each title was played, so repeat viewings count once.' : ''}${HIST.at ? ` Loaded ${ago(HIST.at)}.` : ''}<button class="btn sm" data-hreload>↻ Refresh</button></div>`;
 }
 function histEmpty(g){
-  if(!actServers().length){ g.innerHTML = `<div class="mpanel"><p>Connect a Plex server to see what's been watched.</p></div>`; return true; }
+  if(!actServers().length){ g.innerHTML = `<div class="mpanel"><p>Connect a Plex or Jellyfin server to see what's been watched.</p></div>`; return true; }
   if(HIST.busy || (HIST.since == null && !HIST.err)){ g.innerHTML = `<div class="loading"><div class="spin"></div>Loading play history from Plex…</div>`; histNeed(); return true; }
-  if(HIST.err && !HIST.items.length){ g.innerHTML = `<div class="actidle"><b>Couldn't read play history</b><p>${esc(HIST.err.message || '')}. History needs the server owner's Plex sign-in.</p></div>`; return true; }
+  if(HIST.err && !HIST.items.length){ g.innerHTML = `<div class="actidle"><b>Couldn't read play history</b><p>${esc(HIST.err.message || '')}. History needs the Plex server owner's sign-in, or a Jellyfin admin API key.</p></div>`; return true; }
   return false;
 }
 const dayLabel = t => { const d = new Date(t), today = new Date(); const k = x => x.toDateString(); const y = new Date(today); y.setDate(y.getDate() - 1);

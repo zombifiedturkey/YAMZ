@@ -47,6 +47,18 @@
 - **Watched more than you stock** lists genres and decades people watch more than you collect, with a link to that genre's **Essentials** to fill the gap.
 - **Plenty here, rarely watched** lists genres you own lots of but rarely watch.
 
+**Jellyfin in Activity**
+- **Now playing**, the **Activity** page, **Recently watched**, **Stats** and **For you** now work with Jellyfin as well as Plex, using the admin API key YAMZ already connects with.
+- Live streams show the same details as Plex: direct play / direct stream / transcoding, Jellyfin's own transcode reasons (for example "subtitles burned in" or "video codec not supported"), hardware acceleration, video, audio and subtitle conversions, bitrate, and whether the viewer is local or remote.
+- Jellyfin doesn't keep a log of every play, only the last time each title was played. Repeat viewings therefore count once in Recently watched and Stats, and the side menu says so.
+
+**For you**
+- Each row now has **‹ ›** scroll buttons, which only appear when there's more to see. The rows also scroll with a trackpad or touch.
+- **Up next** only suggests real film series. Wikidata lists like "BBC's 100 Greatest Films of the 21st Century" and unnamed series are left out.
+
+**Header**
+- The Settings button no longer gets pushed off the edge on mid-sized windows.
+
 **Removed**
 - The Surprise me button.
 
