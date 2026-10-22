@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+**Interface corners**
+- New Settings → Appearance → **Interface corners** squares off parts of YAMZ on their own: the **top bar**, the **side menu**, **pop-ups & cards**, and **pill buttons & switches**. Pick any mix.
+- Posters keep their own Poster corners setting, and small dots and profile icons stay round.
+- Saved per device and applied before the page draws, so there's no flash of rounded corners.
+
 **Critic scores and reviews**
 - Pop-ups now show the **Rotten Tomatoes** Tomatometer and **Metascore** for most films and many shows, read from Wikidata. No extra key is needed (OMDb is still used first when you've added one).
 - Click the Rotten Tomatoes, Metacritic, IMDb or TMDB tile to open that title's page on the site.
