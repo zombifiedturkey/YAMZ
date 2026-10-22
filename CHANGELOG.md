@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+**Now playing**
+- New readout in the top bar shows who's streaming from your Plex server right now, for example "▶ 3 streaming · 42 Mbps out". It shows a dim "Idle" when nobody's watching and refreshes every 15 seconds while YAMZ is open.
+- Click it to see every stream: poster, title (S02E04 for TV), who's watching, on which device, a progress bar, Local or Remote, and the bitrate.
+- Each stream is tagged **Direct play**, **Direct stream** or **Transcoding**, with the reason: "4K → 1080p", "HEVC → H.264", "subtitles burned in", "audio TrueHD → AAC", or "hardware" when the GPU is doing the work.
+- The readout turns amber when 2 or more streams are transcoding at once.
+- Click a stream to open that title's pop-up.
+- Settings → Appearance → Now playing turns it off on a device.
+- Only the Plex server owner's sign-in can see everyone's streams. A shared user only sees their own.
+- Jellyfin support for Now playing is coming next.
+
 **Fixes**
 - Jellyfin: connecting with an API key failed with "HTTP 401" on newer Jellyfin servers, which turn off the old way of passing the key in the web address ([#1](https://github.com/zombifiedturkey/YAMZ/issues/1)). YAMZ now signs in to Jellyfin only with the `Authorization: MediaBrowser …` header, for API keys and for username/password, and never puts a key in a URL. A key Jellyfin rejects now shows "API key was rejected" straight away, instead of failing later during library sync. Existing Jellyfin connections pick up the fix automatically. Thanks to @RoWe90 for the detailed report, the fix and the regression tests.
 

@@ -56,6 +56,48 @@ header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px
 .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--dim)}
 .hbtn{background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:7px 14px;cursor:pointer;font-weight:600;font-size:13px;white-space:nowrap;display:flex;align-items:center;gap:6px}
 .hbtn:hover{border-color:var(--accent-t);color:var(--accent-t)}
+/* live activity: pill in the header + dropdown of current streams */
+.actwrap{position:relative;display:flex}
+.actpill{gap:7px}
+.actpill .adot{width:8px;height:8px;border-radius:50%;background:var(--dim);flex:none}
+.actpill.live .adot{background:#5fd38a;box-shadow:0 0 0 0 rgba(95,211,138,.55);animation:apulse 2s ease-out infinite}
+.actpill.warn .adot{background:#f0a83a;box-shadow:0 0 0 0 rgba(240,168,58,.55)}
+.actpill.warn{border-color:rgba(240,168,58,.55)}
+.actpill.idle,.actpill.off{color:var(--muted)}
+.actpill .abw{color:var(--muted);font-weight:500}
+@keyframes apulse{0%{box-shadow:0 0 0 0 rgba(95,211,138,.55)}70%{box-shadow:0 0 0 7px rgba(95,211,138,0)}100%{box-shadow:0 0 0 0 rgba(95,211,138,0)}}
+@media (prefers-reduced-motion:reduce){.actpill.live .adot{animation:none}}
+.actpop{position:absolute;right:0;top:calc(100% + 10px);width:min(440px,calc(100vw - 24px));max-height:min(70vh,620px);overflow:auto;background:var(--bg2);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 50px var(--shadow);z-index:60;padding:12px}
+.nphead{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:2px 4px 10px;border-bottom:1px solid var(--line);margin-bottom:10px}
+.nphead b{font-size:15px}
+.nphead span{font-size:12px;color:var(--muted)}
+.nphead .npwarn{color:#f0a83a;font-weight:600;flex-basis:100%}
+.npcard{display:flex;gap:12px;padding:8px;border-radius:10px;cursor:pointer;align-items:flex-start}
+.npcard:hover{background:var(--bg3)}
+.npcard + .npcard{margin-top:4px}
+.npposter{width:48px;height:72px;border-radius:6px;background:var(--bg3) center/cover no-repeat;flex:none;position:relative}
+.npposter .nppause{position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.5);border-radius:6px;font-size:16px;color:#fff}
+.npbody{flex:1;min-width:0}
+.nptitle{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.npsub{font-size:12.5px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.npwho{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.npbar{height:4px;border-radius:3px;background:var(--bg3);margin:7px 0 3px;overflow:hidden}
+.npbar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.npmeta{display:flex;align-items:center;gap:4px 8px;flex-wrap:wrap;font-size:11.5px;color:var(--muted)}
+.nptag{font-size:10.5px;font-weight:700;letter-spacing:.02em;padding:2px 7px;border-radius:999px;border:1px solid transparent;white-space:nowrap}
+.nptag.dp{color:#4fbf7a;background:rgba(79,191,122,.12);border-color:rgba(79,191,122,.35)}
+.nptag.ds{color:#4aa3e0;background:rgba(74,163,224,.12);border-color:rgba(74,163,224,.35)}
+.nptag.tc{color:#e89a2c;background:rgba(232,154,44,.13);border-color:rgba(232,154,44,.4)}
+.nptag.net{color:var(--muted);background:var(--bg3)}
+.npwhy{font-size:11.5px;color:#e89a2c;margin-top:2px}
+.npempty{padding:18px 8px;text-align:center;color:var(--muted);font-size:13px}
+.npfoot{font-size:11px;color:var(--dim);padding:10px 4px 2px;border-top:1px solid var(--line);margin-top:10px}
+:root[data-theme="glass"] .actpop{background:rgba(16,18,26,.97);-webkit-backdrop-filter:var(--gfx);backdrop-filter:var(--gfx);border-color:rgba(255,255,255,.12)}
+:root[data-theme="light"] .npwhy,:root[data-theme="light"] .nphead .npwarn{color:#a55f00}
+:root[data-theme="light"] .nptag.tc{color:#a55f00} :root[data-theme="light"] .nptag.dp{color:#23864a} :root[data-theme="light"] .nptag.ds{color:#1f6fa8}
+@media (max-width:1560px){ .actpill .abw{display:none} }
+@media (max-width:1240px){ .actpill .alabel{display:none} }
+@media (max-width:760px){ .actpill{padding:7px 10px} .actpop{position:fixed;left:12px;right:12px;width:auto;top:var(--acttop,120px);max-height:calc(100vh - var(--acttop,120px) - 16px)} }
 .spacer{flex:1}
 .menu-btn{display:none}
 
@@ -591,6 +633,7 @@ details.manual summary{cursor:pointer;color:var(--text)}
 .agrid .full{grid-column:1/-1}
 .field select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--text);outline:none}
 .field select:focus{border-color:var(--accent-t)}
+.field .fhint{display:block;font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
 .achips{display:flex;flex-wrap:wrap;gap:6px}
 .achip{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:4px 11px;font-size:12.5px;cursor:pointer;color:var(--muted)}
 .achip.on{border-color:var(--accent-t);background:rgba(var(--acc-rgb),.12);color:var(--text)}
@@ -764,6 +807,7 @@ select option,select optgroup{background-color:#16181e;color:#ecedf0}
     <input id="q" type="search" placeholder="Search the whole library…" autocomplete="off">
   </div>
   <div class="spacer hide-sm"></div>
+  <div class="actwrap" id="actWrap" hidden><button class="hbtn actpill" id="actBtn" aria-haspopup="dialog" aria-expanded="false"></button><div class="actpop" id="actPop" role="dialog" aria-label="Now playing" hidden></div></div>
   <button class="hbtn hide-sm" id="surprise">🎲 Surprise me</button>
   <button class="hbtn" id="settingsBtn" aria-label="Settings">⚙︎<span class="hide-sm"> Settings</span></button>
 </header>
@@ -808,6 +852,9 @@ select option,select optgroup{background-color:#16181e;color:#ecedf0}
       <div class="seg" id="cornerSeg"><button data-corner="round"><span class="cshape" style="border-radius:4px"></span>Rounded</button><button data-corner="square"><span class="cshape"></span>Square</button></div></div>
     <div class="field"><label>Side menu</label>
       <div class="seg" id="sideSeg"><button data-side="show">Always shown</button><button data-side="auto">Auto-hide</button></div></div>
+    <div class="field"><label>Now playing (top bar)</label>
+      <div class="seg" id="actSeg"><button data-act="show">Show</button><button data-act="hide">Hide</button></div>
+      <small class="fhint">Shows who's streaming from your Plex server right now. Only the server owner's sign-in can see everyone's streams.</small></div>
     <h4>Connections</h4>
     <div id="connBox"></div>
     <h4>Metadata source</h4>
@@ -2879,7 +2926,7 @@ const ACCENTS = [
   ['Amber','#e8b04b'], ['Zombie Green','#8cc152'], ['Teal','#2bb5a4'], ['Sky Blue','#4f9cf7'], ['Violet','#9b7cf2'],
   ['Pink','#ec5f9e'], ['Blood Red','#e0524a'], ['Orange','#f08a3c'], ['Silver','#aeb6c2']
 ];
-let LOOK = Object.assign({theme:'dark', accent:'#e8b04b', psize:2, corner:'round', frost:2, amb:true, side:'show'}, store.get('zn:look') || {});
+let LOOK = Object.assign({theme:'dark', accent:'#e8b04b', psize:2, corner:'round', frost:2, amb:true, side:'show', act:'show'}, store.get('zn:look') || {});
 const PSIZES = [[0.8,'Small'], [1,'Medium'], [1.33,'Large'], [1.67,'X-Large'], [2,'Huge']];
 const mqLight = window.matchMedia ? matchMedia('(prefers-color-scheme: light)') : null;
 const mqClear = window.matchMedia ? matchMedia('(prefers-reduced-transparency: reduce)') : null;
@@ -2916,6 +2963,7 @@ function renderLook(){
   document.querySelectorAll('#frostSeg button').forEach(b => b.classList.toggle('on', +b.dataset.frost === (LOOK.frost || 2)));
   document.querySelectorAll('#ambSeg button').forEach(b => b.classList.toggle('on', b.dataset.amb === (LOOK.amb === false ? 'off' : 'on')));
   document.querySelectorAll('#sideSeg button').forEach(b => b.classList.toggle('on', b.dataset.side === (LOOK.side === 'auto' ? 'auto' : 'show')));
+  document.querySelectorAll('#actSeg button').forEach(b => b.classList.toggle('on', b.dataset.act === (LOOK.act === 'hide' ? 'hide' : 'show')));
   $('#glassOpts').style.display = LOOK.theme === 'glass' ? '' : 'none';
   $('#glassNote').textContent = LOOK.theme !== 'glass' ? '' : mqClear?.matches
     ? 'Your device is set to reduce transparency, so YAMZ is showing solid panels instead.'
@@ -2930,6 +2978,7 @@ const setLook = patch => { Object.assign(LOOK, patch); store.set('zn:look', LOOK
 $('#frostSeg').onclick = e => { const b = e.target.closest('button'); if(b) setLook({frost: +b.dataset.frost}); };
 $('#ambSeg').onclick = e => { const b = e.target.closest('button'); if(b) setLook({amb: b.dataset.amb === 'on'}); };
 $('#sideSeg').onclick = e => { const b = e.target.closest('button'); if(b) setLook({side: b.dataset.side}); };
+$('#actSeg').onclick = e => { const b = e.target.closest('button'); if(b){ setLook({act: b.dataset.act}); actKick(); } };
 mqClear?.addEventListener?.('change', () => { applyLook(); renderLook(); });
 
 /* ambient colour: the glass background picks up the colours of the poster you're on */
@@ -4586,6 +4635,104 @@ if(!LIB.movies.length && !LIB.tv.length && !LIB.servers.length && !store.get('zn
 setTimeout(() => pwLoad(), 2500);
 setTimeout(() => ARR_SVCS.forEach(s => arrSync(s)), 3200);
 if(LIB.servers.length && !inPreview && LIB.servers.some(s => Date.now() - (s.at||0) > 30*60e3)) setTimeout(() => syncAll(true).then(() => toast('✓ Library synced with your server.')), 1500);
+
+/* ---------- live activity: who's streaming right now (Plex /status/sessions; Jellyfin to follow) ----------
+   Read-only. The server owner's token sees every stream; a shared user's token only sees their own. */
+const ACT = {streams:[], at:0, err:null, busy:false, timer:null, open:false};
+const ACT_EVERY = 15000, ACT_WARN = 2;   // poll interval; video transcodes at once before the pill turns amber
+const actServers = () => (LIB.servers || []).filter(s => s.type === 'plex' && s.url && s.token);
+const pad2 = n => String(n ?? '').padStart(2, '0');
+const resName = h => !h ? '' : h >= 1800 ? '4K' : h >= 1000 ? '1080p' : h >= 700 ? '720p' : h >= 540 ? '576p' : h + 'p';
+const srcRes = r => ({'4k':'4K', '1080':'1080p', '720':'720p', '576':'576p', '480':'480p', 'sd':'SD'})[String(r || '').toLowerCase()] || (r ? r + 'p' : '');
+const codec = c => ({hevc:'HEVC', h264:'H.264', h265:'HEVC', av1:'AV1', vp9:'VP9', mpeg2video:'MPEG-2', truehd:'TrueHD', eac3:'E-AC3', ac3:'AC3', dca:'DTS', 'dca-ma':'DTS-HD', aac:'AAC', mp3:'MP3', flac:'FLAC', opus:'Opus'})[String(c || '').toLowerCase()] || String(c || '').toUpperCase();
+const hms = ms => { if(!ms) return '0:00'; const t = Math.floor(ms / 1000), h = Math.floor(t / 3600), m = Math.floor(t % 3600 / 60), sec = t % 60; return (h ? h + ':' + pad2(m) : m) + ':' + pad2(sec); };
+function plexStream(s, m){
+  const ep = m.type === 'episode', ts = m.TranscodeSession || null;
+  const media = (m.Media || []).find(x => x.selected) || (m.Media || [])[0] || {};
+  const part = (media.Part || [])[0] || {}, streams = part.Stream || [];
+  const burn = streams.some(x => x.streamType === 3 && x.decision === 'burn');
+  const vDec = ts?.videoDecision, aDec = ts?.audioDecision;
+  const mode = !ts ? 'dp' : (vDec === 'transcode' || burn) ? 'tc' : 'ds';
+  const why = [];
+  if(mode === 'tc' && vDec === 'transcode'){
+    const from = srcRes(media.videoResolution), to = resName(+ts.height);
+    if(from && to && from !== to) why.push(`${from} → ${to}`);
+    if(ts.sourceVideoCodec && ts.videoCodec && ts.sourceVideoCodec !== ts.videoCodec) why.push(`${codec(ts.sourceVideoCodec)} → ${codec(ts.videoCodec)}`);
+    if(!why.length) why.push('video converted');
+  }
+  if(burn) why.push('subtitles burned in');
+  if(aDec === 'transcode' && ts?.sourceAudioCodec) why.push(`audio ${codec(ts.sourceAudioCodec)} → ${codec(ts.audioCodec)}`);
+  if(mode === 'ds' && !why.length) why.push('container changed');
+  if(mode === 'tc' && (ts?.transcodeHwFullPipeline || ts?.transcodeHwEncoding)) why.push('hardware');
+  return {
+    src:'plex', server:s.name, key:String(m.sessionKey || m.ratingKey || Math.random()),
+    kind:ep ? 'tv' : m.type === 'movie' ? 'movie' : m.type || 'other',
+    t:ep ? (m.grandparentTitle || m.title) : m.title, y:ep ? null : m.year,
+    sub:ep ? `S${pad2(m.parentIndex)}E${pad2(m.index)}${m.title ? ' · ' + m.title : ''}` : (m.year ? String(m.year) : ''),
+    img:PLEX.img(s, ep ? (m.grandparentThumb || m.parentThumb || m.thumb) : m.thumb),
+    user:m.User?.title || 'Someone', device:[m.Player?.title || m.Player?.product, m.Player?.platform].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(' · '),
+    state:m.Player?.state || 'playing', remote:m.Session?.location ? m.Session.location !== 'lan' : m.Player?.local === false,
+    pos:+m.viewOffset || 0, dur:+m.duration || 0, kbps:+(m.Session?.bandwidth || 0), mode, why,
+  };
+}
+async function actLoad(){
+  const sv = actServers();
+  if(!sv.length || LOOK.act === 'hide' || inPreview){ ACT.streams = []; ACT.err = null; return actRender(); }
+  if(ACT.busy) return; ACT.busy = true;
+  const out = []; let err = null, okAny = false;
+  await Promise.all(sv.map(async s => {
+    try{ const mc = await PLEX.get(s, '/status/sessions', {}, 8000); okAny = true; (mc.Metadata || []).forEach(m => out.push(plexStream(s, m))); }
+    catch(e){ err = e; }
+  }));
+  out.sort((a, b) => (a.state === 'paused') - (b.state === 'paused') || a.user.localeCompare(b.user));
+  ACT.streams = out; ACT.err = okAny ? null : err; ACT.at = Date.now(); ACT.busy = false;
+  actRender();
+}
+function actSummary(){
+  const n = ACT.streams.length, tc = ACT.streams.filter(x => x.mode === 'tc').length;
+  const mbps = ACT.streams.reduce((a, x) => a + x.kbps, 0) / 1000;
+  return {n, tc, mbps, bw:mbps >= 0.1 ? (mbps >= 10 ? Math.round(mbps) : mbps.toFixed(1)) + ' Mbps out' : ''};
+}
+function actRender(){
+  const wrap = $('#actWrap'), btn = $('#actBtn'), pop = $('#actPop'); if(!wrap) return;
+  const show = actServers().length && LOOK.act !== 'hide' && !inPreview;
+  wrap.hidden = !show; if(!show){ pop.hidden = true; ACT.open = false; return; }
+  const {n, tc, bw} = actSummary(), warn = tc >= ACT_WARN;
+  btn.className = 'hbtn actpill ' + (ACT.err && !n ? 'off' : n ? (warn ? 'live warn' : 'live') : 'idle');
+  btn.innerHTML = `<span class="adot"></span>${ACT.err && !n ? '<span class="alabel">Activity offline</span>' : n ? `▶ ${n}<span class="alabel"> streaming</span>${bw ? `<span class="abw">· ${esc(bw)}</span>` : ''}` : '<span class="alabel">Idle</span>'}`;
+  btn.title = ACT.err && !n ? `Couldn't read activity from Plex (${ACT.err.message || 'error'})` : n ? `${n} stream${n > 1 ? 's' : ''}${tc ? `, ${tc} transcoding` : ''}${bw ? `, ${bw}` : ''}` : 'Nobody is streaming right now';
+  btn.setAttribute('aria-expanded', ACT.open ? 'true' : 'false');
+  pop.hidden = !ACT.open; if(!ACT.open) return;
+  pop.style.setProperty('--acttop', Math.round(btn.getBoundingClientRect().bottom + 8) + 'px');   // phones: full-width sheet just under the pill
+  const head = `<div class="nphead"><b>Now playing</b><span>${n ? `${n} stream${n > 1 ? 's' : ''}` : 'Nothing playing'}${bw ? ' · ' + esc(bw) : ''}</span>${tc && !warn ? `<span>· ${tc} transcoding</span>` : ''}${warn ? `<span class="npwarn">⚠ ${tc} transcoding at once. The server is working hard.</span>` : ''}</div>`;
+  const TAG = {dp:'Direct play', ds:'Direct stream', tc:'Transcoding'};
+  const cards = ACT.streams.map((x, i) => {
+    const pct = x.dur ? Math.min(100, x.pos / x.dur * 100) : 0;
+    return `<div class="npcard" data-act-i="${i}" title="Open ${esc(x.t)}">
+      <div class="npposter" style="${x.img ? `background-image:url('${esc(x.img)}')` : `background:linear-gradient(160deg,hsl(${hue(x.t)} 45% 32%),hsl(${(hue(x.t) + 40) % 360} 40% 16%))`}">${x.state === 'paused' ? '<span class="nppause">❚❚</span>' : ''}</div>
+      <div class="npbody"><div class="nptitle">${esc(x.t)}</div>${x.sub ? `<div class="npsub">${esc(x.sub)}</div>` : ''}
+        <div class="npwho">${esc(x.user)}${x.device ? ' · ' + esc(x.device) : ''}</div>
+        <div class="npbar"><i style="width:${pct.toFixed(1)}%"></i></div>
+        <div class="npmeta"><span class="nptag ${x.mode}">${TAG[x.mode]}</span><span class="nptag net">${x.remote ? 'Remote' : 'Local'}</span>${x.state === 'paused' ? '<span>Paused</span>' : x.state === 'buffering' ? '<span>Buffering…</span>' : ''}<span>${hms(x.pos)} / ${hms(x.dur)}</span>${x.kbps ? `<span>${(x.kbps / 1000).toFixed(1)} Mbps</span>` : ''}</div>
+        ${x.why.length && x.mode !== 'dp' ? `<div class="npwhy">${esc(x.why.join(' · '))}</div>` : ''}</div></div>`;
+  }).join('');
+  pop.innerHTML = head + (n ? cards : `<div class="npempty">${ACT.err ? `Couldn't read activity from Plex.<br><small>${esc(ACT.err.message || '')}</small>` : 'Nobody is watching right now.'}</div>`)
+    + `<div class="npfoot">Updates every ${ACT_EVERY / 1000} seconds${ACT.at ? ` · last checked ${new Date(ACT.at).toLocaleTimeString([], {hour:'numeric', minute:'2-digit', second:'2-digit'})}` : ''}</div>`;
+}
+function actKick(){ clearTimeout(ACT.timer); actLoad().finally(() => { ACT.timer = setTimeout(actTick, ACT_EVERY); }); }
+function actTick(){ if(document.visibilityState === 'visible') actKick(); else ACT.timer = setTimeout(actTick, ACT_EVERY); }
+$('#actBtn').onclick = e => { e.stopPropagation(); ACT.open = !ACT.open; actRender(); if(ACT.open) actKick(); };
+document.addEventListener('click', e => {
+  if(!ACT.open) return;
+  const c = e.target.closest('[data-act-i]');
+  if(c){ const x = ACT.streams[+c.dataset.actI]; ACT.open = false; actRender();
+    if(x && (x.kind === 'movie' || x.kind === 'tv')){ const own = DATA.find(d => d.s === x.kind && fold(d.t) === fold(x.t) && (!x.y || !d.y || Math.abs(d.y - x.y) <= 1)); openDetail(own || synthFromItem({k:'act:' + fold(x.t) + (x.y || ''), t:x.t, y:x.y, s:x.kind})); }
+    return; }
+  if(!e.target.closest('#actPop')){ ACT.open = false; actRender(); }
+});
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && ACT.open){ ACT.open = false; actRender(); $('#actBtn').focus(); } });
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && Date.now() - ACT.at > ACT_EVERY) actKick(); });
+actRender(); setTimeout(actKick, 1200);
 </script>
 </body>
 </html>

@@ -115,8 +115,27 @@ function plexServer(u){
   if(u.pathname === '/library/sections/1/all') return J({MediaContainer:{totalSize:PLEXMOV.length, Metadata:PLEXMOV}});
   if(u.pathname === '/library/sections/2/all' && P.get('type') === '4') return J({MediaContainer:{totalSize:PLEXEPS.length, Metadata:PLEXEPS}});
   if(u.pathname === '/library/sections/2/all') return J({MediaContainer:{totalSize:PLEXTV.length, Metadata:PLEXTV}});
+  if(u.pathname === '/status/sessions') return J({MediaContainer:{size:3, Metadata:demoSessions()}});
   if(u.pathname.startsWith('/photo')){ const k = /metadata\/(\d+)/.exec(P.get('url') || '')?.[1]; const [t, y] = TITLE_BY_KEY[k] || ['?', '']; return SVG(posterSVG(t, y)); }
   return J({}, 404);
+}
+// Three pretend streams for the Now playing readout. Positions move with the clock so the bars advance.
+function demoSessions(){
+  const now = Date.now(), at = (dur, off) => Math.floor((now + off) % dur);
+  const m1 = PLEXMOV[2], m2 = PLEXMOV[5], sh = PLEXTV[0];
+  return [
+    {sessionKey:'1', type:'movie', ratingKey:m1.ratingKey, title:m1.title, year:m1.year, thumb:m1.thumb, duration:6.9e6, viewOffset:at(6.9e6, 2.4e6),
+     User:{title:'zombie_fan'}, Player:{title:'Living Room', product:'Plex for Apple TV', platform:'tvOS', state:'playing', local:true}, Session:{location:'lan', bandwidth:21400},
+     Media:[{videoResolution:'4k', selected:true, Part:[{decision:'directplay', Stream:[]}]}]},
+    {sessionKey:'2', type:'episode', ratingKey:'9100', title:'The Long Night', grandparentTitle:sh.title, grandparentThumb:sh.thumb, parentIndex:2, index:4, duration:3.3e6, viewOffset:at(3.3e6, 0.9e6),
+     User:{title:'Sam'}, Player:{title:'Pixel 8', product:'Plex for Android', platform:'Android', state:'playing', local:false}, Session:{location:'wan', bandwidth:8200},
+     TranscodeSession:{videoDecision:'transcode', audioDecision:'copy', sourceVideoCodec:'hevc', videoCodec:'h264', height:1080, transcodeHwFullPipeline:true},
+     Media:[{videoResolution:'4k', selected:true, Part:[{decision:'transcode', Stream:[{streamType:3, decision:'burn', selected:true}]}]}]},
+    {sessionKey:'3', type:'movie', ratingKey:m2.ratingKey, title:m2.title, year:m2.year, thumb:m2.thumb, duration:7.4e6, viewOffset:4.1e6,
+     User:{title:'Alex'}, Player:{title:'Chrome', product:'Plex Web', platform:'Windows', state:'paused', local:true}, Session:{location:'lan', bandwidth:12600},
+     TranscodeSession:{videoDecision:'copy', audioDecision:'transcode', sourceAudioCodec:'truehd', audioCodec:'aac'},
+     Media:[{videoResolution:'1080', selected:true, Part:[{decision:'transcode', Stream:[]}]}]},
+  ];
 }
 function plexDiscover(u, req){
   if(u.pathname.includes('/watchlist/') && +(u.searchParams.get('X-Plex-Container-Size') || 0) > 50) return J({error:'Invalid value provided for x-plex-container-size!'}, 400);   // like real Plex
