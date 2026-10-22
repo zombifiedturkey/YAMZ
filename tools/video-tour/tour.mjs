@@ -296,8 +296,9 @@ await tryClick('#side [data-dkind="movie"]', {post:800});
 await tryClick('#side .cat[data-c="Popular"]', {post:2200});
 await cap('Discover', info.tmdb ? 'What’s trending this week, straight from TMDB. Anything you already own is marked.' : 'What’s trending right now. Anything you already own is marked.', 1800);
 for(const i of [0, 2, 4]){ const d = page.locator('.dcard').nth(i); if(await d.count()){ await to(d.locator('.poster')); await wait(700); } }
-await cap('Genres', 'Pick a genre and every list follows it. Every dropdown now matches your theme.', 400);
-await pick('#dGenre', GENRE); await wait(1600);
+await cap('Genres', 'Pick a genre and every list follows it. Scroll down and the genres float along with you.', 400);
+await page.evaluate(() => scrollTo({top:700, behavior:'smooth'})); await wait(1400);
+await click(`#gfloat [data-gchip="${GENRE}"]`, {post:1600});
 await click('#side .cat[data-c="Recent"]', {post:2000});
 await cap('Recent', 'How far back? Slide from the last month to the last year.', 600);
 try{

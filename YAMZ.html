@@ -179,6 +179,22 @@ header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px
 .stcol::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--bg);border:1px solid var(--line);color:var(--text);font-size:12px;padding:5px 8px;border-radius:calc(6px * var(--rk,1));white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .12s;z-index:5;box-shadow:0 6px 18px var(--shadow)}
 .stcol:hover::after{opacity:1}
 :root[data-theme="glass"] .rwlist,:root[data-theme="glass"] .stbox,:root[data-theme="glass"] .sttile{background:var(--glass);-webkit-backdrop-filter:var(--gfx);backdrop-filter:var(--gfx)}
+#gdock{display:flex;justify-content:center;margin:0 0 22px}
+#gdock .gd,#gfloat .gd{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;max-width:100%}
+.gchip{font-size:13.5px;font-weight:500;padding:6px 14px;border-radius:var(--rp,999px);background:var(--bg2);border:1px solid var(--line);color:var(--text2);cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,color .15s}
+.gchip:hover{border-color:rgba(var(--acc-rgb),.55);color:var(--text)}
+.gchip.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:700}
+#gfloat{position:fixed;z-index:19;top:var(--gft,74px);left:var(--gfl,0);width:var(--gfw,100%);display:flex;justify-content:center;pointer-events:none}
+#gfloat[hidden]{display:none}
+#gfloat .gd{position:relative;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;pointer-events:auto;padding:8px;background:var(--hdr);-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3);border:1px solid var(--line);border-radius:calc(16px * var(--rk,1));box-shadow:0 12px 32px rgba(0,0,0,.4);animation:gdin .22s ease-out}
+#gfloat .gd::-webkit-scrollbar{display:none}
+#gfloat .gd{justify-content:flex-start} #gfloat .gchip:first-child{margin-left:auto} #gfloat .gchip:last-child{margin-right:auto}   /* centred when it fits, scrollable from the first chip when it doesn't */
+#gfloat .gchip{font-size:13px;padding:5px 12px}
+@keyframes gdin{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+:root[data-theme="light"] #gfloat .gd{box-shadow:0 10px 26px rgba(0,0,0,.14)}
+:root[data-theme="glass"] .gchip:not(.on){background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12)}
+:root[data-theme="glass"] #gfloat .gd{background:var(--glass);-webkit-backdrop-filter:var(--gfx);backdrop-filter:var(--gfx);border-color:rgba(255,255,255,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 14px 36px rgba(0,0,0,.45)}
+@media (prefers-reduced-motion:reduce){ #gfloat .gd{animation:none} }
 .fytaste{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:18px}
 .fylbl{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-right:4px}
 .fychip{font-size:12.5px;padding:4px 10px;border-radius:var(--rp,999px);background:var(--bg2);border:1px solid var(--line)}
@@ -967,6 +983,8 @@ body > header > *{--rk:var(--rk-panel,1)}   /* the bar's buttons, tabs and searc
   <aside id="side"></aside>
   <main>
     <div id="banner"></div>
+    <nav id="gdock" aria-label="Genres" hidden><div class="gd" id="gdInner"></div></nav>
+    <div id="gfloat" aria-label="Genres" role="navigation" hidden><div class="gd" id="gfInner"></div></div>
     <div class="bar">
       <h1 class="bebas" id="title">All</h1>
       <div class="count" id="count"></div>
@@ -1582,6 +1600,7 @@ function cardHTML(d, showCat){
 }
 let io;
 function render(){
+  $('#gdock').hidden = true; gfloatSet(false);
   $('#grid').className = 'grid'; $('#sort').style.display = ''; $('#attnBtn').style.display = 'none';
   if(state.s==='calendar') return renderCalendar();
   if(state.s==='activity') return renderActivity();
@@ -3759,12 +3778,47 @@ async function loadDiscover(force){
   }catch(e){ DISC.err[key] = e.status === 401 && tmdbOn() ? 'TMDB rejected your key. Check it in Settings → Metadata source.' : e.net ? `Couldn't reach ${e.host}. Check your connection or ad blocker.` : /HTTP 5|busy|timeout/i.test(e.message || '') ? 'Wikidata took too long to answer this one. Give it a minute and try again.' : (e.message || 'Something went wrong.'); }
   finally{ DISC.busy[key] = false; if(state.s==='discover'){ renderSide(); render(); } }
 }
+/* Discover genre dock: centred chips above the list that break off into a floating dock under the top bar as you scroll */
+function gdockRender(){
+  const on = DISC.genre || '', html = ['', ...Object.keys(DGEN)].map(g => `<button class="gchip ${g === on ? 'on' : ''}" data-gchip="${esc(g)}" aria-pressed="${g === on}">${g ? esc(g) : 'All genres'}</button>`).join('');
+  $('#gdInner').innerHTML = html; $('#gfInner').innerHTML = html;
+  $('#gdock').hidden = false; gdockCheck();
+}
+let GF_ON = false;
+function gfloatSet(on){
+  const f = $('#gfloat');
+  if(on){
+    const h = document.querySelector('body > header')?.getBoundingClientRect(), m = document.querySelector('main').getBoundingClientRect();
+    f.style.setProperty('--gft', Math.round((h?.bottom || 60) + 10) + 'px');
+    f.style.setProperty('--gfl', Math.round(m.left + 16) + 'px'); f.style.setProperty('--gfw', Math.round(m.width - 32) + 'px');
+  }
+  if(on === GF_ON) return; GF_ON = on;
+  f.hidden = !on; f.setAttribute('aria-hidden', !on);
+  if(on){ const g = $('#gfInner'), c = g.querySelector('.gchip.on'); g.scrollLeft = c ? Math.max(0, c.offsetLeft - (g.clientWidth - c.offsetWidth) / 2) : 0; }   // centre the picked genre without moving the page
+}
+function gdockCheck(){
+  const d = $('#gdock'); if(d.hidden || state.s !== 'discover') return gfloatSet(false);
+  const hb = document.querySelector('body > header')?.getBoundingClientRect().bottom || 0;
+  gfloatSet(d.getBoundingClientRect().bottom < hb + 4);
+}
+let GD_RAF = 0;
+addEventListener('scroll', () => { if(!GD_RAF) GD_RAF = requestAnimationFrame(() => { GD_RAF = 0; gdockCheck(); }); }, {passive:true});
+addEventListener('resize', () => GF_ON && gfloatSet(true));
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-gchip]'); if(!b || state.s !== 'discover') return;
+  const g = b.dataset.gchip; if(g === (DISC.genre || '')) return;
+  const floating = GF_ON;
+  DISC.genre = g; store.set('zn:dgenre', DISC.genre);
+  if(!DISC.genre && state.c === GOAT){ state.c = DISC.sec = 'Popular'; store.set('zn:dsec', DISC.sec); }
+  renderSide(); render();
+  if(floating) scrollTo({top:0, behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+});
+$('#gfInner').addEventListener('wheel', e => { const g = e.currentTarget; if(Math.abs(e.deltaY) <= Math.abs(e.deltaX) || g.scrollWidth <= g.clientWidth) return; g.scrollLeft += e.deltaY; e.preventDefault(); }, {passive:false});
 function renderDiscoverSide(){
   const n = s => { const it = store.get(dkey(DISC.kind, s))?.items; return it ? Math.min(DISC_MAX, s === 'Recent' ? recentItems(it).length : it.length) : null; };
-  const G = Object.keys(DGEN);
   $('#side').innerHTML = `<h4>Discover</h4>
     <div class="side-seg"><div class="seg"><button data-dkind="movie" class="${DISC.kind==='movie'?'on':''}">Movies</button><button data-dkind="tv" class="${DISC.kind==='tv'?'on':''}">TV</button></div></div>
-    <div class="side-sel"><label for="dGenre">Genre</label><select id="dGenre"><option value="">All genres</option>${G.map(g => `<option ${g===DISC.genre?'selected':''}>${g}</option>`).join('')}</select></div>` +
+` +
     dsecs().map(s => {
       const btn = `<button class="cat ${state.c===s?'on':''}" data-c="${s}">${s}<span>${s === FORYOU ? '' : n(s) ?? '–'}</span></button>`;
       const opts = state.c !== s ? '' : s === 'Recent'
@@ -3801,6 +3855,7 @@ function renderDiscover(){
   if(!dsecs().includes(state.c)) state.c = dsecs().includes(DISC.sec) ? DISC.sec : 'Popular';
   DISC.sec = state.c;
   if(DISC.sec === FORYOU) return renderForYou();
+  gdockRender();
   const kind = DISC.kind, sec = DISC.sec, genre = DISC.genre, key = dkey(kind, sec), c = store.get(key), g = $('#grid');
   $('#sort').style.display = 'none'; $('#progress').textContent = '';
   const what = `${genre ? genre + ' ' : ''}${kind==='movie' ? 'Movies' : 'TV'}`;
@@ -3838,11 +3893,6 @@ function renderDiscover(){
 }
 $('#side').addEventListener('change', e => {
   if(state.s !== 'discover') return;
-  if(e.target.id === 'dGenre'){
-    DISC.genre = e.target.value; store.set('zn:dgenre', DISC.genre);
-    if(!DISC.genre && state.c === GOAT){ state.c = DISC.sec = 'Popular'; store.set('zn:dsec', DISC.sec); }
-    renderSide(); render(); scrollTo(0,0);
-  }
   if(e.target.id === 'dDec'){ DISC.dec = e.target.value; store.set('zn:ddec', DISC.dec); renderSide(); render(); scrollTo(0,0); }
 });
 DISC.order = store.get('zn:dorder') || 'pop';
