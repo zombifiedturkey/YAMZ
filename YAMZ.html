@@ -133,6 +133,51 @@ header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px
 .actsum-sep{border-top:1px solid var(--line);margin-top:6px;padding-top:10px!important}
 :root[data-theme="glass"] .apcard{background:var(--glass);-webkit-backdrop-filter:var(--gfx);backdrop-filter:var(--gfx)}
 :root[data-theme="light"] .aprow small.apburn{color:#a55f00}
+.side-seg .hseg{display:flex;width:100%;box-sizing:border-box}
+.hseg button{flex:1 1 0;min-width:0;padding:6px 2px;font-size:12px}
+.side-seg select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--text)}
+.side-foot .btn{margin-top:10px}
+.rwwrap{max-width:900px}
+.rwday{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:22px 0 8px;font-weight:700}
+.rwday:first-child{margin-top:4px}
+.rwlist{background:var(--bg2);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.rwrow{display:flex;gap:12px;align-items:center;padding:8px 14px;cursor:pointer}
+.rwrow + .rwrow{border-top:1px solid var(--line)}
+.rwrow:hover{background:var(--bg3)}
+.rwposter{width:36px;height:54px}
+.rwy{color:var(--muted);font-weight:500}
+.rwtime{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
+.rwmore{text-align:center;margin:20px 0}
+.stwrap{display:flex;flex-direction:column;gap:18px}
+.sttiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.sttile{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.sttile span{display:block;font-size:12px;color:var(--muted)}
+.sttile b{display:block;font-size:24px;font-weight:600;margin-top:2px}
+.stgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(420px,100%),1fr));gap:18px}
+.stbox{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.stbox h3{margin:0 0 12px;font-size:14px;font-weight:700}
+.strank{display:flex;flex-direction:column;gap:6px}
+.strow{display:flex;align-items:center;gap:10px;padding:3px 4px;border-radius:8px}
+.strow.click{cursor:pointer}
+.strow.click:hover{background:var(--bg3)}
+.stn{width:18px;text-align:right;font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums;flex:none}
+.stposter{width:26px;height:39px;border-radius:4px}
+.stbar{flex:1;min-width:0}
+.stlab{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin-bottom:4px}
+.stlab b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.stlab span{color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
+.stbar > i{display:block;height:8px;border-radius:0 4px 4px 0;background:var(--accent)}
+.stcols{display:flex;align-items:flex-end;gap:2px;height:170px;padding-top:18px;border-bottom:1px solid var(--line)}
+.stcol{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;position:relative;min-width:0}
+.stcolbar{flex:1;width:100%;display:flex;align-items:flex-end;justify-content:center;position:relative}
+.stcolbar i{display:block;width:min(24px,80%);border-radius:4px 4px 0 0;background:var(--accent);min-height:1px}
+.stcolbar em{position:absolute;top:-17px;font-style:normal;font-size:11px;color:var(--text2);font-weight:600}
+.stcol > span{position:absolute;bottom:-20px;font-size:10.5px;color:var(--muted);white-space:nowrap}
+.stbox:has(.stcols){padding-bottom:30px}
+.stcol:hover .stcolbar i{filter:brightness(1.2)}
+.stcol::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--bg);border:1px solid var(--line);color:var(--text);font-size:12px;padding:5px 8px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .12s;z-index:5;box-shadow:0 6px 18px var(--shadow)}
+.stcol:hover::after{opacity:1}
+:root[data-theme="glass"] .rwlist,:root[data-theme="glass"] .stbox,:root[data-theme="glass"] .sttile{background:var(--glass);-webkit-backdrop-filter:var(--gfx);backdrop-filter:var(--gfx)}
 @media (max-width:1560px){ .actpill .abw{display:none} }
 @media (max-width:1240px){ .actpill .alabel{display:none} }
 @media (max-width:760px){ .actpill{padding:7px 10px} .actpop{position:fixed;left:12px;right:12px;width:auto;top:var(--acttop,120px);max-height:calc(100vh - var(--acttop,120px) - 16px)} }
@@ -4621,7 +4666,7 @@ $('#clearCache').onclick = () => { store.keys().filter(k => k.startsWith('vault:
 let tt; function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 4200); }
 $('#tabs').onclick = e => { const b = e.target.closest('button'); if(!b) return;
   document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x===b));
-  state.s = b.dataset.s; if(state.s === 'activity' || ACT_EVERY === 10000) setTimeout(actKick, 0); state.c = state.s==='missing' ? missDefault() : state.s==='discover' ? DISC.sec : 'All'; if(state.s==='lists'){ state.attn = false; pwLoad(); } state.q = ''; $('#q').value = ''; renderSide(); render(); scrollTo(0,0); };
+  state.s = b.dataset.s; if(state.s === 'activity' || ACT_EVERY === 10000) setTimeout(actKick, 0); state.c = state.s==='missing' ? missDefault() : state.s==='discover' ? DISC.sec : state.s==='activity' ? 'Now playing' : 'All'; if(state.s==='lists'){ state.attn = false; pwLoad(); } state.q = ''; $('#q').value = ''; renderSide(); render(); scrollTo(0,0); };
 $('#side').addEventListener('click', e => {
   if(state.s !== 'discover') return;
   const k = e.target.closest('[data-dkind]'); if(k){ DISC.kind = k.dataset.dkind; store.set('zn:dkind', DISC.kind); renderSide(); render(); loadDiscover(); }
@@ -4761,7 +4806,7 @@ function actRender(){
   const wrap = $('#actWrap'), btn = $('#actBtn'), pop = $('#actPop'); if(!wrap) return;
   const show = actServers().length && LOOK.act !== 'hide' && !inPreview;
   wrap.hidden = !show; $('#actTab').hidden = !show;
-  if(state.s === 'activity'){ renderActivitySide(); renderActivity(); }
+  if(state.s === 'activity' && actSec() === 'Now playing'){ renderActivitySide(); renderActivity(); }
   if(!show){ pop.hidden = true; ACT.open = false; return; }
   const {n, tc, bw} = actSummary(), warn = tc >= ACT_WARN;
   btn.className = 'hbtn actpill ' + (ACT.err && !n ? 'off' : n ? (warn ? 'live warn' : 'live') : 'idle');
@@ -4791,12 +4836,15 @@ function actOpenTitle(x){
   openDetail(own || synthFromItem({k:'act:' + fold(x.t) + (x.y || ''), t:x.t, y:x.y, s:x.kind}));
 }
 /* ---- Activity page: the full view of what's playing ---- */
+const ACT_SECS = ['Now playing', 'Recently watched', 'Stats'];
+const actSec = () => ACT_SECS.includes(state.c) ? state.c : 'Now playing';
+function actCats(){ return `<h4>Activity</h4>${ACT_SECS.map(c => `<button class="cat ${actSec() === c ? 'on' : ''}" data-c="${c}">${c}${c === 'Now playing' ? `<span>${ACT.streams.length}</span>` : c === 'Recently watched' && HIST.items.length ? `<span>${histView().length.toLocaleString()}</span>` : ''}</button>`).join('')}`; }
 function renderActivitySide(){
+  if(actSec() !== 'Now playing') return renderHistSide();
   const {n, tc, mbps} = actSummary(), by = k => ACT.streams.filter(x => x.mode === k).length;
   const loc = ACT.streams.filter(x => !x.remote).reduce((a, x) => a + x.kbps, 0) / 1000, rem = mbps - loc;
   const mb = v => (v >= 10 ? Math.round(v) : v.toFixed(1)) + ' Mbps';
-  $('#side').innerHTML = `<h4>Activity</h4>
-    <button class="cat on" data-c="Now playing">Now playing<span>${n}</span></button>
+  $('#side').innerHTML = `${actCats()}
     <h4>Right now</h4>
     <div class="actsum">
       <div><i class="nptag dp">Direct play</i><b>${by('dp')}</b></div>
@@ -4809,6 +4857,8 @@ function renderActivitySide(){
 }
 function renderActivity(){
   const g = $('#grid'); g.className = 'mview'; $('#sort').style.display = 'none'; $('#progress').textContent = '';
+  if(actSec() === 'Recently watched') return renderRecent();
+  if(actSec() === 'Stats') return renderStats();
   const {n, tc, bw} = actSummary();
   $('#title').textContent = 'Now playing';
   $('#count').textContent = n ? `${n} stream${n > 1 ? 's' : ''}${bw ? ' · ' + bw : ''}${tc ? ` · ${tc} transcoding` : ''}` : '';
@@ -4840,6 +4890,149 @@ function renderActivity(){
       </div></article>`;
   }).join('')}</div>`;
 }
+/* ---- play history (Plex /status/sessions/history/all) for Recently watched and Stats ---- */
+const HIST = {items:[], since:null, at:0, busy:null, err:null};
+const HPER = [['30', '30 days'], ['90', '90 days'], ['365', '1 year'], ['all', 'All time']];
+const HV = Object.assign({who:'all', kind:'all', period:'90', show:80}, store.get('zn:hist') || {});
+const hvSave = () => store.set('zn:hist', {who:HV.who, kind:HV.kind, period:HV.period});
+const keyId = k => (/\/library\/metadata\/(\d+)/.exec(k || '') || [])[1];
+const histSince = () => HV.period === 'all' ? 0 : Math.floor(Date.now() / 1000) - (+HV.period) * 86400;
+function genreMap(s){ const G = {}; (s.movies || []).forEach(x => G[String(x.k)] = x.g || []); (s.shows || []).forEach(x => G[String(x.k)] = x.g || []); return G; }
+function histItem(s, m, users, G){
+  const ep = m.type === 'episode', gk = ep ? (keyId(m.grandparentKey) || m.grandparentRatingKey) : m.ratingKey;
+  return {at:(+m.viewedAt || 0) * 1000, kind:ep ? 'tv' : m.type === 'movie' ? 'movie' : 'other',
+    t:ep ? (m.grandparentTitle || m.title) : m.title, y:ep ? null : (+m.year || +(m.originallyAvailableAt || '').slice(0, 4) || null),
+    sub:ep ? `S${pad2(m.parentIndex)}E${pad2(m.index)}${m.title ? ' · ' + m.title : ''}` : '',
+    img:PLEX.img(s, ep ? (m.grandparentThumb || m.parentThumb || m.thumb) : m.thumb),
+    who:users[m.accountID] || (m.accountID ? 'User ' + m.accountID : 'Someone'), key:s.id + ':' + (gk || m.title), g:G[String(gk)] || []};
+}
+async function histLoad(force){
+  const sv = actServers(), since = histSince(); if(!sv.length) return;
+  if(!force && HIST.since != null && HIST.since <= since && Date.now() - HIST.at < 5 * 60e3) return;
+  if(HIST.busy) return HIST.busy;
+  HIST.busy = (async () => {
+    const out = []; let err = null;
+    for(const s of sv){
+      try{
+        const users = {};
+        try{ ((await PLEX.get(s, '/accounts', {}, 8000)).Account || []).forEach(u => users[u.id] = u.name || (u.id === 1 ? 'Server owner' : 'User ' + u.id)); }catch{}
+        const G = genreMap(s); let start = 0, size = 200, done = false, filt = !!since;
+        for(let page = 0; page < 200 && !done; page++){
+          let mc;
+          try{ mc = await PLEX.get(s, '/status/sessions/history/all', {sort:'viewedAt:desc', ...(filt ? {'viewedAt>':since} : {}), 'X-Plex-Container-Start':start, 'X-Plex-Container-Size':size}, 30000); }
+          catch(e){ if(e.status === 400 && size > 50){ size = 50; page--; continue; } if(e.status === 400 && filt){ filt = false; page--; continue; } throw e; }   // older servers: smaller pages, then no date filter (we stop at the cutoff ourselves)
+          const md = mc.Metadata || [];
+          for(const m of md){ if(since && +m.viewedAt < since){ done = true; break; } if(m.type === 'movie' || m.type === 'episode') out.push(histItem(s, m, users, G)); }
+          start += md.length;
+          if(md.length < size || (mc.totalSize && start >= mc.totalSize) || out.length >= 25000) done = true;
+        }
+      }catch(e){ err = e; }
+    }
+    out.sort((a, b) => b.at - a.at);
+    Object.assign(HIST, {items:out, since, at:Date.now(), err:out.length ? null : err, busy:null});
+  })();
+  return HIST.busy;
+}
+function histView(){
+  const since = histSince() * 1000;
+  return HIST.items.filter(x => x.at >= since && (HV.who === 'all' || x.who === HV.who) && (HV.kind === 'all' || x.kind === HV.kind));
+}
+function histNeed(){   // load if needed, then redraw whichever history page is showing
+  if(HIST.busy || (HIST.since != null && HIST.since <= histSince() && Date.now() - HIST.at < 5 * 60e3)) return false;
+  histLoad().then(() => { if(state.s === 'activity' && actSec() !== 'Now playing'){ renderHistSide(); renderActivity(); } });
+  return true;
+}
+function renderHistSide(){
+  const people = [...new Set(HIST.items.map(x => x.who))].sort((a, b) => a.localeCompare(b));
+  $('#side').innerHTML = `${actCats()}
+    <h4>Period</h4><div class="side-seg"><div class="seg hseg" data-hv="period">${HPER.map(([k, l]) => `<button data-v="${k}" class="${HV.period === k ? 'on' : ''}">${l.replace(' days', 'd').replace('1 year', '1y').replace('All time', 'All')}</button>`).join('')}</div></div>
+    <h4>Show</h4><div class="side-seg"><div class="seg hseg" data-hv="kind">${[['all', 'All'], ['movie', 'Movies'], ['tv', 'TV']].map(([k, l]) => `<button data-v="${k}" class="${HV.kind === k ? 'on' : ''}">${l}</button>`).join('')}</div></div>
+    <h4>Who</h4><div class="side-seg"><select data-hvsel="who" aria-label="Who watched"><option value="all">Everyone</option>${people.map(p => `<option ${HV.who === p ? 'selected' : ''}>${esc(p)}</option>`).join('')}</select></div>
+    <div class="side-foot">From your Plex server's play history.${HIST.at ? ` Loaded ${ago(HIST.at)}.` : ''}<button class="btn sm" data-hreload>↻ Refresh</button></div>`;
+}
+function histEmpty(g){
+  if(!actServers().length){ g.innerHTML = `<div class="mpanel"><p>Connect a Plex server to see what's been watched.</p></div>`; return true; }
+  if(HIST.busy || (HIST.since == null && !HIST.err)){ g.innerHTML = `<div class="loading"><div class="spin"></div>Loading play history from Plex…</div>`; histNeed(); return true; }
+  if(HIST.err && !HIST.items.length){ g.innerHTML = `<div class="actidle"><b>Couldn't read play history</b><p>${esc(HIST.err.message || '')}. History needs the server owner's Plex sign-in.</p></div>`; return true; }
+  return false;
+}
+const dayLabel = t => { const d = new Date(t), today = new Date(); const k = x => x.toDateString(); const y = new Date(today); y.setDate(y.getDate() - 1);
+  return k(d) === k(today) ? 'Today' : k(d) === k(y) ? 'Yesterday' : d.toLocaleDateString(undefined, {weekday:'short', day:'numeric', month:'short', ...(d.getFullYear() !== today.getFullYear() ? {year:'numeric'} : {})}); };
+const perLabel = () => (HPER.find(p => p[0] === HV.period) || HPER[1])[1].toLowerCase().replace('all time', 'all time').replace(/^(\d)/, 'last $1');
+function renderRecent(){
+  const g = $('#grid'); histNeed();
+  $('#title').textContent = 'Recently watched'; $('#count').textContent = '';
+  if(histEmpty(g)) return;
+  const items = histView(); HIST.view = items;
+  $('#count').textContent = `${items.length.toLocaleString()} play${items.length === 1 ? '' : 's'} · ${perLabel()}`;
+  if(!items.length){ g.innerHTML = `<div class="actidle"><b>Nothing watched in this period</b><p>Try a longer period or a different person.</p></div>`; return; }
+  let html = '', last = '';
+  items.slice(0, HV.show).forEach((x, i) => {
+    const day = dayLabel(x.at);
+    if(day !== last){ html += `${last ? '</div>' : ''}<h3 class="rwday">${esc(day)}</h3><div class="rwlist">`; last = day; }
+    html += `<div class="rwrow" data-hist-i="${i}"><div class="npposter rwposter" style="${x.img ? `background-image:url('${esc(x.img)}')` : `background:linear-gradient(160deg,hsl(${hue(x.t)} 45% 32%),#111)`}"></div>
+      <div class="npbody"><div class="nptitle">${esc(x.t)}${x.y ? ` <span class="rwy">${x.y}</span>` : ''}</div>${x.sub ? `<div class="npsub">${esc(x.sub)}</div>` : ''}<div class="npwho">${esc(x.who)}</div></div>
+      <div class="rwtime">${new Date(x.at).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}</div></div>`;
+  });
+  html += '</div>';
+  if(items.length > HV.show) html += `<div class="rwmore"><button class="btn" data-hmore>Show more (${(items.length - HV.show).toLocaleString()} older)</button></div>`;
+  g.innerHTML = `<div class="rwwrap">${html}</div>`;
+}
+function rankHTML(title, rows, unit, opts = {}){
+  if(!rows.length) return '';
+  const max = rows[0][1];
+  return `<section class="stbox"><h3>${title}</h3><div class="strank">${rows.map(([name, n, x], i) => `<div class="strow${x ? ' click' : ''}" ${x ? `data-st-t="${esc(x.t)}" data-st-k="${x.kind}" data-st-y="${x.y || ''}"` : ''}>
+    <span class="stn">${i + 1}</span>${opts.poster ? `<span class="npposter stposter" style="${x?.img ? `background-image:url('${esc(x.img)}')` : `background:hsl(${hue(name)} 40% 30%)`}"></span>` : ''}
+    <div class="stbar"><div class="stlab"><b>${esc(name)}</b><span>${n.toLocaleString()} ${n === 1 ? unit[0] : unit[1]}</span></div><i style="width:${Math.max(2, n / max * 100).toFixed(1)}%"></i></div></div>`).join('')}</div></section>`;
+}
+function colsHTML(title, vals, labels, tipFmt, every = 1){
+  const max = Math.max(1, ...vals), top = vals.indexOf(Math.max(...vals));
+  return `<section class="stbox"><h3>${title}</h3><div class="stcols" role="img" aria-label="${esc(title)}: ${vals.map((v, i) => `${labels[i]} ${v}`).join(', ')}">
+    ${vals.map((v, i) => `<div class="stcol" data-tip="${esc(tipFmt(i, v))}"><div class="stcolbar"><i style="height:${(v / max * 100).toFixed(1)}%"></i>${i === top && v ? `<em>${v.toLocaleString()}</em>` : ''}</div><span>${i % every === 0 ? esc(labels[i]) : ''}</span></div>`).join('')}</div></section>`;
+}
+function renderStats(){
+  const g = $('#grid'); histNeed();
+  $('#title').textContent = 'Stats'; $('#count').textContent = '';
+  if(histEmpty(g)) return;
+  const items = histView();
+  $('#count').textContent = `${perLabel()}${HV.who !== 'all' ? ' · ' + HV.who : ''}`;
+  if(!items.length){ g.innerHTML = `<div class="actidle"><b>Nothing watched in this period</b><p>Try a longer period or a different person.</p></div>`; return; }
+  const count = (arr, keyFn) => { const m = new Map(); arr.forEach(x => { const k = keyFn(x); if(k == null) return; const e = m.get(k) || [k, 0, x]; e[1]++; m.set(k, e); }); return [...m.values()].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0]))); };
+  const mov = items.filter(x => x.kind === 'movie'), eps = items.filter(x => x.kind === 'tv');
+  const topM = count(mov, x => x.key).slice(0, 10).map(([k, n, x]) => [x.t + (x.y ? ` (${x.y})` : ''), n, x]);
+  const topS = count(eps, x => x.key).slice(0, 10).map(([k, n, x]) => [x.t, n, x]);
+  const people = count(items, x => x.who).slice(0, 10).map(([k, n]) => [k, n]);
+  const gm = new Map(); items.forEach(x => (x.g || []).forEach(gn => gm.set(gn, (gm.get(gn) || 0) + 1)));
+  const genres = [...gm.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
+  const wk = Array(7).fill(0), hr = Array(24).fill(0);
+  items.forEach(x => { const d = new Date(x.at); wk[(d.getDay() + 6) % 7]++; hr[d.getHours()]++; });
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], fullDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const hl = h => h === 0 ? '12am' : h < 12 ? h + 'am' : h === 12 ? '12pm' : (h - 12) + 'pm';
+  const tile = (label, v) => `<div class="sttile"><span>${label}</span><b>${typeof v === 'number' ? v.toLocaleString() : v}</b></div>`;
+  const busiest = wk.indexOf(Math.max(...wk)), peak = hr.indexOf(Math.max(...hr));
+  g.innerHTML = `<div class="stwrap">
+    <div class="sttiles">${tile('Plays', items.length)}${tile('Movies watched', new Set(mov.map(x => x.key)).size)}${tile('Episodes watched', eps.length)}${tile('People watching', new Set(items.map(x => x.who)).size)}${tile('Busiest day', fullDays[busiest])}${tile('Peak time', hl(peak))}</div>
+    <div class="stgrid">
+      ${HV.kind !== 'tv' ? rankHTML('Most-watched movies', topM, ['play', 'plays'], {poster:true}) : ''}
+      ${HV.kind !== 'movie' ? rankHTML('Most-watched shows', topS, ['episode', 'episodes'], {poster:true}) : ''}
+      ${HV.who === 'all' ? rankHTML('Most active people', people, ['play', 'plays']) : ''}
+      ${rankHTML('Top genres', genres, ['play', 'plays'])}
+      ${colsHTML('Busiest days', wk, days, (i, v) => `${fullDays[i]}: ${v.toLocaleString()} play${v === 1 ? '' : 's'}`)}
+      ${colsHTML('Busiest times of day', hr, hr.map((_, h) => hl(h)), (i, v) => `${hl(i)}–${hl((i + 1) % 24)}: ${v.toLocaleString()} play${v === 1 ? '' : 's'}`, 3)}
+    </div></div>`;
+}
+$('#side').addEventListener('click', e => {
+  if(state.s !== 'activity') return;
+  const b = e.target.closest('.hseg button'); if(b){ HV[b.closest('[data-hv]').dataset.hv] = b.dataset.v; HV.show = 80; hvSave(); renderHistSide(); histNeed() || renderActivity(); return; }
+  if(e.target.closest('[data-hreload]')){ histLoad(true).then(() => { renderHistSide(); renderActivity(); }); renderActivity(); }
+});
+$('#side').addEventListener('change', e => { const sel = e.target.closest('[data-hvsel]'); if(!sel || state.s !== 'activity') return; HV[sel.dataset.hvsel] = sel.value; HV.show = 80; hvSave(); renderActivity(); });
+document.addEventListener('click', e => {
+  if(state.s !== 'activity') return;
+  if(e.target.closest('[data-hmore]')){ HV.show += 120; renderRecent(); return; }
+  const r = e.target.closest('[data-hist-i]'); if(r){ actOpenTitle(HIST.view?.[+r.dataset.histI]); return; }
+  const t = e.target.closest('[data-st-t]'); if(t) actOpenTitle({t:t.dataset.stT, kind:t.dataset.stK, y:+t.dataset.stY || null});
+});
 function actKick(){ clearTimeout(ACT.timer); ACT_EVERY = state.s === 'activity' ? 10000 : 15000; actLoad().finally(() => { ACT.timer = setTimeout(actTick, ACT_EVERY); }); }
 function actTick(){ if(document.visibilityState === 'visible') actKick(); else ACT.timer = setTimeout(actTick, ACT_EVERY); }
 $('#actBtn').onclick = e => { e.stopPropagation(); ACT.open = !ACT.open; actRender(); if(ACT.open) actKick(); };

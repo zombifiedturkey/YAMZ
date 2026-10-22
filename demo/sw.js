@@ -116,8 +116,46 @@ function plexServer(u){
   if(u.pathname === '/library/sections/2/all' && P.get('type') === '4') return J({MediaContainer:{totalSize:PLEXEPS.length, Metadata:PLEXEPS}});
   if(u.pathname === '/library/sections/2/all') return J({MediaContainer:{totalSize:PLEXTV.length, Metadata:PLEXTV}});
   if(u.pathname === '/status/sessions') return J({MediaContainer:{size:3, Metadata:demoSessions()}});
+  if(u.pathname === '/accounts') return J({MediaContainer:{Account:[{id:1, name:'zombie_fan'}, {id:2, name:'Sam'}, {id:3, name:'Alex'}, {id:4, name:'Mum'}]}});
+  if(u.pathname === '/status/sessions/history/all'){
+    const since = +(P.get('viewedAt>') || 0), start = +(P.get('X-Plex-Container-Start') || 0), size = +(P.get('X-Plex-Container-Size') || 100);
+    const all = demoHistory().filter(h => h.viewedAt > since);
+    return J({MediaContainer:{totalSize:all.length, size:Math.min(size, Math.max(0, all.length - start)), Metadata:all.slice(start, start + size)}});
+  }
   if(u.pathname.startsWith('/photo')){ const k = /metadata\/(\d+)/.exec(P.get('url') || '')?.[1]; const [t, y] = TITLE_BY_KEY[k] || ['?', '']; return SVG(posterSVG(t, y)); }
   return J({}, 404);
+}
+// About 8 months of pretend play history for Recently watched and Stats (same every load, ends now).
+let HISTC = null;
+function demoHistory(){
+  const now = Math.floor(Date.now() / 1000);
+  if(HISTC && now - HISTC.at < 600) return HISTC.list;
+  let seed = 20261022; const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+  const people = [[1, 1.0], [2, 0.8], [3, 0.55], [4, 0.35]];
+  const horror = PLEXMOV.filter(m => (m.Genre || []).some(g => g.tag === 'Horror'));
+  const epN = {}, list = [];
+  for(let day = 0; day < 240; day++){
+    const date = new Date((now - day * 86400) * 1000), wd = date.getDay(), weekend = wd === 0 || wd === 5 || wd === 6;
+    for(const [acct, keen] of people){
+      const plays = Math.floor(rnd() * (weekend ? 3.2 : 1.9) * keen + (rnd() < 0.15 ? 1 : 0));
+      for(let k = 0; k < plays; k++){
+        const hour = rnd() < 0.72 ? 18 + Math.floor(rnd() * 5) : rnd() < 0.5 ? 13 + Math.floor(rnd() * 5) : Math.floor(rnd() * 24);
+        const d = new Date(date); d.setHours(hour, Math.floor(rnd() * 60), 0, 0);
+        const t = Math.floor(d.getTime() / 1000) - k * 5400; if(t > now) continue;
+        if(rnd() < 0.55){
+          const m = rnd() < 0.45 && horror.length ? horror[Math.floor(rnd() * horror.length)] : PLEXMOV[Math.floor(rnd() * PLEXMOV.length)];
+          list.push({type:'movie', ratingKey:m.ratingKey, key:'/library/metadata/' + m.ratingKey, title:m.title, year:m.year, thumb:m.thumb, viewedAt:t, accountID:acct});
+        } else {
+          const sh = PLEXTV[Math.floor(Math.pow(rnd(), 1.6) * PLEXTV.length)], n = (epN[sh.ratingKey] = (epN[sh.ratingKey] || 0) + 1);
+          list.push({type:'episode', ratingKey:String(50000 + list.length), title:'Episode ' + ((n - 1) % 10 + 1), grandparentTitle:sh.title, grandparentKey:'/library/metadata/' + sh.ratingKey, grandparentThumb:sh.thumb, parentIndex:1 + Math.floor((n - 1) / 10), index:(n - 1) % 10 + 1, viewedAt:t, accountID:acct});
+        }
+      }
+    }
+  }
+  list.sort((a, b) => a.viewedAt - b.viewedAt);   // number each show's episodes in the order they were watched
+  const seen = {}; list.forEach(h => { if(h.type !== 'episode') return; const n = (seen[h.grandparentKey] = (seen[h.grandparentKey] || 0) + 1); h.parentIndex = 1 + Math.floor((n - 1) / 10); h.index = (n - 1) % 10 + 1; h.title = 'Episode ' + h.index; });
+  list.reverse();
+  HISTC = {at:now, list}; return list;
 }
 // Three pretend streams for the Now playing readout. Positions move with the clock so the bars advance.
 function demoSessions(){

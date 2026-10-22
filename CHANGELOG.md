@@ -22,6 +22,19 @@
 - The page refreshes every 10 seconds while it's open. Click a card to open that title.
 - The Now playing dropdown has a link to the page.
 
+**Recently watched**
+- New **Activity → Recently watched**: everything watched on your Plex server, newest first, grouped by day ("Today", "Yesterday", "Tue, Oct 20"). Each entry shows the poster, the title (S01E03 for TV), who watched it and when. Click one to open the title.
+- Filters in the side menu: **Period** (30 days, 90 days, 1 year, all time), **Show** (all, movies or TV) and **Who** (everyone or one person). They're shared with Stats.
+
+**Stats**
+- New **Activity → Stats** for the chosen period and person:
+  - tiles for plays, movies watched, episodes watched, people watching, the busiest day and the peak time
+  - the 10 most-watched movies and shows
+  - the most active people
+  - top genres
+  - charts of the busiest days of the week and times of day (hover a bar for the exact figure)
+- It all comes from your Plex server's own play history, which needs the server owner's sign-in. History is fetched in pages and cached for 5 minutes. **↻ Refresh** fetches it again.
+
 **Library**
 - The poster grid is now centred in the window, so wide windows no longer leave a gap down the right-hand side.
 
