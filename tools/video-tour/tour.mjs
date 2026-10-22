@@ -248,7 +248,7 @@ if(await tryClick('#side .sidepin', {post:1400})){
 if(pickShow){
   await card('TV', 'Every season, every episode', 1700);
   await click('#tabs button[data-s="media"]', {post:600});
-  if(!(await tryClick('#side [data-mediakind="tv"]', {post:1300}))){ await tryClick('#menuBtn', {post:500}); await tryClick('#side [data-mediakind="tv"]', {post:1300}); }
+  await tryClick('#kindSeg [data-kind="tv"]', {post:1300});
   if(await openTitle(pickShow)){
     await page.locator('#modal').hover(); await page.locator('#seasonSec').scrollIntoViewIfNeeded().catch(() => {}); await wait(1500);
     await cap('Seasons', 'Green is complete, amber is partly there, red is missing. Click a season for every episode.', 2400);
@@ -261,7 +261,7 @@ if(pickShow){
 // Gaps
 await card('Gaps', 'Find what’s missing, then fill it', 1900);
 await click('#tabs button[data-s="missing"]', {post:1300});
-await tryClick('#side [data-misskind="movie"]', {post:600});
+await tryClick('#kindSeg [data-kind="movie"]', {post:600});
 await click('#side .mansrch', {post:900});
 await cap('Search & add', 'Look up any movie or show and send it to a list, your Plex Watchlist, Radarr or Sonarr.', 600);
 await type('#manQ', SEARCH_TERM, 90); await page.keyboard.press('Enter'); await wait(2600);
@@ -279,7 +279,7 @@ if(info.radarr){
   await cap('Waiting in Radarr', 'Everything Radarr is still waiting on: out now but not in your library, and not released yet.', 2600);
   await wheel(400);
 }
-await click('#side [data-misskind="tv"]', {post:1600});
+await click('#kindSeg [data-kind="tv"]', {post:1600});
 if(info.tvChecked){
   await cap('TV gaps', 'Incomplete shows, whole missing seasons, and the shows you’ve got every episode of.', 2000);
   await tryClick('#side .cat[data-c="Missing seasons"]', {post:1500});
@@ -292,7 +292,7 @@ if(info.sonarr){
 // Discover
 await card('Discover', 'Popular, upcoming, recent, essential', 1900);
 await click('#tabs button[data-s="discover"]', {post:1500});
-await tryClick('#side [data-dkind="movie"]', {post:800});
+await tryClick('#kindSeg [data-kind="movie"]', {post:800});
 await tryClick('#side .cat[data-c="Popular"]', {post:2200});
 await cap('Discover', info.tmdb ? 'What’s trending this week, straight from TMDB. Anything you already own is marked.' : 'What’s trending right now. Anything you already own is marked.', 1800);
 for(const i of [0, 2, 4]){ const d = page.locator('.dcard').nth(i); if(await d.count()){ await to(d.locator('.poster')); await wait(700); } }

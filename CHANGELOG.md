@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+**One Movies / TV switch, in the top bar**
+- The Movies / TV switch now sits in the top bar, to the right of the YAMZ logo, instead of in the side menus of Media, Gaps and Discover. One switch drives all three, so moving between tabs keeps you on movies or TV. It's hidden on tabs where it doesn't apply (Lists, Calendar, Activity).
+- Media no longer has a side menu: its genres are the buttons above the posters, so the space goes to the posters. The "library refreshed" note now sits after the title count, for example "34 titles · Plex library refreshed 2 h ago".
+
 ## 1.2.0 — 22 October 2026
 
 The big one: YAMZ now watches your server as well as your library. Live streams, play history, stats and recommendations, plus critic scores, written reviews and a tidier look.

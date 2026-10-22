@@ -48,6 +48,12 @@ header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px
 .logo .lockup{display:flex;flex-direction:column;gap:3px}
 .logo .lockup small{font-size:9.5px;letter-spacing:.16em;margin-left:2px}
 .logo small{font-family:Inter;font-size:11px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase}
+.hkind{flex:none;background:var(--bg2);border-color:var(--line)}
+.hkind[hidden]{display:none}
+.hkind button{padding:6px 14px}
+/* Media has no side menu: no drawer, pin or menu button there */
+:root[data-noside] aside,:root[data-noside] .menu-btn{display:none!important}
+#count .cntnote{color:var(--dim);margin-left:6px}
 .tabs{display:flex;background:var(--bg2);border:1px solid var(--line);border-radius:var(--rp,999px);padding:3px}
 .tabs button{border:0;background:none;padding:6px 16px;border-radius:var(--rp,999px);cursor:pointer;color:var(--muted);font-weight:600;font-size:13px}
 .tabs button.on{background:var(--accent);color:var(--on-accent)}
@@ -249,7 +255,8 @@ header > :not(.search):not(.spacer){flex-shrink:0}
 .gpgo{font-size:12px;margin-top:5px}
 .gpcols.three{grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr))}
 .gpnote{color:var(--muted);font-size:13px;margin:0 0 10px}
-@media (max-width:1180px){ #settingsBtn .hide-sm{display:none} #settingsBtn{padding:7px 11px} .tabs button{padding:6px 12px} }
+@media (max-width:1180px){ #settingsBtn .hide-sm{display:none} #settingsBtn{padding:7px 11px} .tabs button{padding:6px 12px} .hkind button{padding:6px 11px} }
+@media (max-width:1100px){ .logo small{display:none} }
 :root[data-lists="hide"] #tabs button[data-s="lists"],:root[data-lists="hide"] .lbtn,:root[data-lists="hide"] [data-addlist-modal]{display:none!important}
 a.rt.rtl{color:inherit;text-decoration:none;transition:border-color .15s}
 a.rt.rtl:hover{border-color:var(--accent-t)}
@@ -902,10 +909,10 @@ aside > h4:first-of-type{padding-right:34px}
 :root[data-theme="glass"][data-amb="off"] #amb{opacity:.4}
 /* header: a floating frosted bar */
 :root[data-theme="glass"] header{top:12px;margin:12px 12px 0;border:1px solid var(--line);border-radius:calc(24px * var(--rk,1));background:var(--glass);-webkit-backdrop-filter:var(--gfx);backdrop-filter:var(--gfx);box-shadow:var(--ghi),0 12px 40px rgba(0,0,0,.35)}
-:root[data-theme="glass"] .tabs{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.09)}
-:root[data-theme="glass"] .tabs button{transition:background .2s,color .2s}
-:root[data-theme="glass"] .tabs button:hover{color:var(--text)}
-:root[data-theme="glass"] .tabs button.on{background:rgba(255,255,255,.18);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 2px 10px rgba(0,0,0,.25)}
+:root[data-theme="glass"] .tabs,:root[data-theme="glass"] .hkind{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.09)}
+:root[data-theme="glass"] .tabs button,:root[data-theme="glass"] .hkind button{transition:background .2s,color .2s}
+:root[data-theme="glass"] .tabs button:hover,:root[data-theme="glass"] .hkind button:hover{color:var(--text)}
+:root[data-theme="glass"] .tabs button.on,:root[data-theme="glass"] .hkind button.on{background:rgba(255,255,255,.18);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 2px 10px rgba(0,0,0,.25)}
 :root[data-theme="glass"] .search input,:root[data-theme="glass"] .hbtn{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.12)}
 :root[data-theme="glass"] .hbtn:hover{background:rgba(255,255,255,.14);color:var(--text);border-color:rgba(255,255,255,.22)}
 :root[data-theme="glass"] .hbtn.attn.on{background:var(--accent);color:var(--on-accent)}
@@ -978,6 +985,7 @@ body > header > *{--rk:var(--rk-panel,1)}   /* the bar's buttons, tabs and searc
 <header>
   <button class="hbtn menu-btn" id="menuBtn" aria-label="Categories">☰</button>
   <div class="logo"><svg class="zicon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><clipPath id="zc1"><circle cx="32" cy="32" r="30"/></clipPath><radialGradient id="zbg1" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#4a2f6b"/><stop offset="1" stop-color="#160d24"/></radialGradient></defs><circle cx="32" cy="32" r="30" fill="url(#zbg1)"/><g clip-path="url(#zc1)"><circle cx="50" cy="13" r="6.5" fill="#f4e7b0" opacity=".92"/><circle cx="48" cy="11.5" r="1.3" fill="#d9c98a"/><path d="M11 66 Q13 50 32 49 Q51 50 53 66Z" fill="#5b3f2a" stroke="#24160c" stroke-width="1.4"/><path d="M26 50 L32 58 L38 50" fill="#3d2a1c"/><path d="M20 60 l3 -4 l2 5 M42 58 l3 3 l1 -5" stroke="#24160c" stroke-width="1.3" fill="none"/><path d="M16.5 30 Q15.5 12 32 11 Q48.5 12 47.5 30 Q47.5 44 40 49 Q32 53.5 24 49 Q16.5 44 16.5 30Z" fill="#94c35c" stroke="#24331a" stroke-width="1.6"/><path d="M16 27 Q11.5 28.5 13.5 34 Q15 36.5 17.5 35.5" fill="#7fae4a" stroke="#24331a" stroke-width="1.4"/><path d="M15.5 25 Q17 9.5 32 9.5 Q47 9.5 48.5 22 L45 17.5 L42 22 L38.5 15 L34.5 20.5 L30.5 14 L26.5 20.5 L23 15.5 L20.5 21.5 L18 19Z" fill="#2e2018"/><path d="M23 24.5 L33.5 27.5" stroke="#24331a" stroke-width="1.5"/><path d="M25 22.5 L24.2 26.2 M28.2 23.4 L27.4 27.1 M31.4 24.3 L30.6 28" stroke="#24331a" stroke-width="1.2"/><circle cx="25.5" cy="32.5" r="5.6" fill="#f7f3dc" stroke="#24331a" stroke-width="1.4"/><circle cx="26.8" cy="33.3" r="2" fill="#d0402b"/><circle cx="26.3" cy="32.7" r=".6" fill="#fff"/><ellipse cx="39.6" cy="33" rx="4.3" ry="3.4" fill="#f7f3dc" stroke="#24331a" stroke-width="1.4"/><circle cx="39" cy="33.8" r="1.4" fill="#1b1b1b"/><path d="M35 31.6 Q39.6 28.4 44.2 31.6 L44 33 Q39.6 30.6 35.2 33Z" fill="#7aa845" stroke="#24331a" stroke-width="1.2"/><path d="M20.5 38.2 Q25.5 40.6 30.5 38.2" stroke="#678f3a" stroke-width="1.3" fill="none"/><path d="M31.5 35.5 L33 39.3 L30.4 39.3" stroke="#24331a" stroke-width="1.3" fill="none" stroke-linejoin="round"/><path d="M23.5 42.5 Q32 48.5 41.5 41.5 Q37 47 32 47 Q26.5 47 23.5 42.5Z" fill="#4a1616" stroke="#24331a" stroke-width="1.3" stroke-linejoin="round"/><path d="M27.6 43.6 h2.8 v2.6 h-2.8z M32.6 44 h2.6 v2.4 h-2.6z" fill="#f1e9c8"/><path d="M42.5 37.5 l3.2 -1.2 l-1 3.4z" fill="#7a1e1e"/><path d="M19 45 q1.5 1.5 3 0" stroke="#5f8a34" stroke-width="1.1" fill="none"/></g><circle cx="32" cy="32" r="30" fill="none" style="stroke:var(--accent)" stroke-width="2.6"/></svg><span class="lockup"><span class="bebas">YAM<span class="net">Z</span></span><small>Yet Another Media Zombie</small></span></div>
+  <div class="seg hkind" id="kindSeg" role="group" aria-label="Movies or TV"><button data-kind="movie">Movies</button><button data-kind="tv">TV</button></div>
   <div class="tabs" id="tabs">
     <button data-s="media" class="on">Media</button>
     <button data-s="missing">Gaps</button>
@@ -1636,6 +1644,7 @@ function render(){
   const q = state.q.trim();
   $('#title').textContent = q ? `“${q}”` : (state.c==='All' ? (state.s==='tv'?'All TV':'All Movies') : state.c);
   $('#count').textContent = `${list.length} title${list.length===1?'':'s'}`;
+  if(!q) $('#count').insertAdjacentHTML('beforeend', mediaNoteHTML());
   updateAttn();
   $('#grid').innerHTML = list.length ? list.map(d => cardHTML(d, !!q)).join('') : `<div class="empty">Nothing matches that.</div>`;
   io?.disconnect();
@@ -1662,7 +1671,9 @@ function paint(d, el){
     img.onload = () => img.classList.add('ld'); img.src = m.poster; p.querySelector('.ph').after(img);
   });
 }
+let MEDIA_PENDING = 0;
 function renderSide(){
+  headKind();
   if(state.s==='calendar') return renderCalendarSide();
   if(state.s==='activity') return renderActivitySide();
   if(state.s==='discover' && !state.q) return renderDiscoverSide();
@@ -1671,8 +1682,8 @@ function renderSide(){
   const counts = {}, items = DATA.filter(d => d.s===state.s);
   items.forEach(d => { const g = genresOf(d); if(g && g.length) g.forEach(x => counts[x] = (counts[x]||0)+1); else if(cached(d)) counts.Uncategorised = (counts.Uncategorised||0)+1; });
   const total = items.length, pending = items.filter(d => !genresOf(d) && !cached(d)?.none).length;
-  $('#side').innerHTML = `<h4>Media</h4><div class="side-seg"><div class="seg"><button data-mediakind="movie" class="${state.s==='tv'?'':'on'}">Movies</button><button data-mediakind="tv" class="${state.s==='tv'?'on':''}">TV</button></div></div>` +
-    libSyncHTML() + (pending && !inPreview ? `<div class="side-foot">Sorting your ${state.s==='tv'?'shows':'movies'} into genres using ${state.s==='tv' ? (P()===FREE ? 'TVmaze' : P().name) : P().name}… <b>${pending.toLocaleString()}</b> to go. Categories fill in as it works.</div>` : '');
+  $('#side').innerHTML = '';   // Media has no side menu: genres are the buttons above the posters, Movies / TV is in the top bar
+  MEDIA_PENDING = pending && !inPreview ? pending : 0;
 }
 /* quiet line at the foot of the Movies / TV menu: when the media server last refreshed, and when YAMZ last pulled from it */
 function libSyncHTML(){
@@ -1686,7 +1697,21 @@ function libSyncHTML(){
   });
   return `<div class="libsync">${lines.join('')}</div>`;
 }
-setInterval(() => { const el = $('#side .libsync'); if(el) el.outerHTML = libSyncHTML(); }, 60e3);
+/* Media has no side menu, so the same quiet note sits after the title count: "34 titles · Plex library refreshed 2 h ago" */
+function mediaNoteHTML(){
+  const sv = LIB.servers || [], bits = [], tip = [];
+  sv.forEach(s => {
+    const who = sv.length > 1 ? (s.name || SRV(s).label) : SRV(s).label;
+    if(s.busy) bits.push(`syncing with ${who}…`);
+    else if(s.err){ bits.push(`couldn't reach ${who}`); tip.push(s.err); }
+    else if(s.scan) bits.push(`${s.scanHow === 'added' ? `last added to ${who}` : `${who} library refreshed`} ${ago(s.scan)}`);
+    else if(s.at) bits.push(`synced with ${who} ${ago(s.at)}`);
+    if(s.at) tip.push(`YAMZ synced with ${who} ${ago(s.at)} (${new Date(s.at).toLocaleString()})`);
+  });
+  if(MEDIA_PENDING) bits.push(`sorting into genres, ${MEDIA_PENDING.toLocaleString()} to go`);
+  return bits.length ? `<span class="cntnote" title="${esc(tip.join('\n'))}">· ${esc(bits.join(' · '))}</span>` : '';
+}
+setInterval(() => { const el = $('#count .cntnote'); if(el && (state.s === 'movie' || state.s === 'tv') && !state.q.trim()) el.outerHTML = mediaNoteHTML(); }, 60e3);
 function renderBanner(){
   if(inPreview){ $('#banner').innerHTML = `<div class="banner"><div><b>You're viewing this in a preview window.</b> Previews block internet access, so posters and details can't load. Save <b>YAMZ.html</b> to your computer and open it in Chrome, Edge or Firefox.</div></div>`; return; }
   $('#banner').innerHTML = stopped ? `<div class="banner"><div><b>Posters paused.</b> ${P().name} couldn't be reached with the current settings.</div><button class="btn pri" onclick="openSettings()">Open settings</button></div>` : '';
@@ -2296,7 +2321,6 @@ function renderMissingSide(){
     : `${D ? `Last analysed ${new Date(D.at).toLocaleDateString()}<br>${D.matched} of ${D.total} movies matched on Wikidata.` : 'Not analysed yet.'}
       <button class="btn" data-act="scan" ${MISS.running?'disabled':''}>${MISS.running ? 'Analysing…' : D ? '↻ Re-analyse' : 'Analyse collection'}</button>`;
   $('#side').innerHTML = `<h4>${MISS_TITLE}</h4>
-    <div class="side-seg"><div class="seg"><button data-misskind="movie" class="${!tv?'on':''}">Movies</button><button data-misskind="tv" class="${tv?'on':''}">TV</button></div></div>
     <button class="cat mansrch ${state.c===MAN_C?'on':''}" data-c="${MAN_C}"><b class="catlbl"><i class="catico">${SRCH_ICO}</i>${MAN_C}</b></button>
     <div class="side-div" role="separator"></div>
     <h5 class="side-sub">${tv ? 'Check your shows' : 'Find the gaps'}</h5>` +
@@ -2304,12 +2328,6 @@ function renderMissingSide(){
     `<div class="side-foot">${foot}</div>`;
 }
 $('#side').addEventListener('click', e => {
-  const k = e.target.closest('[data-misskind]'); if(k && state.s === 'missing'){
-    if(MISS.kind === k.dataset.misskind) return;
-    MISS.kind = MAN.kind = k.dataset.misskind; store.set('zn:misskind', MISS.kind); store.set('zn:mankind', MAN.kind);
-    if(state.c === MAN_C){ MAN.items = null; if(MAN.q.trim()) manGo(); } else state.c = missDefault();
-    MISS.filter = ''; renderSide(); render(); scrollTo(0, 0); return;
-  }
   if(e.target.closest('[data-wrefresh]')) waitLoad(MISS.kind === 'tv' ? 'sonarr' : 'radarr', true);
 });
 
@@ -3889,7 +3907,6 @@ $('#gfInner').addEventListener('wheel', e => { const g = e.currentTarget; if(Mat
 function renderDiscoverSide(){
   const n = s => { const it = store.get(dkey(DISC.kind, s))?.items; return it ? Math.min(DISC_MAX, s === 'Recent' ? recentItems(it).length : it.length) : null; };
   $('#side').innerHTML = `<h4>Discover</h4>
-    <div class="side-seg"><div class="seg"><button data-dkind="movie" class="${DISC.kind==='movie'?'on':''}">Movies</button><button data-dkind="tv" class="${DISC.kind==='tv'?'on':''}">TV</button></div></div>
 ` +
     dsecs().map(s => {
       const btn = `<button class="cat ${state.c===s?'on':''}" data-c="${s}">${s}<span>${s === FORYOU ? '' : n(s) ?? '–'}</span></button>`;
@@ -4949,14 +4966,27 @@ $('#clearCache').onclick = () => { store.keys().filter(k => k.startsWith('vault:
 let tt; function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 4200); }
 $('#tabs').onclick = e => { const b = e.target.closest('button'); if(!b) return;
   document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x===b));
-  state.s = b.dataset.s === 'media' ? (store.get('zn:mediakind') === 'tv' ? 'tv' : 'movie') : b.dataset.s; if(state.s === 'activity' || ACT_EVERY === 10000) setTimeout(actKick, 0); state.c = state.s==='missing' ? missDefault() : state.s==='discover' ? DISC.sec : state.s==='activity' ? 'Now playing' : 'All'; if(state.s==='lists'){ state.attn = false; pwLoad(); } state.q = ''; $('#q').value = ''; searchHas(); renderSide(); render(); scrollTo(0,0); };
-$('#side').addEventListener('click', e => {   // Media: Movies / TV switch
-  const k = e.target.closest('[data-mediakind]'); if(!k || (state.s !== 'movie' && state.s !== 'tv')) return;
-  state.s = k.dataset.mediakind; store.set('zn:mediakind', state.s); state.c = 'All'; renderSide(); render(); scrollTo(0, 0);
-});
+  state.s = b.dataset.s === 'media' ? KIND : b.dataset.s; if(state.s === 'activity' || ACT_EVERY === 10000) setTimeout(actKick, 0); state.c = state.s==='missing' ? missDefault() : state.s==='discover' ? DISC.sec : state.s==='activity' ? 'Now playing' : 'All'; if(state.s==='lists'){ state.attn = false; pwLoad(); } state.q = ''; $('#q').value = ''; searchHas(); renderSide(); render(); scrollTo(0,0); };
+/* one Movies / TV switch in the top bar for Media, Gaps and Discover */
+let KIND = store.get('zn:kind') || store.get('zn:mediakind') || 'movie';
+function kindSync(){ store.set('zn:kind', KIND); store.set('zn:mediakind', KIND); MISS.kind = MAN.kind = KIND; store.set('zn:misskind', KIND); store.set('zn:mankind', KIND); DISC.kind = KIND; store.set('zn:dkind', KIND); }
+kindSync();
+function headKind(){
+  const on = ['movie', 'tv', 'missing', 'discover'].includes(state.s) && !(state.q || '').trim();
+  $('#kindSeg').hidden = !on;
+  $('#kindSeg').querySelectorAll('button').forEach(b => { const a = b.dataset.kind === KIND; b.classList.toggle('on', a); b.setAttribute('aria-pressed', a); });
+  document.documentElement.toggleAttribute('data-noside', state.s === 'movie' || state.s === 'tv');
+}
+$('#kindSeg').onclick = e => {
+  const b = e.target.closest('[data-kind]'); if(!b || b.dataset.kind === KIND) return;
+  KIND = b.dataset.kind; kindSync();
+  if(state.s === 'movie' || state.s === 'tv'){ state.s = KIND; state.c = 'All'; }
+  else if(state.s === 'missing'){ if(state.c === MAN_C){ MAN.items = null; if(MAN.q.trim()) manGo(); } else state.c = missDefault(); MISS.filter = ''; }
+  else if(state.s === 'discover') loadDiscover();
+  renderSide(); render(); scrollTo(0, 0);
+};
 $('#side').addEventListener('click', e => {
   if(state.s !== 'discover') return;
-  const k = e.target.closest('[data-dkind]'); if(k){ DISC.kind = k.dataset.dkind; store.set('zn:dkind', DISC.kind); renderSide(); render(); loadDiscover(); }
   if(e.target.closest('[data-drefresh]')) loadDiscover(true);
 });
 $('#side').onclick = e => { if(e.target.closest('[data-act=scan]')) return runScan(); if(e.target.closest('[data-act=tvcheck]')) return tvCheck(); const b = e.target.closest('.cat'); if(!b) return;
@@ -5541,7 +5571,7 @@ function peopleGapsHTML(items){
 }
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-gap-goto]'); if(!b) return;
-  MISS.kind = MAN.kind = 'movie'; store.set('zn:misskind', 'movie'); store.set('zn:mankind', 'movie');
+  KIND = 'movie'; kindSync();
   $('#tabs button[data-s="missing"]').click();
   state.c = b.dataset.gapGoto; MISS.filter = b.dataset.gapName || '';
   renderSide(); render(); scrollTo(0, 0);
@@ -5592,7 +5622,7 @@ document.addEventListener('click', e => {
   const t = e.target.closest('[data-st-t]'); if(t) actOpenTitle({t:t.dataset.stT, kind:t.dataset.stK, y:+t.dataset.stY || null});
   const ge = e.target.closest('[data-gap-ess],[data-gap-dec]');
   if(ge){   // jump to Discover → Essentials for that genre (or decade)
-    DISC.kind = ge.dataset.gapKind || 'movie'; store.set('zn:dkind', DISC.kind);
+    KIND = ge.dataset.gapKind || 'movie'; kindSync();
     if(ge.dataset.gapEss){ DISC.genre = ge.dataset.gapEss; DISC.dec = ''; }
     else { DISC.dec = ge.dataset.gapDec; if(!DISC.genre) DISC.genre = [...(tasteProfile('movie')?.g.keys() || [])].find(g => DGEN[g]) || 'Action'; }
     store.set('zn:dgenre', DISC.genre); store.set('zn:ddec', DISC.dec); DISC.sec = GOAT; store.set('zn:dsec', GOAT);
