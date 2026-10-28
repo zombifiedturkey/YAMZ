@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+**Name & icon**
+- New **Settings → Appearance → Name & icon**: give your YAMZ its own name and tagline (for example "Steve's Media Server Manager"), upload your own icon, or hide the icon or the name. The name also becomes the browser tab title and the icon its favicon. Saved on your YAMZ server, so every device shows it, and applied before the page draws.
+- Icons work best square, 256 × 256 px or larger (PNG, JPG, WebP or SVG). YAMZ crops and shrinks pictures to 256 × 256 so they stay small.
+
+**Calendar**
+- The Movies / TV switch moved to the top bar, the same switch as Media, Gaps and Discover.
+- Clicking a Sonarr episode now shows Sonarr's own description, runtime and screenshot, instead of looking it up on TVmaze by number (which could show a different episode for shows TVmaze numbers differently).
+
 **TV gaps: episode lists from Sonarr or TheTVDB** ([#2](https://github.com/zombifiedturkey/YAMZ/issues/2))
 - Gaps → TV used to compare your episodes with TVmaze only. When TVmaze numbers a show differently from TheTVDB (which Sonarr and usually Plex follow), episodes you have showed as missing, for example specials that TVmaze files inside a regular season.
 - New **Episode lists from** setting in the Gaps → TV side menu: **Auto** (the default) uses **Sonarr** for any show that's in Sonarr, then **TheTVDB** when it's your metadata source with a key, then TVmaze. You can also pick one source.

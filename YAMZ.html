@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>YAMZ · Yet Another Media Zombie</title>
+<script>/* name and icon for the top bar (Settings → Appearance → Name & icon); applied before first paint */
+window.__brand=function(B){var d=document,L=d.getElementById('logo');if(!L)return;B=B||{};var name=(B.name||'').trim(),sub=(B.sub||'').trim(),svg=L.querySelector('svg.zicon'),im=d.getElementById('logoImg'),tx=d.getElementById('logoText');
+L.classList.toggle('noicon',B.icon===false||B.showIcon===false);L.classList.toggle('noname',B.showName===false);
+if(B.img){im.src=B.img;im.hidden=false;svg.style.display='none'}else{im.hidden=true;im.removeAttribute('src');svg.style.display=''}
+if(!tx.dataset.def)tx.dataset.def=tx.innerHTML;
+if(name||sub){var e=function(s){return s.replace(/[&<>"']/g,function(c){return'&#'+c.charCodeAt(0)+';'})};tx.innerHTML='<span class="bebas'+(name.length>16?' long':'')+'">'+e(name||'YAMZ')+'</span>'+(sub?'<small>'+e(sub)+'</small>':'')}else tx.innerHTML=tx.dataset.def;
+if(!sub&&!name)tx.innerHTML=tx.dataset.def;
+d.title=name?name:'YAMZ · Yet Another Media Zombie';
+var f=d.querySelector('link[rel=icon]');if(f){if(!f.dataset.def)f.dataset.def=f.href;f.href=B.img||f.dataset.def}};</script>
 <script>try{var L=JSON.parse(localStorage.getItem('zn:look')||'{}'),th=L.theme||'dark';if(th==='auto')th=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';var RT=matchMedia('(prefers-reduced-transparency: reduce)').matches;if(th==='glass'&&RT)th='dark';document.documentElement.dataset.theme=th;document.documentElement.dataset.frost=L.frost||2;document.documentElement.dataset.amb=L.amb===false?'off':'on';document.documentElement.dataset.side=L.side==='auto'?'auto':'show';if(L.accent)document.documentElement.style.setProperty('--accent',L.accent);var S=[.8,1,1.33,1.67,2][(L.psize||2)-1]||1;document.documentElement.style.setProperty('--ps',S);var Q=L.sq||{};if(Q.top)document.documentElement.style.setProperty('--rk-top','0');if(Q.side)document.documentElement.style.setProperty('--rk-side','0');if(Q.panel)document.documentElement.style.setProperty('--rk-panel','0');if(Q.pill)document.documentElement.style.setProperty('--rp-pill','0px');if(L.corner==='square'){document.documentElement.style.setProperty('--pr','0px');document.documentElement.style.setProperty('--prs','0px');}}catch(e){}</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3CclipPath%20id%3D%22zc%22%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2230%22/%3E%3C/clipPath%3E%3CradialGradient%20id%3D%22zbg%22%20cx%3D%22.35%22%20cy%3D%22.3%22%20r%3D%22.9%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234a2f6b%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23160d24%22/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2230%22%20fill%3D%22url%28%23zbg%29%22/%3E%3Cg%20clip-path%3D%22url%28%23zc%29%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2213%22%20r%3D%226.5%22%20fill%3D%22%23f4e7b0%22%20opacity%3D%22.92%22/%3E%3Ccircle%20cx%3D%2248%22%20cy%3D%2211.5%22%20r%3D%221.3%22%20fill%3D%22%23d9c98a%22/%3E%3Cpath%20d%3D%22M11%2066%20Q13%2050%2032%2049%20Q51%2050%2053%2066Z%22%20fill%3D%22%235b3f2a%22%20stroke%3D%22%2324160c%22%20stroke-width%3D%221.4%22/%3E%3Cpath%20d%3D%22M26%2050%20L32%2058%20L38%2050%22%20fill%3D%22%233d2a1c%22/%3E%3Cpath%20d%3D%22M20%2060%20l3%20-4%20l2%205%20M42%2058%20l3%203%20l1%20-5%22%20stroke%3D%22%2324160c%22%20stroke-width%3D%221.3%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M16.5%2030%20Q15.5%2012%2032%2011%20Q48.5%2012%2047.5%2030%20Q47.5%2044%2040%2049%20Q32%2053.5%2024%2049%20Q16.5%2044%2016.5%2030Z%22%20fill%3D%22%2394c35c%22%20stroke%3D%22%2324331a%22%20stroke-width%3D%221.6%22/%3E%3Cpath%20d%3D%22M16%2027%20Q11.5%2028.5%2013.5%2034%20Q15%2036.5%2017.5%2035.5%22%20fill%3D%22%237fae4a%22%20stroke%3D%22%2324331a%22%20stroke-width%3D%221.4%22/%3E%3Cpath%20d%3D%22M15.5%2025%20Q17%209.5%2032%209.5%20Q47%209.5%2048.5%2022%20L45%2017.5%20L42%2022%20L38.5%2015%20L34.5%2020.5%20L30.5%2014%20L26.5%2020.5%20L23%2015.5%20L20.5%2021.5%20L18%2019Z%22%20fill%3D%22%232e2018%22/%3E%3Cpath%20d%3D%22M23%2024.5%20L33.5%2027.5%22%20stroke%3D%22%2324331a%22%20stroke-width%3D%221.5%22/%3E%3Cpath%20d%3D%22M25%2022.5%20L24.2%2026.2%20M28.2%2023.4%20L27.4%2027.1%20M31.4%2024.3%20L30.6%2028%22%20stroke%3D%22%2324331a%22%20stroke-width%3D%221.2%22/%3E%3Ccircle%20cx%3D%2225.5%22%20cy%3D%2232.5%22%20r%3D%225.6%22%20fill%3D%22%23f7f3dc%22%20stroke%3D%22%2324331a%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%2226.8%22%20cy%3D%2233.3%22%20r%3D%222%22%20fill%3D%22%23d0402b%22/%3E%3Ccircle%20cx%3D%2226.3%22%20cy%3D%2232.7%22%20r%3D%22.6%22%20fill%3D%22%23fff%22/%3E%3Cellipse%20cx%3D%2239.6%22%20cy%3D%2233%22%20rx%3D%224.3%22%20ry%3D%223.4%22%20fill%3D%22%23f7f3dc%22%20stroke%3D%22%2324331a%22%20stroke-width%3D%221.4%22/%3E%3Ccircle%20cx%3D%2239%22%20cy%3D%2233.8%22%20r%3D%221.4%22%20fill%3D%22%231b1b1b%22/%3E%3Cpath%20d%3D%22M35%2031.6%20Q39.6%2028.4%2044.2%2031.6%20L44%2033%20Q39.6%2030.6%2035.2%2033Z%22%20fill%3D%22%237aa845%22%20stroke%3D%22%2324331a%22%20stroke-width%3D%221.2%22/%3E%3Cpath%20d%3D%22M20.5%2038.2%20Q25.5%2040.6%2030.5%2038.2%22%20stroke%3D%22%23678f3a%22%20stroke-width%3D%221.3%22%20fill%3D%22none%22/%3E%3Cpath%20d%3D%22M31.5%2035.5%20L33%2039.3%20L30.4%2039.3%22%20stroke%3D%22%2324331a%22%20stroke-width%3D%221.3%22%20fill%3D%22none%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M23.5%2042.5%20Q32%2048.5%2041.5%2041.5%20Q37%2047%2032%2047%20Q26.5%2047%2023.5%2042.5Z%22%20fill%3D%22%234a1616%22%20stroke%3D%22%2324331a%22%20stroke-width%3D%221.3%22%20stroke-linejoin%3D%22round%22/%3E%3Cpath%20d%3D%22M27.6%2043.6%20h2.8%20v2.6%20h-2.8z%20M32.6%2044%20h2.6%20v2.4%20h-2.6z%22%20fill%3D%22%23f1e9c8%22/%3E%3Cpath%20d%3D%22M42.5%2037.5%20l3.2%20-1.2%20l-1%203.4z%22%20fill%3D%22%237a1e1e%22/%3E%3Cpath%20d%3D%22M19%2045%20q1.5%201.5%203%200%22%20stroke%3D%22%235f8a34%22%20stroke-width%3D%221.1%22%20fill%3D%22none%22/%3E%3C/g%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2232%22%20r%3D%2230%22%20fill%3D%22none%22%20stroke%3D%22%23e8b04b%22%20stroke-width%3D%222.6%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -46,7 +55,19 @@ header{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px
 .zicon{width:40px;height:40px;flex:none;filter:drop-shadow(0 2px 6px rgba(0,0,0,.55));transition:transform .3s}
 .logo:hover .zicon{transform:rotate(-8deg) scale(1.06)}
 .logo .lockup{display:flex;flex-direction:column;gap:3px}
-.logo .lockup small{font-size:9.5px;letter-spacing:.16em;margin-left:2px}
+.logo .lockup small{font-size:9.5px;letter-spacing:.16em;margin-left:2px;max-width:260px;overflow:hidden;text-overflow:ellipsis}
+.logo .lockup .bebas{max-width:340px;overflow:hidden;text-overflow:ellipsis}
+.logo .lockup .bebas.long{font-size:26px}
+.zimg{object-fit:cover;border-radius:50%}
+.zimg[hidden],.logo.noicon .zicon{display:none!important}
+.logo.noname .lockup{display:none}
+.brandrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.brandico{display:flex;align-items:center;gap:14px;margin-top:10px}
+.brandico .bprev{width:56px;height:56px;border-radius:50%;flex:none;background:var(--bg3) center/cover no-repeat;border:1px solid var(--line);display:grid;place-items:center;overflow:hidden}
+.brandico .bprev svg,.brandico .bprev img{width:100%;height:100%;object-fit:cover}
+.brandico .bbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.brandtogs{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px}
+@media (max-width:600px){ .brandrow{grid-template-columns:1fr} .logo .lockup .bebas{max-width:180px} }
 .logo small{font-family:Inter;font-size:11px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase}
 .hkind{flex:none;background:var(--bg2);border-color:var(--line)}
 .hkind[hidden]{display:none}
@@ -1148,7 +1169,8 @@ body > header > *{--rk:var(--rk-panel,1)}   /* the bar's buttons, tabs and searc
 <div id="amb" aria-hidden="true"></div>
 <header>
   <button class="hbtn menu-btn" id="menuBtn" aria-label="Categories">☰</button>
-  <div class="logo"><svg class="zicon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><clipPath id="zc1"><circle cx="32" cy="32" r="30"/></clipPath><radialGradient id="zbg1" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#4a2f6b"/><stop offset="1" stop-color="#160d24"/></radialGradient></defs><circle cx="32" cy="32" r="30" fill="url(#zbg1)"/><g clip-path="url(#zc1)"><circle cx="50" cy="13" r="6.5" fill="#f4e7b0" opacity=".92"/><circle cx="48" cy="11.5" r="1.3" fill="#d9c98a"/><path d="M11 66 Q13 50 32 49 Q51 50 53 66Z" fill="#5b3f2a" stroke="#24160c" stroke-width="1.4"/><path d="M26 50 L32 58 L38 50" fill="#3d2a1c"/><path d="M20 60 l3 -4 l2 5 M42 58 l3 3 l1 -5" stroke="#24160c" stroke-width="1.3" fill="none"/><path d="M16.5 30 Q15.5 12 32 11 Q48.5 12 47.5 30 Q47.5 44 40 49 Q32 53.5 24 49 Q16.5 44 16.5 30Z" fill="#94c35c" stroke="#24331a" stroke-width="1.6"/><path d="M16 27 Q11.5 28.5 13.5 34 Q15 36.5 17.5 35.5" fill="#7fae4a" stroke="#24331a" stroke-width="1.4"/><path d="M15.5 25 Q17 9.5 32 9.5 Q47 9.5 48.5 22 L45 17.5 L42 22 L38.5 15 L34.5 20.5 L30.5 14 L26.5 20.5 L23 15.5 L20.5 21.5 L18 19Z" fill="#2e2018"/><path d="M23 24.5 L33.5 27.5" stroke="#24331a" stroke-width="1.5"/><path d="M25 22.5 L24.2 26.2 M28.2 23.4 L27.4 27.1 M31.4 24.3 L30.6 28" stroke="#24331a" stroke-width="1.2"/><circle cx="25.5" cy="32.5" r="5.6" fill="#f7f3dc" stroke="#24331a" stroke-width="1.4"/><circle cx="26.8" cy="33.3" r="2" fill="#d0402b"/><circle cx="26.3" cy="32.7" r=".6" fill="#fff"/><ellipse cx="39.6" cy="33" rx="4.3" ry="3.4" fill="#f7f3dc" stroke="#24331a" stroke-width="1.4"/><circle cx="39" cy="33.8" r="1.4" fill="#1b1b1b"/><path d="M35 31.6 Q39.6 28.4 44.2 31.6 L44 33 Q39.6 30.6 35.2 33Z" fill="#7aa845" stroke="#24331a" stroke-width="1.2"/><path d="M20.5 38.2 Q25.5 40.6 30.5 38.2" stroke="#678f3a" stroke-width="1.3" fill="none"/><path d="M31.5 35.5 L33 39.3 L30.4 39.3" stroke="#24331a" stroke-width="1.3" fill="none" stroke-linejoin="round"/><path d="M23.5 42.5 Q32 48.5 41.5 41.5 Q37 47 32 47 Q26.5 47 23.5 42.5Z" fill="#4a1616" stroke="#24331a" stroke-width="1.3" stroke-linejoin="round"/><path d="M27.6 43.6 h2.8 v2.6 h-2.8z M32.6 44 h2.6 v2.4 h-2.6z" fill="#f1e9c8"/><path d="M42.5 37.5 l3.2 -1.2 l-1 3.4z" fill="#7a1e1e"/><path d="M19 45 q1.5 1.5 3 0" stroke="#5f8a34" stroke-width="1.1" fill="none"/></g><circle cx="32" cy="32" r="30" fill="none" style="stroke:var(--accent)" stroke-width="2.6"/></svg><span class="lockup"><span class="bebas">YAM<span class="net">Z</span></span><small>Yet Another Media Zombie</small></span></div>
+  <div class="logo" id="logo"><svg class="zicon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><clipPath id="zc1"><circle cx="32" cy="32" r="30"/></clipPath><radialGradient id="zbg1" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#4a2f6b"/><stop offset="1" stop-color="#160d24"/></radialGradient></defs><circle cx="32" cy="32" r="30" fill="url(#zbg1)"/><g clip-path="url(#zc1)"><circle cx="50" cy="13" r="6.5" fill="#f4e7b0" opacity=".92"/><circle cx="48" cy="11.5" r="1.3" fill="#d9c98a"/><path d="M11 66 Q13 50 32 49 Q51 50 53 66Z" fill="#5b3f2a" stroke="#24160c" stroke-width="1.4"/><path d="M26 50 L32 58 L38 50" fill="#3d2a1c"/><path d="M20 60 l3 -4 l2 5 M42 58 l3 3 l1 -5" stroke="#24160c" stroke-width="1.3" fill="none"/><path d="M16.5 30 Q15.5 12 32 11 Q48.5 12 47.5 30 Q47.5 44 40 49 Q32 53.5 24 49 Q16.5 44 16.5 30Z" fill="#94c35c" stroke="#24331a" stroke-width="1.6"/><path d="M16 27 Q11.5 28.5 13.5 34 Q15 36.5 17.5 35.5" fill="#7fae4a" stroke="#24331a" stroke-width="1.4"/><path d="M15.5 25 Q17 9.5 32 9.5 Q47 9.5 48.5 22 L45 17.5 L42 22 L38.5 15 L34.5 20.5 L30.5 14 L26.5 20.5 L23 15.5 L20.5 21.5 L18 19Z" fill="#2e2018"/><path d="M23 24.5 L33.5 27.5" stroke="#24331a" stroke-width="1.5"/><path d="M25 22.5 L24.2 26.2 M28.2 23.4 L27.4 27.1 M31.4 24.3 L30.6 28" stroke="#24331a" stroke-width="1.2"/><circle cx="25.5" cy="32.5" r="5.6" fill="#f7f3dc" stroke="#24331a" stroke-width="1.4"/><circle cx="26.8" cy="33.3" r="2" fill="#d0402b"/><circle cx="26.3" cy="32.7" r=".6" fill="#fff"/><ellipse cx="39.6" cy="33" rx="4.3" ry="3.4" fill="#f7f3dc" stroke="#24331a" stroke-width="1.4"/><circle cx="39" cy="33.8" r="1.4" fill="#1b1b1b"/><path d="M35 31.6 Q39.6 28.4 44.2 31.6 L44 33 Q39.6 30.6 35.2 33Z" fill="#7aa845" stroke="#24331a" stroke-width="1.2"/><path d="M20.5 38.2 Q25.5 40.6 30.5 38.2" stroke="#678f3a" stroke-width="1.3" fill="none"/><path d="M31.5 35.5 L33 39.3 L30.4 39.3" stroke="#24331a" stroke-width="1.3" fill="none" stroke-linejoin="round"/><path d="M23.5 42.5 Q32 48.5 41.5 41.5 Q37 47 32 47 Q26.5 47 23.5 42.5Z" fill="#4a1616" stroke="#24331a" stroke-width="1.3" stroke-linejoin="round"/><path d="M27.6 43.6 h2.8 v2.6 h-2.8z M32.6 44 h2.6 v2.4 h-2.6z" fill="#f1e9c8"/><path d="M42.5 37.5 l3.2 -1.2 l-1 3.4z" fill="#7a1e1e"/><path d="M19 45 q1.5 1.5 3 0" stroke="#5f8a34" stroke-width="1.1" fill="none"/></g><circle cx="32" cy="32" r="30" fill="none" style="stroke:var(--accent)" stroke-width="2.6"/></svg><img class="zicon zimg" id="logoImg" alt="" hidden><span class="lockup" id="logoText"><span class="bebas">YAM<span class="net">Z</span></span><small>Yet Another Media Zombie</small></span></div>
+  <script>try{var B=JSON.parse(localStorage.getItem("zn:brandc")||"null");if(B&&window.__brand)window.__brand(B)}catch(e){}</script>
   <div class="seg hkind" id="kindSeg" role="group" aria-label="Movies or TV"><button data-kind="movie">Movies</button><button data-kind="tv">TV</button></div>
   <div class="tabs" id="tabs">
     <button data-s="dash">Dashboard</button>
@@ -1195,6 +1217,11 @@ body > header > *{--rk:var(--rk-panel,1)}   /* the bar's buttons, tabs and searc
     <button class="x" data-close="sov">×</button>
     <h2 class="bebas">Settings</h2>
     <h4>Appearance</h4>
+    <div class="field" id="brandField"><label>Name &amp; icon <span class="swname">— what the top bar says, for every device</span></label>
+      <div class="brandrow"><input type="text" id="brandName" maxlength="40" placeholder="YAMZ" aria-label="Name"><input type="text" id="brandSub" maxlength="48" placeholder="Yet Another Media Zombie" aria-label="Tagline"></div>
+      <div class="brandico"><div class="bprev" id="brandPrev"></div><div class="bbtns"><label class="btn" style="margin:0;text-transform:none;letter-spacing:0;font-size:13px;color:var(--text)">Upload icon…<input type="file" id="brandFile" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden></label><button class="btn" id="brandReset" type="button">Use the zombie</button></div></div>
+      <div class="brandtogs"><label class="tog"><input type="checkbox" id="brandShowIcon"> Show icon</label><label class="tog"><input type="checkbox" id="brandShowName"> Show name</label></div>
+      <small class="fhint">Leave the name empty to keep YAMZ. Icons work best square, <b>256 × 256 px</b> or larger (PNG, JPG, WebP or SVG). They're shown in a circle, so keep the important part in the middle. The name also becomes the browser tab title, and the icon its favicon.</small></div>
     <div class="field"><label>Theme</label>
       <div class="seg" id="themeSeg"><button data-theme="dark">☾ Dark</button><button data-theme="light">☀ Light</button><button data-theme="auto">Auto</button><button data-theme="glass">✦ Glass</button></div><div class="gnote" id="glassNote"></div></div>
     <div id="glassOpts">
@@ -2038,6 +2065,9 @@ function epBoxHTML(ev, info, showOverview){
 async function fillEpisode(d, x, ev){
   const me = CUR, m = /S(\d+)E(\d+)/.exec(ev.sub || ''); if(!m) return;
   let info = {};
+  if(ev.src === 'Sonarr' && (ev.overview || ev.epName)){   // Sonarr's own episode: same numbering as the calendar, no TVmaze lookup that could pick a different episode
+    if(CUR !== me) return; const box = $('#epBox'); if(box) box.innerHTML = epBoxHTML(ev, {name:ev.epName, summary:ev.overview, runtime:ev.runtime, img:ev.epImg}, x.overview); return;
+  }
   try{
     let tvm = ev.tvm;
     if(!tvm){ const r = await tvmazeId({t:ev.t, q:ev.t, y:ev.y, ids:{...(ev.ids || {}), ...(d.ids || {})}, s:'tv'}); tvm = r?.id; }
@@ -3520,6 +3550,37 @@ $('#swatches').onclick = e => { const b = e.target.closest('.sw'); if(!b) return
 mqLight?.addEventListener?.('change', () => LOOK.theme === 'auto' && applyLook());
 $('#psRange').oninput = e => { LOOK.psize = +e.target.value; store.set('zn:look', LOOK); applyLook(); renderLook(); };
 $('#cornerSeg').onclick = e => { const b = e.target.closest('button'); if(!b) return; LOOK.corner = b.dataset.corner; store.set('zn:look', LOOK); applyLook(); renderLook(); };
+/* ---------- name & icon (shared through the YAMZ server, cached locally so it shows before first paint) ---------- */
+let BRAND = Object.assign({name:'', sub:'', img:null, showIcon:true, showName:true}, store.get('zn:brand') || {});
+function brandApply(){ try{ localStorage.setItem('zn:brandc', JSON.stringify(BRAND)); }catch{} window.__brand?.(BRAND); }
+function brandRender(){
+  $('#brandName').value = BRAND.name || ''; $('#brandSub').value = BRAND.sub || '';
+  $('#brandShowIcon').checked = BRAND.showIcon !== false; $('#brandShowName').checked = BRAND.showName !== false;
+  $('#brandPrev').innerHTML = BRAND.img ? `<img src="${esc(BRAND.img)}" alt="">` : document.querySelector('#logo svg.zicon').outerHTML;
+  $('#brandReset').hidden = !BRAND.img;
+}
+const brandSave = () => { store.set('zn:brand', BRAND); brandApply(); };
+let brandT; ['brandName', 'brandSub'].forEach(id => $('#' + id).addEventListener('input', e => { BRAND[id === 'brandName' ? 'name' : 'sub'] = e.target.value; clearTimeout(brandT); brandT = setTimeout(brandSave, 250); window.__brand(BRAND); }));
+$('#brandShowIcon').onchange = e => { BRAND.showIcon = e.target.checked; brandSave(); };
+$('#brandShowName').onchange = e => { BRAND.showName = e.target.checked; brandSave(); };
+$('#brandReset').onclick = () => { BRAND.img = null; brandSave(); brandRender(); };
+$('#brandFile').onchange = async e => {
+  const f = e.target.files?.[0]; e.target.value = ''; if(!f) return;
+  if(f.size > 8e6) return toast('That image is over 8 MB. Pick a smaller one.');
+  try{
+    let url;
+    if(f.type === 'image/svg+xml'){ if(f.size > 150e3) return toast('That SVG is over 150 KB. Try a PNG instead.'); url = await new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = no; r.readAsDataURL(f); }); }
+    else {   // shrink to 256 × 256 (centre crop) so it's small enough to keep in settings
+      const bmp = await createImageBitmap(f), S = 256, c = document.createElement('canvas'); c.width = c.height = S;
+      const k = Math.max(S / bmp.width, S / bmp.height), w = bmp.width * k, h = bmp.height * k;
+      c.getContext('2d').drawImage(bmp, (S - w) / 2, (S - h) / 2, w, h);
+      url = c.toDataURL('image/webp', .9); if(!url.startsWith('data:image/webp')) url = c.toDataURL('image/png');
+      if(bmp.width < 128 || bmp.height < 128) toast('That image is quite small, so it may look soft. 256 × 256 px or larger works best.');
+    }
+    BRAND.img = url; BRAND.showIcon = true; brandSave(); brandRender();
+  }catch{ toast("Couldn't read that image. Try a PNG or JPG."); }
+};
+brandApply();
 const setLook = patch => { Object.assign(LOOK, patch); store.set('zn:look', LOOK); applyLook(); renderLook(); };
 $('#frostSeg').onclick = e => { const b = e.target.closest('button'); if(b) setLook({frost: +b.dataset.frost}); };
 $('#ambSeg').onclick = e => { const b = e.target.closest('button'); if(b) setLook({amb: b.dataset.amb === 'on'}); };
@@ -4841,11 +4902,12 @@ async function calArr(svc, start, end){
     return list.flatMap(m => [['inCinemas', 'cinema'], ['digitalRelease', 'digital'], ['physicalRelease', 'physical']].filter(([f]) => m[f])
       .map(([f, type]) => ({d:m[f].slice(0, 10), type, t:m.title, y:m.year, s:'movie', poster:img(m), src:'Radarr', have:!!m.hasFile, ids:{tmdb:m.tmdbId, imdb:m.imdbId}})));
   }
-  const list = await arrReq(svc, '/api/v3/calendar', {params:{start:s, end:e, unmonitored:'true', includeSeries:'true'}}) || [];
+  const list = await arrReq(svc, '/api/v3/calendar', {params:{start:s, end:e, unmonitored:'true', includeSeries:'true', includeEpisodeImages:'true'}}) || [];
   return list.filter(x => x.airDateUtc || x.airDate).map(x => {
     const se = x.series || {}, d = x.airDateUtc ? ymd(new Date(x.airDateUtc)) : x.airDate;
     const type = x.episodeNumber === 1 ? 'premiere' : x.finaleType ? 'finale' : 'episode';
-    return {d, type, t:se.title || 'Unknown series', y:se.year, s:'tv', poster:img(se), src:'Sonarr', have:!!x.hasFile, net:se.network || '', overview:x.overview || '',
+    const shot = (x.images || []).find(i => i.coverType === 'screenshot')?.remoteUrl || null;
+    return {d, type, t:se.title || 'Unknown series', y:se.year, s:'tv', poster:img(se), src:'Sonarr', have:!!x.hasFile, net:se.network || '', overview:x.overview || '', epName:x.title && x.title !== 'TBA' ? x.title : '', runtime:x.runtime || se.runtime || null, epImg:shot,
       sub:`S${String(x.seasonNumber).padStart(2, '0')}E${String(x.episodeNumber).padStart(2, '0')}${x.title && x.title !== 'TBA' ? ' · ' + x.title : ''}`, ids:{tvdb:se.tvdbId}};
   });
 }
@@ -4997,7 +5059,6 @@ function renderCalendarSide(){
   const kind = CAL.kind, svc = arrFor(kind), D = ARR_DEF[svc];
   const chk = (grp, k, label, extra = '') => `<label class="tog cchk"><input type="checkbox" data-c${grp}="${k}" ${CAL[grp === 'src' ? 'src' : 'types'][k] ? 'checked' : ''}> ${label}${extra}</label>`;
   $('#side').innerHTML = `<h4>Calendar</h4>
-    <div class="side-seg"><div class="seg"><button data-ckind="movie" class="${kind === 'movie' ? 'on' : ''}">Movies</button><button data-ckind="tv" class="${kind === 'tv' ? 'on' : ''}">TV</button></div></div>
     <h4>Show titles from</h4>
     <div class="cgroup">
       ${arrOn(svc) ? chk('src', 'arr', D.name) : `<div class="cmuted">${D.name} (not connected)</div>`}
@@ -5166,7 +5227,7 @@ document.addEventListener('submit', async e => {
 function openSettings(){
   document.querySelector(`input[name=prov][value=${cfg.prov}]`).checked = true;
   $('#key').value = cfg.key; $('#pin').value = cfg.pin || ''; $('#omdb').value = cfg.omdb || '';
-  syncFields(); renderLook(); renderConn(); renderBackup(); renderAccount(); if(YSRV) document.querySelectorAll('.cachewhere').forEach(e => e.textContent = 'on your YAMZ server'); pwLoad(); ARR_SVCS.forEach(s => arrSync(s));
+  syncFields(); renderLook(); brandRender(); renderConn(); renderBackup(); renderAccount(); if(YSRV) document.querySelectorAll('.cachewhere').forEach(e => e.textContent = 'on your YAMZ server'); pwLoad(); ARR_SVCS.forEach(s => arrSync(s));
   $('#sov').classList.add('open'); document.body.style.overflow = 'hidden';
 }
 window.openSettings = openSettings;
@@ -5190,10 +5251,10 @@ $('#tabs').onclick = e => { const b = e.target.closest('button'); if(!b) return;
   state.s = b.dataset.s === 'media' ? KIND : b.dataset.s; if(state.s === 'activity' || ACT_EVERY === 10000) setTimeout(actKick, 0); state.c = state.s==='missing' ? missDefault() : state.s==='discover' ? DISC.sec : state.s==='activity' ? 'Now playing' : 'All'; if(state.s==='lists'){ state.attn = false; pwLoad(); } state.q = ''; $('#q').value = ''; searchHas(); renderSide(); render(); scrollTo(0,0); };
 /* one Movies / TV switch in the top bar for Media, Gaps and Discover */
 let KIND = store.get('zn:kind') || store.get('zn:mediakind') || 'movie';
-function kindSync(){ store.set('zn:kind', KIND); store.set('zn:mediakind', KIND); MISS.kind = MAN.kind = KIND; store.set('zn:misskind', KIND); store.set('zn:mankind', KIND); DISC.kind = KIND; store.set('zn:dkind', KIND); }
+function kindSync(){ if(typeof CAL !== 'undefined' && CAL.kind !== KIND){ CAL.kind = KIND; CAL.loadedFor = null; store.set('zn:ckind', KIND); } store.set('zn:kind', KIND); store.set('zn:mediakind', KIND); MISS.kind = MAN.kind = KIND; store.set('zn:misskind', KIND); store.set('zn:mankind', KIND); DISC.kind = KIND; store.set('zn:dkind', KIND); }
 kindSync();
 function headKind(){
-  const on = ['movie', 'tv', 'missing', 'discover'].includes(state.s) && !(state.q || '').trim();
+  const on = ['movie', 'tv', 'missing', 'discover', 'calendar'].includes(state.s) && !(state.q || '').trim();
   $('#kindSeg').hidden = !on;
   $('#kindSeg').querySelectorAll('button').forEach(b => { const a = b.dataset.kind === KIND; b.classList.toggle('on', a); b.setAttribute('aria-pressed', a); });
   document.documentElement.toggleAttribute('data-noside', state.s === 'movie' || state.s === 'tv' || (state.s === 'dash' && !(state.q || '').trim()));
