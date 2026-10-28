@@ -11,7 +11,7 @@ Submissions now go through the Community Apps website: https://ca.unraid.net/sub
 - [x] OSI-approved licence at the root: `LICENSE` (MIT)
 - [x] `ca_profile.xml` at the root, with a non-empty `<Profile>`
 - [x] A Docker template: `unraid/yamz.xml`, pointing at `ghcr.io/zombifiedturkey/yamz:latest`, with icon, support and template URLs
-- [x] A published image: `:latest` is built from each `v*` release (currently 1.2.0)
+- [x] A published image: `:latest` is built from each `v*` release (currently 1.3.0)
 
 ## Steps
 

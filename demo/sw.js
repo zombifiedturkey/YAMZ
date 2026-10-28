@@ -4,7 +4,7 @@
  * Sonarr, Wikidata, Wikipedia and TVmaze with a made-up library and generated poster art.
  * Nothing leaves your browser.
  */
-const VERSION = '1.2.0';
+const VERSION = '1.3.0';
 const DEMO_USER = 'demo';
 const DEMO_PASS = 'zombies123';
 const ARR_KEY = '7f3c9a1e5b2d4f6081a9c3e5d7b9f1a2';

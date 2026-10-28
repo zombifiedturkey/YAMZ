@@ -28,9 +28,9 @@ Run it as a **Docker container** (Unraid Community Applications, Synology, any L
 
 ## Features
 
-- **Dashboard** — library totals per Plex/Jellyfin library, the last 14 days of server activity (most played, most active people, most streams at once) and live downloads from the Radarr and Sonarr queue.
+- **Dashboard** — one page with library totals and a library map, the last 14 days of server activity (most played, most active people, most streams at once), Radarr & Sonarr at a glance (missing, cutoff unmet, coming up, health, disk space) and the download queue, where stuck downloads can be removed.
 - **Library** — Plex and/or Jellyfin (Jellyfin still being tested, see the note above), or plain folders, merged and de-duplicated. Posters, genres, ratings from several sources (IMDb, Rotten Tomatoes, Metacritic, TMDB), written reviews, cast, photos and a *Play in Plex/Jellyfin* button.
-- **TV** — seasons and episodes you have vs. what exists, with episode lists and descriptions (via TVmaze).
+- **TV** — seasons and episodes you have vs. what exists, with episode lists and descriptions from Sonarr, TheTVDB or TVmaze, so the numbering matches Sonarr.
 - **Gaps** — search for any movie or show and add it to a list, Plex Watchlist, Radarr or Sonarr; incomplete franchises/collections (missing films first), your most-watched actors and favourite directors and the films of theirs you don't own, and TV shows with missing seasons or episodes.
 - **For you** — recommendations from your Plex or Jellyfin play history: your taste at a glance, the next episode or next film in a series, "Because you watched…" picks split into owned-but-unwatched and not-yet-owned.
 - **Discover** — Popular, Upcoming and Recent (last 1–12 months) for movies or TV, with genre buttons that float along as you scroll. Pick a genre to unlock **Essentials**: the greatest titles in that genre, all time or by decade.
@@ -38,7 +38,7 @@ Run it as a **Docker container** (Unraid Community Applications, Synology, any L
 - **Lists** (optional, can be hidden in Settings) — your own lists (marathons, shopping lists, films to lend a mate), plus your **Plex Watchlist** synced alongside.
 - **Calendar** — month or agenda view of upcoming releases for everything in Radarr, Sonarr, your lists and your Plex Watchlist, labelled *Theatres*, *Streaming* or *Physical media* (episodes for TV).
 - **Connections** — Plex Watchlist, Radarr and Sonarr (documented v3 API only: look up and add titles with your root folder, quality profile, tags and monitoring options).
-- **Make it yours** — dark, light, auto or **Glass** theme (frosted panels with an ambient glow that follows the poster you're on), 9 accent colours, 5 poster sizes, rounded or square corners for posters and for each part of the interface, a compact search, and a side menu that can auto-hide.
+- **Make it yours** — dark, light, auto or **Glass** theme (frosted panels with an ambient glow that follows the poster you're on), your own name and icon, 9 accent colours, 5 poster sizes, rounded or square corners for posters and for each part of the interface, a compact search, and a side menu that can auto-hide.
 - **Server mode** — built-in sign-in, settings shared across every device, backups, and requests to your LAN servers relayed by YAMZ (no CORS or mixed-content problems behind https).
 
 No API keys are required. Metadata comes from Wikipedia/Wikidata and TVmaze; a free **TMDB** key gives richer data, TMDB-powered Discover lists (trending, release dates, audience-rated Essentials) and theatrical/digital/physical release dates.

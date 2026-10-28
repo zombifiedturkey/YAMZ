@@ -1,36 +1,37 @@
 # Changelog
 
-## Unreleased
+## 1.3.0 — 29 October 2026
 
-**Name & icon**
-- New **Settings → Appearance → Name & icon**: give your YAMZ its own name and tagline (for example "Steve's Media Server Manager"), upload your own icon, or hide the icon or the name. The name also becomes the browser tab title and the icon its favicon. Saved on your YAMZ server, so every device shows it, and applied before the page draws.
-- Icons work best square, 256 × 256 px or larger (PNG, JPG, WebP or SVG). YAMZ crops and shrinks pictures to 256 × 256 so they stay small.
+A new Dashboard, Radarr and Sonarr at a glance, TV gaps that match Sonarr, and your own name and icon.
 
-**Calendar**
-- The Movies / TV switch moved to the top bar, the same switch as Media, Gaps and Discover.
-- Clicking a Sonarr episode now shows Sonarr's own description, runtime and screenshot, instead of looking it up on TVmaze by number (which could show a different episode for shows TVmaze numbers differently).
+### Dashboard (new tab)
 
-**TV gaps: episode lists from Sonarr or TheTVDB** ([#2](https://github.com/zombifiedturkey/YAMZ/issues/2))
-- Gaps → TV used to compare your episodes with TVmaze only. When TVmaze numbers a show differently from TheTVDB (which Sonarr and usually Plex follow), episodes you have showed as missing, for example specials that TVmaze files inside a regular season.
-- New **Episode lists from** setting in the Gaps → TV side menu: **Auto** (the default) uses **Sonarr** for any show that's in Sonarr, then **TheTVDB** when it's your metadata source with a key, then TVmaze. You can also pick one source.
-- Each show says which source it was checked against ("via Sonarr ↗"), and the season pop-up and a title's Seasons section use the same source. Click **↻ Re-check** after changing it.
-- Specials (season 0) still don't count as missing. Thanks to @malh67 for the report.
+- **One page that fits the window** on desktop, no scrolling. Smaller windows and phones get the same sections stacked.
+- **Key numbers** along the top: movies, TV shows, episodes, libraries, streaming now, plays and peak streams over the last 14 days, and downloads.
+- **Library map**: each Plex or Jellyfin library is a tile sized by how many titles it holds, showing the artwork of a random title from it. Hover for exact counts.
+- **Most played** movies and shows over the last 14 days as poster strips, **plays per day**, the **most active** people, and the busiest day, peak time and top genre.
+- **Most streams at once**: Plex doesn't keep this, so YAMZ counts what it sees while it's open, with an all-time record.
+- **Radarr & Sonarr** at a glance: totals and size on disk, on disk, missing (click to open it in Gaps), cutoff unmet, due or airing in the next 7 days, unreleased or ended, health warnings, and free space on your media disks.
+- **Downloads** from the Radarr and Sonarr queue, with progress, size, time left, which download client has it, and anything stuck with the reason. Remove one with **×**, or clear everything stuck with **Remove N stuck**, optionally deleting it from the download client and blocklisting the release. All through Radarr's and Sonarr's own documented API: YAMZ still never talks to download clients itself.
 
-**Dashboard** (new tab)
-- One page that fits the window on desktop, no scrolling: a strip of key numbers along the top (movies, shows, episodes, libraries, streaming now, plays, peak streams, downloading), a **library map** where each library's tile is sized by how many titles it holds, poster strips of the most played movies and shows, plays per day, the most active people with the busiest day, peak time and top genre, and the download queue (which scrolls on its own). Smaller windows and phones get the same sections stacked.
-- Each library tile shows the artwork of a random title from that library: the poster for tall tiles, the backdrop for wide ones.
-- **Radarr & Sonarr** at a glance: totals and size on disk, how much is on disk, missing (click to open it in Gaps), cutoff unmet, due or airing in the next 7 days, unreleased or ended, health warnings, and free space on your media disks. The download queue sits underneath. Read-only, through their documented API.
-- **Library**: total movies, TV shows and episodes, and a count for each Plex or Jellyfin library, read live from the server.
-- **Server activity, last 14 days**: who's streaming now, plays, movies and episodes watched, the 5 most played movies and shows, the 3 most active people, and the most streams at once. YAMZ can only count streams while it's open, so that figure covers what it has seen, with an all-time record.
-- **Downloads**: everything in the Radarr and Sonarr queue, with progress, size, time left, which download client has it, and anything stuck (for example "Waiting to import" with the reason). Refreshes every 10 seconds while the page is open. This uses Radarr's and Sonarr's own queue, so YAMZ still never talks to download clients itself.
-- Remove a download with the **×** on its row, or clear everything stuck (failed or waiting to import) with **Remove N stuck**. You confirm first, and can choose to also delete it from the download client and to blocklist the release. This goes through Radarr's and Sonarr's queue API, the same as their own Activity → Queue page.
+### Gaps
 
-**Fixes**
-- Dark theme: a few colours (owned/upcoming labels, secondary text) were defined in terms of themselves and fell back to plain text colour. They now show as intended.
+- **TV episode lists from Sonarr or TheTVDB** ([#2](https://github.com/zombifiedturkey/YAMZ/issues/2)). Gaps → TV used to compare your episodes with TVmaze only, so shows TVmaze numbers differently from TheTVDB (which Sonarr and usually Plex follow) could show episodes you have as missing. The new **Episode lists from** setting defaults to **Auto**: Sonarr for any show that's in Sonarr, then TheTVDB when it's your metadata source with a key, then TVmaze. Each show says which source it was checked against, and the season pop-ups use the same list. Click **↻ Re-check** after updating. Thanks to @malh67 for the report.
 
-**One Movies / TV switch, in the top bar**
-- The Movies / TV switch now sits in the top bar, to the right of the YAMZ logo, instead of in the side menus of Media, Gaps and Discover. One switch drives all three, so moving between tabs keeps you on movies or TV. It's hidden on tabs where it doesn't apply (Lists, Calendar, Activity).
-- Media no longer has a side menu: its genres are the buttons above the posters, so the space goes to the posters. The "library refreshed" note now sits after the title count, for example "34 titles · Plex library refreshed 2 h ago".
+### Top bar
+
+- **One Movies / TV switch** next to the logo drives Media, Gaps, Discover and Calendar, so moving between tabs keeps you on movies or TV. It replaces the switches in their side menus.
+- The tabs are **centred** in the top bar, with the logo, Movies / TV switch and search on the left.
+- **Name & icon** (Settings → Appearance): give YAMZ your own name and tagline, upload your own icon (square, 256 × 256 px or larger), or hide either. The name also becomes the browser tab title and the icon its favicon. Saved on your YAMZ server, so every device shows it.
+- Media no longer has a side menu: its genres are the buttons above the posters. The "library refreshed" note now sits after the title count.
+
+### Calendar
+
+- Clicking a Sonarr episode shows Sonarr's own description, runtime and screenshot, so renumbered episodes show the right details.
+
+### Fixes
+
+- Dark theme: a few colours (owned and upcoming labels, secondary text) fell back to plain text colour. They now show as intended.
 
 ## 1.2.0 — 22 October 2026
 
