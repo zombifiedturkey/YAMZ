@@ -168,6 +168,87 @@ header > :not(.search):not(.spacer){flex-shrink:0}
 .rwtime{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
 .rwmore{text-align:center;margin:20px 0}
 .stwrap{display:flex;flex-direction:column;gap:18px}
+/* ---------- one-page dashboard ---------- */
+:root[data-dash] main .bar{display:none}
+:root[data-dash] main{padding-top:14px;padding-bottom:14px}
+.dash1{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1.25fr) minmax(0,1fr);grid-template-areas:"k k k" "lib play dl" "lib who dl";gap:12px;height:calc(100dvh - var(--dtop,90px) - 14px);min-height:560px}
+.dash1 .stbox{display:flex;flex-direction:column;min-height:0;padding:12px 14px;margin:0}
+.dash1 h3{display:flex;align-items:baseline;gap:8px;margin:0 0 10px;font-size:13.5px}
+.dash1 h3 small{font-weight:500;font-size:11.5px;color:var(--dim)}
+.dash1 h4{margin:0 0 6px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.dkpis{grid-area:k;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:10px}
+.dk{background:var(--bg2);border:1px solid var(--line);border-radius:calc(12px * var(--rk,1));padding:9px 12px;min-width:0}
+.dk span{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dk b{display:block;font-size:22px;font-weight:650;line-height:1.2;font-variant-numeric:tabular-nums}
+.dk small{display:block;font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dk.live{border-color:rgba(var(--acc-rgb),.5);background:linear-gradient(180deg,rgba(var(--acc-rgb),.12),var(--bg2))}
+.dk.live b{color:var(--accent-t)}
+.dlib{grid-area:lib}.dplay{grid-area:play}.dwho{grid-area:who}.ddl{grid-area:dl}
+.dtree{position:relative;flex:1;min-height:0}
+.dtc{position:absolute;border-radius:calc(6px * var(--rk,1));padding:6px 8px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.12);transition:filter .15s;cursor:default}
+.dtc:hover{filter:brightness(1.15)}
+.dtc b{font-size:12.5px;font-weight:700;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dtc span{font-size:11.5px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.dlegend{display:flex;gap:14px;margin-top:8px;font-size:11.5px;color:var(--muted)}
+.dlegend span{display:flex;align-items:center;gap:5px}
+.dlegend i{width:10px;height:10px;border-radius:3px;background:rgba(var(--acc-rgb),.85)} .dlegend i.tv{background:hsl(205 58% 42%)}
+.dplay h4{margin-top:2px}
+.dstrip{flex:1;min-height:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.dstrip:last-child{margin-bottom:0}
+.dpc{display:flex;flex-direction:column;min-height:0;gap:4px;border:0;background:none;padding:0;color:inherit;cursor:pointer;text-align:left}
+.dpc.ghost{cursor:default}
+.dpp{position:relative;flex:1;min-height:0;border-radius:calc(var(--pr) * .7);background:var(--bg3) center/cover;box-shadow:0 4px 12px rgba(0,0,0,.3);transition:transform .15s}
+.dpc:hover .dpp{transform:translateY(-2px)}
+.dpp i{position:absolute;inset:6px;font-style:normal;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
+.dpp em{position:absolute;top:5px;right:5px;font-style:normal;font-size:11px;font-weight:700;min-width:20px;height:20px;padding:0 6px;border-radius:var(--rp,999px);display:grid;place-items:center;background:var(--accent);color:var(--on-accent);box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.dpc > span{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text2)}
+.dwho{flex-direction:row!important;gap:18px}
+.dwcol{flex:1;min-width:0;display:flex;flex-direction:column;min-height:0}
+.dbars{flex:1;min-height:60px;display:flex;align-items:flex-end;gap:3px;padding-bottom:16px;position:relative;border-bottom:1px solid var(--line)}
+.dbar{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;position:relative;min-width:0}
+.dbar i{display:block;background:var(--accent);border-radius:calc(3px * var(--rk,1)) calc(3px * var(--rk,1)) 0 0;min-height:2px;opacity:.85}
+.dbar:hover i{opacity:1}
+.dbar span{position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--dim);white-space:nowrap}
+.duser{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.duser > div{flex:1;min-width:0}
+.dulab{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;margin-bottom:3px}
+.dulab b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dulab span{color:var(--muted);font-variant-numeric:tabular-nums}
+.dubar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.dubar i{display:block;height:100%;background:var(--accent);border-radius:inherit}
+.dsmall{font-size:11px!important;margin-top:8px!important}
+.dfacts{margin-top:auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding-top:10px;border-top:1px solid var(--line)}
+.dfacts span{display:block;font-size:11px;color:var(--muted)}
+.dfacts b{display:block;font-size:14px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ddlbody{flex:1;min-height:0;overflow:auto;margin:0 -6px;padding:0 6px;scrollbar-width:thin}
+.ddl .dqhead{margin-bottom:8px}
+.ddl .dqsum{font-size:12px}
+.ddl .dqlist{gap:9px}
+.ddl .dqrow{gap:9px}
+.ddl .dqposter{width:26px;height:39px}
+.ddl .dqtop b{font-size:12.5px}
+.ddl .dqsub{font-size:11.5px}
+.ddl .dqbar{height:4px;margin:4px 0 3px}
+.ddl .dqmeta{font-size:11px;gap:2px 10px}
+.ddl .dqmsg{flex-basis:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ddl .dqst{font-size:10.5px;padding:1px 7px}
+.ddl .dqx{width:26px;height:26px}
+.ddl .dqask{margin-left:35px}
+/* smaller windows: let it scroll as a stack */
+@media (max-width:1100px),(max-height:640px){
+  .dash1{height:auto;min-height:0;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto;grid-template-areas:"k k" "lib lib" "play play" "who who" "dl dl"}
+  .dkpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .dtree{height:300px;flex:none}
+  .dstrip{height:200px;flex:none}
+  .dbars{height:120px;flex:none}
+  .ddlbody{max-height:520px}
+}
+@media (max-width:600px){
+  .dash1{grid-template-columns:minmax(0,1fr);grid-template-areas:"k" "lib" "play" "who" "dl"}
+  .dkpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dwho{flex-direction:column!important}
+  .dstrip{height:150px;gap:6px}
+}
 .stwrap.dash{gap:30px}
 .dhead{margin:0 0 12px;font-size:20px;font-weight:700;letter-spacing:-.01em}
 .dhead small{font-size:13px;font-weight:500;color:var(--muted);margin-left:6px}
@@ -5020,6 +5101,7 @@ function headKind(){
   $('#kindSeg').hidden = !on;
   $('#kindSeg').querySelectorAll('button').forEach(b => { const a = b.dataset.kind === KIND; b.classList.toggle('on', a); b.setAttribute('aria-pressed', a); });
   document.documentElement.toggleAttribute('data-noside', state.s === 'movie' || state.s === 'tv' || (state.s === 'dash' && !(state.q || '').trim()));
+  document.documentElement.toggleAttribute('data-dash', state.s === 'dash' && !(state.q || '').trim());
 }
 $('#kindSeg').onclick = e => {
   const b = e.target.closest('[data-kind]'); if(!b || b.dataset.kind === KIND) return;
@@ -5651,7 +5733,7 @@ async function dashLibLoad(force){
       out.push(row);
     }
   }));
-  DASH.libs = out.sort((a, b) => (a.kind === 'movie' ? 0 : 1) - (b.kind === 'movie' ? 0 : 1) || (b.n || 0) - (a.n || 0)); DASH.libAt = Date.now(); DASH.libBusy = false;
+  DASH.libs = out.sort((a, b) => (b.n || 0) - (a.n || 0)); DASH.libAt = Date.now(); DASH.libBusy = false;
   if(state.s === 'dash') renderDash();
 }
 async function dashQueueLoad(){
@@ -5740,48 +5822,90 @@ function dashTick(){
   if(document.visibilityState === 'visible'){ dashQueueLoad(); actKick(); }
   DASH.timer = setTimeout(dashTick, 10000);
 }
+/* one-page dashboard: KPI strip, library treemap, activity, downloads; fills the window on desktop */
+function dashFit(){ const g = $('#grid'); if(!g) return; document.documentElement.style.setProperty('--dtop', Math.round(g.getBoundingClientRect().top + scrollY) + 'px'); }
+function squarify(items, x, y, w, h){   // items: [{v}] sorted desc → adds {x,y,w,h}
+  const out = [], total = items.reduce((a, it) => a + it.v, 0); if(!total) return out;
+  let rest = items.map(it => ({...it, a:it.v / total * w * h}));
+  const worst = (row, side) => { const s = row.reduce((a, r) => a + r.a, 0), mx = Math.max(...row.map(r => r.a)), mn = Math.min(...row.map(r => r.a)); return Math.max(side * side * mx / (s * s), s * s / (side * side * mn)); };
+  while(rest.length){
+    const side = Math.min(w, h); let row = [rest[0]], k = 1;
+    while(k < rest.length && worst([...row, rest[k]], side) <= worst(row, side)){ row.push(rest[k]); k++; }
+    const s = row.reduce((a, r) => a + r.a, 0);
+    if(w >= h){ const cw = s / h; let cy = y; row.forEach(r => { const rh = r.a / cw; out.push({...r, x, y:cy, w:cw, h:rh}); cy += rh; }); x += cw; w -= cw; }
+    else { const ch = s / w; let cx = x; row.forEach(r => { const rw = r.a / ch; out.push({...r, x:cx, y, w:rw, h:ch}); cx += rw; }); y += ch; h -= ch; }
+    rest = rest.slice(k);
+  }
+  return out;
+}
+function dashTree(){
+  const el = $('#dtree'); if(!el) return;
+  const libs = (DASH.libs || []).filter(l => l.n > 0); if(!libs.length){ el.innerHTML = DASH.libs ? '<p class="gpnote">No libraries to show.</p>' : '<div class="loading"><div class="spin"></div>Counting your libraries…</div>'; return; }
+  const W = el.clientWidth, H = el.clientHeight; if(W < 40 || H < 40) return;
+  const multi = new Set(libs.map(l => l.srv)).size > 1, max = Math.max(...libs.map(l => l.n));
+  const cells = squarify(libs.map(l => ({...l, v:Math.max(l.n, max * 0.004)})).sort((a, b) => b.v - a.v), 0, 0, W, H);
+  const [r, g2, b] = hexRgb(LOOK.accent || '#e8b04b').map(v => v / 255), mx = Math.max(r, g2, b), mn = Math.min(r, g2, b);
+  let ah = mx === mn ? 40 : mx === r ? 60 * (((g2 - b) / (mx - mn)) % 6) : mx === g2 ? 60 * ((b - r) / (mx - mn) + 2) : 60 * ((r - g2) / (mx - mn) + 4); if(ah < 0) ah += 360;
+  let mi = 0, ti = 0;
+  cells.forEach(c => { const tv = c.kind !== 'movie', i = tv ? ti++ : mi++, f = Math.sqrt(c.n / max);
+    const h = tv ? 205 + ((i * 29) % 50) - 25 : ah + ((i * 47) % 90) - 45;
+    c.bg = `linear-gradient(150deg,hsl(${h.toFixed(0)} ${tv ? 58 : 62}% ${(30 + 16 * f).toFixed(0)}%),hsl(${(h + 14).toFixed(0)} ${tv ? 55 : 58}% ${(22 + 12 * f).toFixed(0)}%))`; });
+  el.innerHTML = cells.map(c => {
+    const big = c.w > 92 && c.h > 46, mid = !big && c.w > 54 && c.h > 30, tv = c.kind !== 'movie';
+    const tip = `${c.name}${multi ? ' (' + c.srv + ')' : ''}: ${c.n.toLocaleString()} ${tv ? `shows${c.eps != null ? ', ' + c.eps.toLocaleString() + ' episodes' : ''}` : 'movies'}`;
+    return `<div class="dtc ${tv ? 'tv' : ''}" style="left:${c.x.toFixed(1)}px;top:${c.y.toFixed(1)}px;width:${(c.w - 3).toFixed(1)}px;height:${(c.h - 3).toFixed(1)}px;background:${c.bg}" title="${esc(tip)}">
+      ${big ? `<b>${esc(c.name)}</b><span>${c.n.toLocaleString()}${tv && c.eps != null ? ` · ${c.eps.toLocaleString()} eps` : ''}</span>` : mid ? `<b>${esc(c.name)}</b>` : ''}</div>`;
+  }).join('');
+}
+addEventListener('resize', () => { if(state.s === 'dash'){ dashFit(); dashTree(); } });
 function renderDash(){
   const g = $('#grid'); g.className = 'mview'; $('#sort').style.display = 'none'; $('#progress').textContent = '';
   $('#title').textContent = 'Dashboard'; $('#count').textContent = '';
-  dashLibLoad(); if(!DASH.timer) setTimeout(dashTick, 0);
+  dashFit(); dashLibLoad(); if(!DASH.timer) setTimeout(dashTick, 0);
   const since = Date.now() - DASH_DAYS * 864e5;
   if(actServers().length && (HIST.since == null || HIST.since > since / 1000 || Date.now() - HIST.at > 5 * 60e3) && !HIST.busy) histLoad(false, Math.floor(since / 1000)).then(() => state.s === 'dash' && renderDash());
-  const fmt = n => n == null ? '–' : n.toLocaleString();
-  const tile = (label, v, sub) => `<div class="sttile"><span>${label}</span><b>${typeof v === 'number' ? v.toLocaleString() : v}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
-  /* library */
-  const mov = DATA.filter(d => d.s === 'movie').length, shows = DATA.filter(d => d.s === 'tv').length;
   const libs = DASH.libs || [];
+  const mov = DATA.filter(d => d.s === 'movie').length, shows = DATA.filter(d => d.s === 'tv').length;
   const epsLive = libs.some(l => l.eps != null) ? libs.reduce((a, l) => a + (l.eps || 0), 0) : null;
   const epsLocal = Object.values(TV.eps || {}).reduce((a, ss) => a + Object.values(ss || {}).reduce((b, e) => b + (e?.length || 0), 0), 0);
-  const multi = new Set(libs.map(l => l.srv)).size > 1;
-  const libRows = libs.length ? libs.map(l => `<div class="strow"><span class="dlico">${l.kind === 'movie' ? '🎬' : '📺'}</span><span class="dnm">${esc(l.name)}${multi ? ` <small>${esc(l.srv)}</small>` : ''}</span>
-      <span class="dvl">${l.err ? '<span title="Couldn\'t reach the server">–</span>' : `${fmt(l.n)} ${l.kind === 'movie' ? (l.n === 1 ? 'movie' : 'movies') : (l.n === 1 ? 'show' : 'shows')}${l.eps != null ? ` · ${fmt(l.eps)} episodes` : ''}`}</span></div>`).join('')
-    : (LIB.servers || []).length ? `<div class="loading"><div class="spin"></div>Counting your libraries…</div>` : `<p class="gpnote">Connect Plex or Jellyfin to see a count per library.</p>`;
-  /* activity */
-  const hs = actServers().length, H = HIST.items.filter(x => x.at >= since);
-  const P = store.get('zn:peak');
+  const nLibs = libs.length || (LIB.servers || []).reduce((a, s) => a + (s.libs || []).filter(l => l.on).length, 0);
+  const hs = actServers().length, H = HIST.items.filter(x => x.at >= since), P = store.get('zn:peak');
   const peak14 = P ? Math.max(0, ...Object.entries(P.days || {}).filter(([d]) => Date.parse(d) >= since - 864e5).map(([, n]) => n)) : 0;
+  const qAll = ['radarr', 'sonarr'].filter(arrOn).flatMap(s => DASH.q[s] || []), qDown = qAll.filter(x => x.label === 'Downloading').length;
   const count = (arr, fn) => { const m = new Map(); arr.forEach(x => { const k = fn(x); const e = m.get(k) || {k, n:0, x}; e.n++; m.set(k, e); }); return [...m.values()].sort((a, b) => b.n - a.n); };
-  const topM = count(H.filter(x => x.kind === 'movie'), x => x.key).slice(0, 5), topS = count(H.filter(x => x.kind === 'tv'), x => x.key).slice(0, 5), users = count(H, x => x.who).slice(0, 3);
-  const pst = (it, n, unit) => `<div class="strow click" data-st-t="${esc(it.t)}" data-st-k="${it.kind}" data-st-y="${it.y || ''}"><div class="npposter dqposter" style="${it.img ? `background-image:url('${esc(it.img)}')` : `background:linear-gradient(160deg,hsl(${hue(it.t)} 45% 26%),hsl(${(hue(it.t)+40)%360} 50% 10%))`}"></div><span class="dnm">${esc(it.t)}${it.y ? ` <small>${it.y}</small>` : ''}</span><span class="dvl">${n} ${unit}${n === 1 ? '' : 's'}</span></div>`;
-  const loadingH = hs && HIST.busy && !H.length;
-  const actBody = !hs ? `<p class="gpnote">Connect Plex or Jellyfin with the server owner's sign-in (or a Jellyfin admin key) to see who's been watching.</p>`
-    : loadingH ? `<div class="loading"><div class="spin"></div>Reading the last ${DASH_DAYS} days of play history…</div>`
-    : `<div class="sttiles">${tile('Streaming now', ACT.streams.length, ACT.streams.length ? `${ACT.streams.filter(x => x.mode === 'tc').length} transcoding` : 'Idle')}${tile(`Plays, last ${DASH_DAYS} days`, H.length)}${tile('Movies watched', new Set(H.filter(x => x.kind === 'movie').map(x => x.key)).size)}${tile('Episodes watched', H.filter(x => x.kind === 'tv').length)}${tile(`Most streams at once, ${DASH_DAYS} days`, peak14 || '–', P?.at ? `Record: ${P.n}, ${new Date(P.at).toLocaleDateString([], {day:'numeric', month:'short'})}` : '')}</div>
-      <div class="stgrid dgrid3">
-        <div class="stbox"><h3>Most played movies</h3>${topM.length ? topM.map(e => pst(e.x, e.n, 'play')).join('') : '<p class="gpnote">No movies played in the last 14 days.</p>'}</div>
-        <div class="stbox"><h3>Most played shows</h3>${topS.length ? topS.map(e => pst(e.x, e.n, 'episode')).join('') : '<p class="gpnote">No episodes played in the last 14 days.</p>'}</div>
-        <div class="stbox"><h3>Most active</h3>${users.length ? users.map((e, i) => `<div class="strow"><span class="dmedal m${i + 1}">${i + 1}</span><span class="dnm">${esc(e.k)}</span><span class="dvl">${e.n} play${e.n === 1 ? '' : 's'}</span></div>`).join('') : '<p class="gpnote">Nobody yet.</p>'}
-          ${HIST.approx ? '<p class="gpnote" style="margin-top:8px">Jellyfin only records the last time each title was played, so repeat viewings count once.</p>' : ''}</div>
-      </div>
-      <p class="gpnote" style="margin-top:12px">"Most streams at once" counts what YAMZ has seen while it's open${P?.since ? `, since ${new Date(P.since).toLocaleDateString([], {day:'numeric', month:'short', year:'numeric'})}` : ''}. Plays come from your server's history.</p>`;
-  g.innerHTML = `<div class="stwrap dash">
-    <section><h2 class="dhead">Library</h2>
-      <div class="sttiles">${tile('Movies', mov)}${tile('TV shows', shows)}${tile('Episodes', epsLive ?? epsLocal)}${tile('Libraries', libs.length || (LIB.servers || []).reduce((a, s) => a + (s.libs || []).filter(l => l.on).length, 0))}</div>
-      <div class="stbox" style="margin-top:12px"><h3>Per library</h3>${libRows}</div></section>
-    <section><h2 class="dhead">Server activity <small>last ${DASH_DAYS} days</small></h2>${actBody}</section>
-    <section><h2 class="dhead">Downloads <small>from the Radarr and Sonarr queue</small></h2><div class="stbox" id="dashQ">${dashQueueHTML()}</div></section>
+  const topM = count(H.filter(x => x.kind === 'movie'), x => x.key).slice(0, 5), topS = count(H.filter(x => x.kind === 'tv'), x => x.key).slice(0, 5), users = count(H, x => x.who).slice(0, 5);
+  const kpi = (label, v, sub, cls = '') => `<div class="dk ${cls}"><span>${label}</span><b>${v == null ? '–' : typeof v === 'number' ? v.toLocaleString() : v}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
+  const nowN = ACT.streams.length, tcN = ACT.streams.filter(x => x.mode === 'tc').length;
+  /* plays per day */
+  const days = [...Array(DASH_DAYS)].map((_, i) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (DASH_DAYS - 1 - i)); return d; });
+  const perDay = days.map(d => H.filter(x => x.at >= +d && x.at < +d + 864e5).length), mxD = Math.max(1, ...perDay);
+  const strip = (list, unit) => list.length ? `<div class="dstrip">${list.map(e => { const it = e.x;
+      return `<button class="dpc" data-st-t="${esc(it.t)}" data-st-k="${it.kind}" data-st-y="${it.y || ''}" title="${esc(`${it.t}${it.y ? ` (${it.y})` : ''}: ${e.n} ${unit}${e.n === 1 ? '' : 's'}`)}">
+        <div class="dpp" style="${it.img ? `background-image:url('${esc(it.img)}')` : `background:linear-gradient(160deg,hsl(${hue(it.t)} 45% 26%),hsl(${(hue(it.t)+40)%360} 50% 10%))`}">${it.img ? '' : `<i>${esc(it.t)}</i>`}<em>${e.n}</em></div>
+        <span>${esc(it.t)}</span></button>`; }).join('')}${'<div class="dpc ghost"></div>'.repeat(5 - list.length)}</div>` : `<p class="gpnote">Nothing played in the last ${DASH_DAYS} days.</p>`;
+  const mxU = Math.max(1, ...users.map(u => u.n));
+  const actOK = hs && !(HIST.busy && !H.length);
+  g.innerHTML = `<div class="dash1">
+    <div class="dkpis">
+      ${kpi('Movies', mov)}${kpi('TV shows', shows)}${kpi('Episodes', epsLive ?? epsLocal)}${kpi('Libraries', nLibs)}
+      ${kpi('Streaming now', nowN, nowN ? `${tcN} transcoding` : 'Idle', nowN ? 'live' : '')}${kpi(`Plays · ${DASH_DAYS}d`, hs ? H.length : null, hs ? `${new Set(H.map(x => x.who)).size} people` : '')}
+      ${kpi(`Peak streams · ${DASH_DAYS}d`, peak14 || null, P?.n ? `record ${P.n}` : '')}${kpi('Downloading', ['radarr', 'sonarr'].some(arrOn) ? qDown : null, ['radarr', 'sonarr'].some(arrOn) ? `${qAll.length} in queue` : 'not connected')}
+    </div>
+    <section class="stbox dlib"><h3>Libraries <small>sized by titles · hover for counts</small></h3><div class="dtree" id="dtree"></div>
+      <div class="dlegend"><span><i></i>Movies</span><span><i class="tv"></i>TV</span></div></section>
+    <section class="stbox dplay"><h3>Most played <small>last ${DASH_DAYS} days</small></h3>
+      ${!hs ? `<p class="gpnote">Connect Plex or Jellyfin with the owner's sign-in (or a Jellyfin admin key) to see what's been watched.</p>` : !actOK ? `<div class="loading"><div class="spin"></div>Reading play history…</div>`
+        : `<h4>Movies</h4>${strip(topM, 'play')}<h4>Shows</h4>${strip(topS, 'episode')}`}</section>
+    <section class="stbox dwho"><div class="dwcol"><h3>Plays per day</h3>
+        <div class="dbars">${perDay.map((n, i) => `<div class="dbar" title="${days[i].toLocaleDateString([], {weekday:'short', day:'numeric', month:'short'})}: ${n} play${n === 1 ? '' : 's'}"><i style="height:${(n / mxD * 100).toFixed(1)}%"></i><span>${i === DASH_DAYS - 1 ? 'Today' : days[i].getDay() === 1 && i < DASH_DAYS - 3 ? days[i].toLocaleDateString([], {day:'numeric', month:'short'}) : ''}</span></div>`).join('')}</div></div>
+      <div class="dwcol"><h3>Most active</h3>${users.length ? users.map((u, i) => `<div class="duser"><span class="dmedal m${i + 1}">${i + 1}</span><div><div class="dulab"><b>${esc(u.k)}</b><span>${u.n}</span></div><div class="dubar"><i style="width:${(u.n / mxU * 100).toFixed(1)}%"></i></div></div></div>`).join('') : '<p class="gpnote">Nobody yet.</p>'}
+        ${H.length ? (() => { const wk = Array(7).fill(0), hr = Array(24).fill(0), gm = new Map(); H.forEach(x => { const d = new Date(x.at); wk[d.getDay()]++; hr[d.getHours()]++; (x.g || []).forEach(gn => gm.set(gn, (gm.get(gn) || 0) + 1)); });
+          const hh = hr.indexOf(Math.max(...hr)), hl = hh === 0 ? '12am' : hh < 12 ? hh + 'am' : hh === 12 ? '12pm' : (hh - 12) + 'pm', tg = [...gm].sort((a, b) => b[1] - a[1])[0];
+          return `<div class="dfacts"><div><span>Busiest day</span><b>${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][wk.indexOf(Math.max(...wk))]}</b></div><div><span>Peak time</span><b>${hl}</b></div>${tg ? `<div><span>Top genre</span><b>${esc(tg[0])}</b></div>` : ''}</div>`; })() : ''}
+        ${HIST.approx ? '<p class="gpnote dsmall">Jellyfin counts repeat viewings once.</p>' : ''}</div></section>
+    <section class="stbox ddl"><h3>Downloads <small>Radarr &amp; Sonarr queue</small></h3><div class="ddlbody" id="dashQ">${dashQueueHTML()}</div></section>
   </div>`;
+  requestAnimationFrame(() => { dashFit(); dashTree(); });
 }
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && state.s === 'dash') dashTick(); });
 function renderStats(){
