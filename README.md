@@ -28,6 +28,7 @@ Run it as a **Docker container** (Unraid Community Applications, Synology, any L
 
 ## Features
 
+- **Dashboard** — library totals per Plex/Jellyfin library, the last 14 days of server activity (most played, most active people, most streams at once) and live downloads from the Radarr and Sonarr queue.
 - **Library** — Plex and/or Jellyfin (Jellyfin still being tested, see the note above), or plain folders, merged and de-duplicated. Posters, genres, ratings from several sources (IMDb, Rotten Tomatoes, Metacritic, TMDB), written reviews, cast, photos and a *Play in Plex/Jellyfin* button.
 - **TV** — seasons and episodes you have vs. what exists, with episode lists and descriptions (via TVmaze).
 - **Gaps** — search for any movie or show and add it to a list, Plex Watchlist, Radarr or Sonarr; incomplete franchises/collections (missing films first), your most-watched actors and favourite directors and the films of theirs you don't own, and TV shows with missing seasons or episodes.

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+**Dashboard** (new tab)
+- **Library**: total movies, TV shows and episodes, and a count for each Plex or Jellyfin library, read live from the server.
+- **Server activity, last 14 days**: who's streaming now, plays, movies and episodes watched, the 5 most played movies and shows, the 3 most active people, and the most streams at once. YAMZ can only count streams while it's open, so that figure covers what it has seen, with an all-time record.
+- **Downloads**: everything in the Radarr and Sonarr queue, with progress, size, time left, which download client has it, and anything stuck (for example "Waiting to import" with the reason). Refreshes every 10 seconds while the page is open. This uses Radarr's and Sonarr's own queue, so YAMZ still never talks to download clients itself.
+
+**Fixes**
+- Dark theme: a few colours (owned/upcoming labels, secondary text) were defined in terms of themselves and fell back to plain text colour. They now show as intended.
+
 **One Movies / TV switch, in the top bar**
 - The Movies / TV switch now sits in the top bar, to the right of the YAMZ logo, instead of in the side menus of Media, Gaps and Discover. One switch drives all three, so moving between tabs keeps you on movies or TV. It's hidden on tabs where it doesn't apply (Lists, Calendar, Activity).
 - Media no longer has a side menu: its genres are the buttons above the posters, so the space goes to the posters. The "library refreshed" note now sits after the title count, for example "34 titles · Plex library refreshed 2 h ago".

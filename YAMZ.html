@@ -12,10 +12,10 @@
 <style>
 :root{
   --bg:#0c0d10; --bg2:#14161b; --bg3:#1c1f26; --line:#272b34;
-  --text:#ecedf0; --text2:var(--text2); --muted:#9097a3; --dim:#646b77;
-  --accent:#e8b04b; --acc-rgb:232,176,75; --on-accent:var(--on-accent); --accent-t:var(--accent);
+  --text:#ecedf0; --text2:#e2e4e9; --muted:#9097a3; --dim:#646b77;
+  --accent:#e8b04b; --acc-rgb:232,176,75; --on-accent:#16120a; --accent-t:var(--accent);
   --accent2:#c7432f; --ok:#5fb57d;
-  --hdr:rgba(12,13,16,.92); --ok-t:var(--ok-t); --bad-t:var(--bad-t); --up-t:var(--up-t); --net:#94c35c;
+  --hdr:rgba(12,13,16,.92); --ok-t:#6cc28a; --bad-t:#ef7a66; --up-t:#8fa8ff; --net:#94c35c;
   --shadow:rgba(0,0,0,.45);
   --rk:var(--rk-panel,1); --rp:var(--rp-pill,999px);
   --radius:10px; --side:240px; --ps:1; --pr:10px; --prs:8px;
@@ -168,6 +168,35 @@ header > :not(.search):not(.spacer){flex-shrink:0}
 .rwtime{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
 .rwmore{text-align:center;margin:20px 0}
 .stwrap{display:flex;flex-direction:column;gap:18px}
+.stwrap.dash{gap:30px}
+.dhead{margin:0 0 12px;font-size:20px;font-weight:700;letter-spacing:-.01em}
+.dhead small{font-size:13px;font-weight:500;color:var(--muted);margin-left:6px}
+.sttile small{display:block;font-size:11.5px;color:var(--dim);margin-top:2px}
+.dgrid3{grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));margin-top:12px}
+.dnm{flex:1;min-width:0;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dnm small{color:var(--muted);margin-left:4px}
+.dvl{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;flex:none}
+.dash .strow{padding:5px 4px}
+.dlico{width:22px;text-align:center;flex:none}
+.dmedal{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;flex:none;background:var(--bg3)}
+.dmedal.m1{background:var(--accent);color:var(--on-accent)}
+.dqposter{width:34px;height:51px;flex:none}
+.dqsum{margin:0 0 12px;font-size:13px;color:var(--muted)} .dqsum b{color:var(--text)}
+.dqlist{display:flex;flex-direction:column;gap:12px}
+.dqrow{display:flex;gap:12px;align-items:center}
+.dqmain{flex:1;min-width:0}
+.dqtop{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.dqtop b{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dqtop small{color:var(--muted);font-weight:400}
+.dqst{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:var(--rp,999px);background:var(--bg3);color:var(--muted);white-space:nowrap}
+.dqst.on{background:rgba(var(--acc-rgb),.16);color:var(--accent-t)}
+.dqst.bad{background:rgba(199,67,47,.16);color:var(--bad-t)}
+.dqsub{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dqbar{height:6px;background:var(--bg3);border-radius:calc(3px * var(--rk,1));overflow:hidden;margin:6px 0 4px}
+.dqbar i{display:block;height:100%;background:var(--accent);border-radius:inherit;transition:width .6s ease}
+.dqrow.warn .dqbar i{background:var(--bad-t)}
+.dqmeta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.dqmsg{color:var(--bad-t)}
 .sttiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
 .sttile{background:var(--bg2);border:1px solid var(--line);border-radius:calc(12px * var(--rk,1));padding:12px 14px}
 .sttile span{display:block;font-size:12px;color:var(--muted)}
@@ -987,6 +1016,7 @@ body > header > *{--rk:var(--rk-panel,1)}   /* the bar's buttons, tabs and searc
   <div class="logo"><svg class="zicon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><clipPath id="zc1"><circle cx="32" cy="32" r="30"/></clipPath><radialGradient id="zbg1" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#4a2f6b"/><stop offset="1" stop-color="#160d24"/></radialGradient></defs><circle cx="32" cy="32" r="30" fill="url(#zbg1)"/><g clip-path="url(#zc1)"><circle cx="50" cy="13" r="6.5" fill="#f4e7b0" opacity=".92"/><circle cx="48" cy="11.5" r="1.3" fill="#d9c98a"/><path d="M11 66 Q13 50 32 49 Q51 50 53 66Z" fill="#5b3f2a" stroke="#24160c" stroke-width="1.4"/><path d="M26 50 L32 58 L38 50" fill="#3d2a1c"/><path d="M20 60 l3 -4 l2 5 M42 58 l3 3 l1 -5" stroke="#24160c" stroke-width="1.3" fill="none"/><path d="M16.5 30 Q15.5 12 32 11 Q48.5 12 47.5 30 Q47.5 44 40 49 Q32 53.5 24 49 Q16.5 44 16.5 30Z" fill="#94c35c" stroke="#24331a" stroke-width="1.6"/><path d="M16 27 Q11.5 28.5 13.5 34 Q15 36.5 17.5 35.5" fill="#7fae4a" stroke="#24331a" stroke-width="1.4"/><path d="M15.5 25 Q17 9.5 32 9.5 Q47 9.5 48.5 22 L45 17.5 L42 22 L38.5 15 L34.5 20.5 L30.5 14 L26.5 20.5 L23 15.5 L20.5 21.5 L18 19Z" fill="#2e2018"/><path d="M23 24.5 L33.5 27.5" stroke="#24331a" stroke-width="1.5"/><path d="M25 22.5 L24.2 26.2 M28.2 23.4 L27.4 27.1 M31.4 24.3 L30.6 28" stroke="#24331a" stroke-width="1.2"/><circle cx="25.5" cy="32.5" r="5.6" fill="#f7f3dc" stroke="#24331a" stroke-width="1.4"/><circle cx="26.8" cy="33.3" r="2" fill="#d0402b"/><circle cx="26.3" cy="32.7" r=".6" fill="#fff"/><ellipse cx="39.6" cy="33" rx="4.3" ry="3.4" fill="#f7f3dc" stroke="#24331a" stroke-width="1.4"/><circle cx="39" cy="33.8" r="1.4" fill="#1b1b1b"/><path d="M35 31.6 Q39.6 28.4 44.2 31.6 L44 33 Q39.6 30.6 35.2 33Z" fill="#7aa845" stroke="#24331a" stroke-width="1.2"/><path d="M20.5 38.2 Q25.5 40.6 30.5 38.2" stroke="#678f3a" stroke-width="1.3" fill="none"/><path d="M31.5 35.5 L33 39.3 L30.4 39.3" stroke="#24331a" stroke-width="1.3" fill="none" stroke-linejoin="round"/><path d="M23.5 42.5 Q32 48.5 41.5 41.5 Q37 47 32 47 Q26.5 47 23.5 42.5Z" fill="#4a1616" stroke="#24331a" stroke-width="1.3" stroke-linejoin="round"/><path d="M27.6 43.6 h2.8 v2.6 h-2.8z M32.6 44 h2.6 v2.4 h-2.6z" fill="#f1e9c8"/><path d="M42.5 37.5 l3.2 -1.2 l-1 3.4z" fill="#7a1e1e"/><path d="M19 45 q1.5 1.5 3 0" stroke="#5f8a34" stroke-width="1.1" fill="none"/></g><circle cx="32" cy="32" r="30" fill="none" style="stroke:var(--accent)" stroke-width="2.6"/></svg><span class="lockup"><span class="bebas">YAM<span class="net">Z</span></span><small>Yet Another Media Zombie</small></span></div>
   <div class="seg hkind" id="kindSeg" role="group" aria-label="Movies or TV"><button data-kind="movie">Movies</button><button data-kind="tv">TV</button></div>
   <div class="tabs" id="tabs">
+    <button data-s="dash">Dashboard</button>
     <button data-s="media" class="on">Media</button>
     <button data-s="missing">Gaps</button>
     <button data-s="discover">Discover</button>
@@ -1628,6 +1658,7 @@ function render(){
   $('#grid').className = 'grid'; $('#sort').style.display = ''; $('#attnBtn').style.display = 'none';
   if(state.s==='calendar') return renderCalendar();
   if(state.s==='activity') return renderActivity();
+  if(state.s==='dash' && !state.q.trim()) return renderDash();
   if(state.s==='discover' && !state.q.trim()) return renderDiscover(); if(state.s==='missing' || state.s==='lists') state.attn = false;
   if(!DATA.length){
     $('#title').textContent = 'Welcome'; $('#count').textContent = ''; $('#grid').className = 'mview'; $('#sort').style.display = 'none';
@@ -1674,7 +1705,7 @@ function paint(d, el){
 let MEDIA_PENDING = 0;
 function renderSide(){
   headKind();
-  if(state.s==='calendar') return renderCalendarSide();
+  if(state.s==='dash' && !state.q) return void ($('#side').innerHTML = '');  if(state.s==='calendar') return renderCalendarSide();
   if(state.s==='activity') return renderActivitySide();
   if(state.s==='discover' && !state.q) return renderDiscoverSide();
   if(state.s==='lists' && !state.q) return renderListsSide();
@@ -4975,7 +5006,7 @@ function headKind(){
   const on = ['movie', 'tv', 'missing', 'discover'].includes(state.s) && !(state.q || '').trim();
   $('#kindSeg').hidden = !on;
   $('#kindSeg').querySelectorAll('button').forEach(b => { const a = b.dataset.kind === KIND; b.classList.toggle('on', a); b.setAttribute('aria-pressed', a); });
-  document.documentElement.toggleAttribute('data-noside', state.s === 'movie' || state.s === 'tv');
+  document.documentElement.toggleAttribute('data-noside', state.s === 'movie' || state.s === 'tv' || (state.s === 'dash' && !(state.q || '').trim()));
 }
 $('#kindSeg').onclick = e => {
   const b = e.target.closest('[data-kind]'); if(!b || b.dataset.kind === KIND) return;
@@ -5156,6 +5187,7 @@ async function actLoad(){
   }));
   out.sort((a, b) => (a.state === 'paused') - (b.state === 'paused') || a.user.localeCompare(b.user));
   ACT.streams = out; ACT.err = okAny ? null : err; ACT.at = Date.now(); ACT.busy = false;
+  if(okAny) peakNote(out.length);
   actRender();
 }
 function actSummary(){
@@ -5576,6 +5608,129 @@ document.addEventListener('click', e => {
   state.c = b.dataset.gapGoto; MISS.filter = b.dataset.gapName || '';
   renderSide(); render(); scrollTo(0, 0);
 });
+/* ---------- Dashboard: library totals, server activity (last 14 days) and downloads from the Radarr / Sonarr queue ---------- */
+const DASH = {libs:null, libAt:0, libBusy:false, q:{radarr:null, sonarr:null}, qErr:{}, qAt:0, qBusy:false, timer:null};
+const DASH_DAYS = 14;
+/* the most streams at once that YAMZ has seen (it can only count while YAMZ is open somewhere), kept per day for the 14-day figure */
+function peakNote(n){
+  const P = store.get('zn:peak') || {n:0, at:0, since:Date.now(), days:{}}, day = new Date().toISOString().slice(0, 10);
+  let ch = false;
+  if(!P.since){ P.since = Date.now(); ch = true; }
+  if(n > (P.days[day] || 0)){ P.days[day] = n; ch = true; }
+  if(n > P.n){ P.n = n; P.at = Date.now(); ch = true; }
+  if(ch){ const cut = new Date(Date.now() - 60 * 864e5).toISOString().slice(0, 10); Object.keys(P.days).forEach(d => d < cut && delete P.days[d]); store.set('zn:peak', P); }
+}
+async function dashLibLoad(force){
+  if(DASH.libBusy || (!force && DASH.libs && Date.now() - DASH.libAt < 5 * 60e3)) return;
+  DASH.libBusy = true; const out = [];
+  await Promise.all((LIB.servers || []).filter(s => s.type === 'plex' || s.type === 'jellyfin').map(async s => {
+    for(const L of (s.libs || []).filter(l => l.on)){
+      const row = {srv:s.name || SRV(s).label, type:s.type, name:L.name, kind:L.kind, n:null, eps:null};
+      try{
+        if(s.type === 'jellyfin'){
+          const c = t => JF.get(s, '/Items', {ParentId:L.key, Recursive:true, IncludeItemTypes:t, Limit:0, userId:s.user || ''}, 10000).then(r => r.TotalRecordCount ?? null);
+          row.n = await c(L.kind === 'movie' ? 'Movie' : 'Series'); if(L.kind !== 'movie') row.eps = await c('Episode');
+        } else {
+          const c = t => PLEX.get(s, `/library/sections/${L.key}/all`, {type:t, 'X-Plex-Container-Start':0, 'X-Plex-Container-Size':0}, 10000).then(m => m.totalSize ?? m.size ?? null);
+          row.n = await c(L.kind === 'movie' ? 1 : 2); if(L.kind !== 'movie') row.eps = await c(4);
+        }
+      }catch{ row.err = true; }
+      out.push(row);
+    }
+  }));
+  DASH.libs = out.sort((a, b) => (a.kind === 'movie' ? 0 : 1) - (b.kind === 'movie' ? 0 : 1) || (b.n || 0) - (a.n || 0)); DASH.libAt = Date.now(); DASH.libBusy = false;
+  if(state.s === 'dash') renderDash();
+}
+async function dashQueueLoad(){
+  if(DASH.qBusy) return; DASH.qBusy = true;
+  await Promise.all(['radarr', 'sonarr'].map(async svc => {
+    if(!arrOn(svc)){ DASH.q[svc] = null; return; }
+    try{
+      const r = await arrReq(svc, '/api/v3/queue', {params:{page:1, pageSize:100, sortKey:'timeleft', sortDirection:'ascending', ...(svc === 'radarr' ? {includeMovie:true} : {includeSeries:true, includeEpisode:true})}});
+      DASH.q[svc] = (r?.records || []).map(x => dashQItem(svc, x)); DASH.qErr[svc] = null;
+    }catch(e){ DASH.qErr[svc] = e.message; }
+  }));
+  DASH.qAt = Date.now(); DASH.qBusy = false;
+  if(state.s === 'dash') dashQueueRender();
+}
+function dashQItem(svc, x){
+  const tv = svc === 'sonarr', M = tv ? x.series : x.movie, E = x.episode;
+  const size = +x.size || 0, left = +x.sizeleft || 0, pct = size ? Math.max(0, Math.min(100, (1 - left / size) * 100)) : 0;
+  const st = String(x.trackedDownloadState || x.status || '').toLowerCase(), warn = /warning|error/i.test(x.trackedDownloadStatus || '') || /failed|warning/.test(x.status || '');
+  const label = /importpending|importblocked/.test(st) ? 'Waiting to import' : /importing/.test(st) ? 'Importing' : /failedpending|failed/.test(st) ? 'Failed' : x.status === 'paused' ? 'Paused' : x.status === 'queued' ? 'Queued' : x.status === 'delay' ? 'Delayed' : x.status === 'completed' ? 'Completed' : 'Downloading';
+  const poster = (M?.images || []).find(i => i.coverType === 'poster'); const img = poster?.remoteUrl || null;
+  return {svc, id:x.id, t:M?.title || x.title || 'Unknown', y:M?.year || null, sub:tv && E ? `S${pad2(E.seasonNumber)}E${pad2(E.episodeNumber)}${E.title ? ' · ' + E.title : ''}` : '',
+    size, left, pct, label, warn:warn || label === 'Failed', msg:(x.statusMessages || []).flatMap(m => m.messages || [m.title]).filter(Boolean).slice(0, 2).join(' · '),
+    eta:x.estimatedCompletionTime ? Date.parse(x.estimatedCompletionTime) : null, timeleft:x.timeleft || '', client:x.downloadClient || '', proto:x.protocol || '', q:x.quality?.quality?.name || '', img};
+}
+const dashLeft = it => { if(it.label !== 'Downloading') return ''; const m = /^(?:(\d+)\.)?(\d+):(\d+):(\d+)/.exec(it.timeleft || ''); if(m){ const h = (+m[1] || 0) * 24 + +m[2], mi = +m[3]; return h ? `${h} h ${mi} min left` : mi ? `${mi} min left` : 'under a minute'; } return it.eta ? `done ${new Date(it.eta).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}` : ''; };
+function dashQueueHTML(){
+  const svcs = ['radarr', 'sonarr'].filter(arrOn);
+  if(!svcs.length) return `<p class="gpnote">Connect Radarr or Sonarr in Settings → Connections to see what they're downloading.</p><button class="btn" data-opensettings>Open Settings</button>`;
+  const items = svcs.flatMap(s => DASH.q[s] || []).sort((a, b) => (a.label === 'Downloading' ? 0 : 1) - (b.label === 'Downloading' ? 0 : 1) || (a.left - b.left));
+  const errs = svcs.filter(s => DASH.qErr[s]).map(s => `<p class="err">${esc(DASH.qErr[s])}</p>`).join('');
+  if(!items.length) return errs + (svcs.some(s => DASH.q[s] === null && !DASH.qErr[s]) ? `<div class="loading"><div class="spin"></div>Checking the queue…</div>` : `<p class="gpnote">Nothing downloading right now.</p>`);
+  const down = items.filter(x => x.label === 'Downloading'), leftB = items.reduce((a, x) => a + x.left, 0);
+  return errs + `<p class="dqsum"><b>${down.length}</b> downloading · <b>${items.length - down.length}</b> other${items.length - down.length === 1 ? '' : 's'} in the queue · ${fmtBytes(leftB) || '0 MB'} to go</p>
+    <div class="dqlist">${items.slice(0, 30).map(it => `<div class="dqrow ${it.warn ? 'warn' : ''}" title="${esc([it.client, it.proto, it.q, it.msg].filter(Boolean).join(' · '))}">
+      <div class="npposter dqposter" style="${it.img ? `background-image:url('${esc(px(it.img))}')` : `background:linear-gradient(160deg,hsl(${hue(it.t)} 45% 26%),hsl(${(hue(it.t)+40)%360} 50% 10%))`}"></div>
+      <div class="dqmain"><div class="dqtop"><b>${esc(it.t)}${it.y && !it.sub ? ` <small>${it.y}</small>` : ''}</b><span class="dqst ${it.warn ? 'bad' : it.label === 'Downloading' ? 'on' : ''}">${esc(it.label)}</span></div>
+        ${it.sub ? `<div class="dqsub">${esc(it.sub)}</div>` : ''}
+        <div class="dqbar"><i style="width:${it.pct.toFixed(1)}%"></i></div>
+        <div class="dqmeta"><span>${Math.round(it.pct)}%${it.size ? ` of ${fmtBytes(it.size)}` : ''}</span><span>${esc(dashLeft(it))}</span><span>${esc(it.client || ARR_DEF[it.svc].name)}</span>${it.msg ? `<span class="dqmsg">${esc(it.msg)}</span>` : ''}</div></div></div>`).join('')}</div>
+    ${items.length > 30 ? `<p class="gpnote">And ${items.length - 30} more.</p>` : ''}`;
+}
+function dashQueueRender(){ const el = $('#dashQ'); if(el) el.innerHTML = dashQueueHTML(); }
+function dashTick(){
+  clearTimeout(DASH.timer);
+  if(state.s !== 'dash') return;
+  if(document.visibilityState === 'visible'){ dashQueueLoad(); actKick(); }
+  DASH.timer = setTimeout(dashTick, 10000);
+}
+function renderDash(){
+  const g = $('#grid'); g.className = 'mview'; $('#sort').style.display = 'none'; $('#progress').textContent = '';
+  $('#title').textContent = 'Dashboard'; $('#count').textContent = '';
+  dashLibLoad(); if(!DASH.timer) setTimeout(dashTick, 0);
+  const since = Date.now() - DASH_DAYS * 864e5;
+  if(actServers().length && (HIST.since == null || HIST.since > since / 1000 || Date.now() - HIST.at > 5 * 60e3) && !HIST.busy) histLoad(false, Math.floor(since / 1000)).then(() => state.s === 'dash' && renderDash());
+  const fmt = n => n == null ? '–' : n.toLocaleString();
+  const tile = (label, v, sub) => `<div class="sttile"><span>${label}</span><b>${typeof v === 'number' ? v.toLocaleString() : v}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
+  /* library */
+  const mov = DATA.filter(d => d.s === 'movie').length, shows = DATA.filter(d => d.s === 'tv').length;
+  const libs = DASH.libs || [];
+  const epsLive = libs.some(l => l.eps != null) ? libs.reduce((a, l) => a + (l.eps || 0), 0) : null;
+  const epsLocal = Object.values(TV.eps || {}).reduce((a, ss) => a + Object.values(ss || {}).reduce((b, e) => b + (e?.length || 0), 0), 0);
+  const multi = new Set(libs.map(l => l.srv)).size > 1;
+  const libRows = libs.length ? libs.map(l => `<div class="strow"><span class="dlico">${l.kind === 'movie' ? '🎬' : '📺'}</span><span class="dnm">${esc(l.name)}${multi ? ` <small>${esc(l.srv)}</small>` : ''}</span>
+      <span class="dvl">${l.err ? '<span title="Couldn\'t reach the server">–</span>' : `${fmt(l.n)} ${l.kind === 'movie' ? (l.n === 1 ? 'movie' : 'movies') : (l.n === 1 ? 'show' : 'shows')}${l.eps != null ? ` · ${fmt(l.eps)} episodes` : ''}`}</span></div>`).join('')
+    : (LIB.servers || []).length ? `<div class="loading"><div class="spin"></div>Counting your libraries…</div>` : `<p class="gpnote">Connect Plex or Jellyfin to see a count per library.</p>`;
+  /* activity */
+  const hs = actServers().length, H = HIST.items.filter(x => x.at >= since);
+  const P = store.get('zn:peak');
+  const peak14 = P ? Math.max(0, ...Object.entries(P.days || {}).filter(([d]) => Date.parse(d) >= since - 864e5).map(([, n]) => n)) : 0;
+  const count = (arr, fn) => { const m = new Map(); arr.forEach(x => { const k = fn(x); const e = m.get(k) || {k, n:0, x}; e.n++; m.set(k, e); }); return [...m.values()].sort((a, b) => b.n - a.n); };
+  const topM = count(H.filter(x => x.kind === 'movie'), x => x.key).slice(0, 5), topS = count(H.filter(x => x.kind === 'tv'), x => x.key).slice(0, 5), users = count(H, x => x.who).slice(0, 3);
+  const pst = (it, n, unit) => `<div class="strow click" data-st-t="${esc(it.t)}" data-st-k="${it.kind}" data-st-y="${it.y || ''}"><div class="npposter dqposter" style="${it.img ? `background-image:url('${esc(it.img)}')` : `background:linear-gradient(160deg,hsl(${hue(it.t)} 45% 26%),hsl(${(hue(it.t)+40)%360} 50% 10%))`}"></div><span class="dnm">${esc(it.t)}${it.y ? ` <small>${it.y}</small>` : ''}</span><span class="dvl">${n} ${unit}${n === 1 ? '' : 's'}</span></div>`;
+  const loadingH = hs && HIST.busy && !H.length;
+  const actBody = !hs ? `<p class="gpnote">Connect Plex or Jellyfin with the server owner's sign-in (or a Jellyfin admin key) to see who's been watching.</p>`
+    : loadingH ? `<div class="loading"><div class="spin"></div>Reading the last ${DASH_DAYS} days of play history…</div>`
+    : `<div class="sttiles">${tile('Streaming now', ACT.streams.length, ACT.streams.length ? `${ACT.streams.filter(x => x.mode === 'tc').length} transcoding` : 'Idle')}${tile(`Plays, last ${DASH_DAYS} days`, H.length)}${tile('Movies watched', new Set(H.filter(x => x.kind === 'movie').map(x => x.key)).size)}${tile('Episodes watched', H.filter(x => x.kind === 'tv').length)}${tile(`Most streams at once, ${DASH_DAYS} days`, peak14 || '–', P?.at ? `Record: ${P.n}, ${new Date(P.at).toLocaleDateString([], {day:'numeric', month:'short'})}` : '')}</div>
+      <div class="stgrid dgrid3">
+        <div class="stbox"><h3>Most played movies</h3>${topM.length ? topM.map(e => pst(e.x, e.n, 'play')).join('') : '<p class="gpnote">No movies played in the last 14 days.</p>'}</div>
+        <div class="stbox"><h3>Most played shows</h3>${topS.length ? topS.map(e => pst(e.x, e.n, 'episode')).join('') : '<p class="gpnote">No episodes played in the last 14 days.</p>'}</div>
+        <div class="stbox"><h3>Most active</h3>${users.length ? users.map((e, i) => `<div class="strow"><span class="dmedal m${i + 1}">${i + 1}</span><span class="dnm">${esc(e.k)}</span><span class="dvl">${e.n} play${e.n === 1 ? '' : 's'}</span></div>`).join('') : '<p class="gpnote">Nobody yet.</p>'}
+          ${HIST.approx ? '<p class="gpnote" style="margin-top:8px">Jellyfin only records the last time each title was played, so repeat viewings count once.</p>' : ''}</div>
+      </div>
+      <p class="gpnote" style="margin-top:12px">"Most streams at once" counts what YAMZ has seen while it's open${P?.since ? `, since ${new Date(P.since).toLocaleDateString([], {day:'numeric', month:'short', year:'numeric'})}` : ''}. Plays come from your server's history.</p>`;
+  g.innerHTML = `<div class="stwrap dash">
+    <section><h2 class="dhead">Library</h2>
+      <div class="sttiles">${tile('Movies', mov)}${tile('TV shows', shows)}${tile('Episodes', epsLive ?? epsLocal)}${tile('Libraries', libs.length || (LIB.servers || []).reduce((a, s) => a + (s.libs || []).filter(l => l.on).length, 0))}</div>
+      <div class="stbox" style="margin-top:12px"><h3>Per library</h3>${libRows}</div></section>
+    <section><h2 class="dhead">Server activity <small>last ${DASH_DAYS} days</small></h2>${actBody}</section>
+    <section><h2 class="dhead">Downloads <small>from the Radarr and Sonarr queue</small></h2><div class="stbox" id="dashQ">${dashQueueHTML()}</div></section>
+  </div>`;
+}
+document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && state.s === 'dash') dashTick(); });
 function renderStats(){
   const g = $('#grid'); histNeed();
   $('#title').textContent = 'Stats'; $('#count').textContent = '';
@@ -5616,7 +5771,7 @@ $('#side').addEventListener('click', e => {
 });
 $('#side').addEventListener('change', e => { const sel = e.target.closest('[data-hvsel]'); if(!sel || (state.s !== 'activity' && state.s !== 'discover')) return; HV[sel.dataset.hvsel] = sel.value; HV.show = 80; hvSave(); state.s === 'discover' ? render() : renderActivity(); });
 document.addEventListener('click', e => {
-  if(state.s !== 'activity') return;
+  if(state.s !== 'activity' && state.s !== 'dash') return;
   if(e.target.closest('[data-hmore]')){ HV.show += 120; renderRecent(); return; }
   const r = e.target.closest('[data-hist-i]'); if(r){ actOpenTitle(HIST.view?.[+r.dataset.histI]); return; }
   const t = e.target.closest('[data-st-t]'); if(t) actOpenTitle({t:t.dataset.stT, kind:t.dataset.stK, y:+t.dataset.stY || null});
