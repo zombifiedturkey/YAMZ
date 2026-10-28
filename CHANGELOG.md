@@ -25,6 +25,10 @@ A new Dashboard, Radarr and Sonarr at a glance, TV gaps that match Sonarr, and y
 - **Name & icon** (Settings → Appearance): give YAMZ your own name and tagline, upload your own icon (square, 256 × 256 px or larger), or hide either. The name also becomes the browser tab title and the icon its favicon. Saved on your YAMZ server, so every device shows it.
 - Media no longer has a side menu: its genres are the buttons above the posters. The "library refreshed" note now sits after the title count.
 
+### Discover
+
+- **For you** now shows up to **15** "Because you watched…" rows (was 4), one for each of the last 15 different titles watched. Rows appear as they load, and a title is only suggested once, in the first row it fits.
+
 ### Calendar
 
 - Clicking a Sonarr episode shows Sonarr's own description, runtime and screenshot, so renumbered episodes show the right details.

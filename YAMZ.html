@@ -408,6 +408,7 @@ button.dastat:hover b{text-decoration:underline}
 .fysec h3{margin:0;font-size:17px}
 .fysec h3 em{font-style:normal;color:var(--accent-t)}
 .fysub{margin:2px 0 10px;color:var(--muted);font-size:12.5px}
+.loading.fymore{padding:18px 0}
 .fyhead{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:10px 0 8px}
 .fyscroll{position:relative}
 .fyrow{display:grid;grid-auto-flow:column;grid-auto-columns:calc(140px * var(--ps));gap:14px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
@@ -5641,8 +5642,10 @@ async function fyLoadRecs(kind, sources){
   if(FY.recs?.key === key || FY.busy[key]) return;
   FY.busy[key] = true; FY.err = null;
   const watched = new Set(fyHist(kind).map(x => fold(x.t)));
-  const rows = [];
+  const rows = []; let last = 0;
+  FY.recs = {key, rows, done:false};
   for(const x of sources){
+    if(FY.recs?.key !== key) break;   // switched person or Movies / TV meanwhile
     try{
       if(tmdbOn()){
         const recs = await fyTmdbRecs(x), ownT = ownedTest(kind);
@@ -5651,11 +5654,14 @@ async function fyLoadRecs(kind, sources){
         rows.push({x, have:have.slice(0, 10), need:need.slice(0, 12)});
       } else rows.push({x, have:fyLibRecs(x, watched), need:[]});
     }catch(e){ FY.err = e; rows.push({x, have:[], need:[]}); }
+    if(Date.now() - last > 700 && state.s === 'discover' && state.c === FORYOU){ last = Date.now(); renderForYou(true); }   // show rows as they arrive
   }
-  FY.recs = {key, rows}; FY.busy[key] = false;
-  if(state.s === 'discover' && state.c === FORYOU) renderForYou();
+  if(FY.recs?.key === key) FY.recs.done = true; FY.busy[key] = false;
+  if(state.s === 'discover' && state.c === FORYOU) renderForYou(true);
 }
-function renderForYou(){
+const FY_ROWS = 15;   // "Because you watched…" rows: the last 15 different titles watched
+function renderForYou(keepScroll){
+  const sy = keepScroll ? scrollY : null, scl = keepScroll ? [...document.querySelectorAll('#grid .fyrow')].map(r => r.scrollLeft) : null;
   const g = $('#grid'), kind = DISC.kind; g.className = 'mview'; $('#sort').style.display = 'none'; $('#progress').textContent = '';
   $('#title').textContent = `For you · ${kind === 'movie' ? 'Movies' : 'TV'}`; $('#count').textContent = HV.who !== 'all' ? 'for ' + HV.who : '';
   if(!actServers().length){ g.innerHTML = `<div class="mpanel"><p>Connect a Plex or Jellyfin server so YAMZ can learn what you watch.</p></div>`; return; }
@@ -5672,17 +5678,22 @@ function renderForYou(){
   const upHTML = up.length ? `<section class="fysec"><h3>Up next</h3><p class="fysub">${kind === 'tv' ? 'The next episode of shows being watched.' : 'The next film in series being watched, from Gaps.'}</p>${fyRow(up.map(u => u.own ? fyOwnCard(u.own, u.sub, u.why) : discCardHTML({q:u.q, t:u.t, y:u.y, s:'movie', art:u.art || '', have:false}, '', {sub:u.sub})).join(''))}</section>`
     : kind === 'movie' && !MISS.data ? `<section class="fysec"><h3>Up next</h3><p class="fysub">Run <b>Gaps → Collections</b> once and YAMZ will suggest the next film in series you've started.</p></section>` : '';
   const seen = new Set(), sources = [];
-  fyHist(kind).forEach(x => { const k = fold(x.t); if(!seen.has(k) && sources.length < 4){ seen.add(k); sources.push(x); } });
+  fyHist(kind).forEach(x => { const k = fold(x.t); if(!seen.has(k) && sources.length < FY_ROWS){ seen.add(k); sources.push(x); } });
   fyLoadRecs(kind, sources);
-  const R = FY.recs?.key?.startsWith(kind + '|' + HV.who + '|') ? FY.recs.rows : null, hideOwn = !!store.get('zn:fyhideown');
+  const R0 = FY.recs?.key?.startsWith(kind + '|' + HV.who + '|') ? FY.recs : null, hideOwn = !!store.get('zn:fyhideown');
+  const R = R0 && (R0.rows.length || R0.done) ? R0.rows : null, used = new Set();   // each title only once, in the first row it fits
   const recHTML = !R ? `<div class="loading"><div class="spin"></div>Finding titles like what you've watched…</div>`
-    : R.map(({x, have, need}) => { have = hideOwn ? [] : have; return (have.length || need.length) ? `<section class="fysec"><h3>Because ${HV.who === 'all' ? esc(x.who) : 'you'} watched <em>${esc(x.t)}</em></h3><p class="fysub">${ago(x.at)}</p>
+    : R.map(({x, have, need}) => { have = (hideOwn ? [] : have).filter(d => { const k = 'd:' + fold(d.t); if(used.has(k)) return false; used.add(k); return true; });
+        need = need.filter(r => { const k = 'd:' + fold(r.t); if(used.has(k)) return false; used.add(k); return true; }); return (have.length || need.length) ? `<section class="fysec"><h3>Because ${HV.who === 'all' ? esc(x.who) : 'you'} watched <em>${esc(x.t)}</em></h3><p class="fysub">${ago(x.at)}</p>
         ${have.length ? `<div class="fyhead">In your library${tmdbOn() ? ', not watched yet' : ', not watched yet · similar genres'}</div>${fyRow(have.map(d => fyOwnCard(d)).join(''))}` : ''}
         ${need.length ? `<div class="fyhead">Not in your library</div>${fyRow(need.map(r => discCardHTML({...r, have:false}, '')).join(''))}` : ''}</section>` : ''; }).join('')
-      + (R && !R.some(r => (!hideOwn && r.have.length) || r.need.length) ? `<section class="fysec"><h3>Because you watched…</h3><p class="fysub">${tmdbOn() ? "TMDB didn't have suggestions for these titles yet." : `Everything similar in your library has already been watched. Add a free TMDB key in Settings to get suggestions beyond your own library.`}</p></section>` : '')
+      + (R && !R0.done ? `<div class="loading fymore"><div class="spin"></div>Finding more… ${R.length} of ${Math.min(FY_ROWS, sources.length)}</div>` : '')
+      + (R && R0.done && !R.some(r => (!hideOwn && r.have.length) || r.need.length) ? `<section class="fysec"><h3>Because you watched…</h3><p class="fysub">${tmdbOn() ? "TMDB didn't have suggestions for these titles yet." : `Everything similar in your library has already been watched. Add a free TMDB key in Settings to get suggestions beyond your own library.`}</p></section>` : '')
       + (FY.err ? `<p class="fysub">Some suggestions couldn't load (${esc(FY.err.message || '')}).</p>` : '');
   const tools = `<div class="mtools"><label class="tog"><input type="checkbox" id="fyhide" ${hideOwn ? 'checked' : ''}> Hide titles already in my library</label></div>`;
   g.innerHTML = tools + chips + upHTML + recHTML;
+  if(scl) g.querySelectorAll('.fyrow').forEach((r, i) => { if(scl[i]) r.scrollLeft = scl[i]; });
+  if(sy != null) scrollTo(0, sy);
   loadPosters(g, '.dcard'); requestAnimationFrame(() => fyArrows(g));
 }
 document.addEventListener('click', e => { const c = e.target.closest('.fyown'); if(c && !e.target.closest('[data-adddisc],.arrbtn,.pwbtn')){ const d = DATA[+c.dataset.q.slice(4)]; if(d) openDetail(d); } });
