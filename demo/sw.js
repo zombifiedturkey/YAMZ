@@ -213,6 +213,12 @@ async function arr(svc, u, req){
     const ids = P.endsWith('/bulk') ? ((await req.clone().json().catch(() => ({}))).ids || []) : [+P.split('/').pop()];
     ids.forEach(id => QGONE.add(svc + ':' + id)); return new Response('', {status:200, headers:{'Access-Control-Allow-Origin':'*'}});
   }
+  if(P === '/api/v3/episode' && svc === 'sonarr'){   // Breaking Bad: Sonarr (TheTVDB order) files the last 3 of season 4 as specials, so it doesn't call them missing
+    if(u.searchParams.get('seriesId') !== '403') return J([]);
+    const out = [], D = (y, n) => `${y}-${String(1 + n % 12).padStart(2, '0')}-10`;
+    [[1, 7, 2008], [2, 13, 2009], [3, 13, 2010], [4, 10, 2011], [5, 16, 2012], [0, 3, 2011]].forEach(([se, n, y]) => { for(let e = 1; e <= n; e++) out.push({seriesId:403, seasonNumber:se, episodeNumber:e, title:`${se ? 'Episode' : 'Special'} ${e}`, airDate:D(y, e), overview:'', hasFile:false}); });
+    return J(out);
+  }
   if(P === '/api/v3/wanted/cutoff') return J({page:1, pageSize:1, totalRecords:svc === 'radarr' ? 7 : 42, records:[]});
   if(P === '/api/v3/wanted/missing') return J({page:1, pageSize:1, totalRecords:svc === 'radarr' ? 4 : 11, records:[]});
   if(P === '/api/v3/health') return J(svc === 'radarr' ? [{type:'warning', source:'IndexerStatusCheck', message:'Indexers unavailable due to failures for more than 6 hours: NZBgeek'}] : []);

@@ -415,6 +415,10 @@ button.dastat:hover b{text-decoration:underline}
 .gpgo{font-size:12px;margin-top:5px}
 .gpcols.three{grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr))}
 .gpnote{color:var(--muted);font-size:13px;margin:0 0 10px}
+.epsel{display:flex;flex-direction:column;gap:4px;margin:10px 0 8px;font-size:12px;color:var(--muted)}
+.epsel .side-seg{padding:0;margin:0;display:block} .epsel select{width:100%}
+.epsrc{color:var(--dim);font-size:12px;text-decoration:none}
+a.epsrc:hover{color:var(--accent-t)}
 @media (max-width:1180px){ #settingsBtn .hide-sm{display:none} #settingsBtn{padding:7px 11px} .tabs button{padding:6px 12px} .hkind button{padding:6px 11px} }
 @media (max-width:1100px){ .logo small{display:none} }
 :root[data-lists="hide"] #tabs button[data-s="lists"],:root[data-lists="hide"] .lbtn,:root[data-lists="hide"] [data-addlist-modal]{display:none!important}
@@ -2478,8 +2482,9 @@ function renderMissingSide(){
   const foot = state.c === MAN_C ? `Search for any ${tv ? 'TV show' : 'movie'}, then add it to a list, your Plex Watchlist, or ${tv ? 'Sonarr' : 'Radarr'}.`
     : state.c === WAIT_C[MISS.kind] ? `${tv ? 'Series' : 'Movies'} you're monitoring in ${ARR_DEF[wsvc].name} that ${tv ? 'still have episodes' : "don't have a file"} yet.${W?.at ? `<br>Updated ${new Date(W.at).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}.` : ''}
       ${arrOn(wsvc) ? `<button class="btn" data-wrefresh ${W?.busy ? 'disabled' : ''}>${W?.busy ? 'Refreshing…' : '↻ Refresh'}</button>` : ''}`
-    : tv ? `${Object.keys(TV.eps).length} shows in your library.<br>${TV.res ? 'Last checked against TVmaze.' : 'Not checked yet.'}
-      <button class="btn" data-act="tvcheck" ${TV.running?'disabled':''}>${TV.running ? 'Checking…' : TV.res ? '↻ Re-check TVmaze' : 'Check my shows'}</button>`
+    : tv ? `${Object.keys(TV.eps).length} shows in your library.<br>${TV.res ? 'Last checked ' + (() => { const by = {}; Object.values(TV.res).forEach(r => by[r.src || 'tvmaze'] = 1); return 'against ' + Object.keys(by).map(k => EPSRC_NAMES[k]).join(' and '); })() + '.' : 'Not checked yet.'}
+      <label class="epsel">Episode lists from<span class="side-seg"><select data-epsrc aria-label="Episode lists from">${['auto', 'sonarr', 'tvdb', 'tvmaze'].map(k => `<option value="${k}" ${EPSRC === k ? 'selected' : ''} ${(k === 'sonarr' && !arrOn('sonarr')) || (k === 'tvdb' && !tvdbOn()) ? 'disabled' : ''}>${k === 'auto' ? 'Auto' : EPSRC_NAMES[k]}${k === 'sonarr' && !arrOn('sonarr') ? ' (not connected)' : k === 'tvdb' && !tvdbOn() ? ' (needs a TheTVDB key)' : ''}</option>`).join('')}</select></span></label>
+      <button class="btn" data-act="tvcheck" ${TV.running?'disabled':''}>${TV.running ? 'Checking…' : TV.res ? '↻ Re-check' : 'Check my shows'}</button>`
     : `${D ? `Last analysed ${new Date(D.at).toLocaleDateString()}<br>${D.matched} of ${D.total} movies matched on Wikidata.` : 'Not analysed yet.'}
       <button class="btn" data-act="scan" ${MISS.running?'disabled':''}>${MISS.running ? 'Analysing…' : D ? '↻ Re-analyse' : 'Analyse collection'}</button>`;
   $('#side').innerHTML = `<h4>${MISS_TITLE}</h4>
@@ -2768,31 +2773,83 @@ function seasonSummary(episodes, owned){
   });
 }
 const showOf = t => DATA.find(d => d.s==='tv' && d.t===t);
+/* where TV episode lists come from (Gaps and the Seasons pop-up). Auto: Sonarr if the show is in it (same TheTVDB numbering Sonarr and usually Plex use),
+   then TheTVDB when it's your metadata source with a key, then TVmaze. */
+const EPSRC_NAMES = {auto:'Auto', sonarr:'Sonarr', tvdb:'TheTVDB', tvmaze:'TVmaze'};
+let EPSRC = store.get('zn:epsrc') || 'auto';
+const tvdbOn = () => cfg.prov === 'tvdb' && !!cfg.key;
+let SONARR_SERIES = null;
+async function sonarrSeries(force){
+  if(!arrOn('sonarr')) return [];
+  if(!force && SONARR_SERIES && Date.now() - SONARR_SERIES.at < 10 * 60e3) return SONARR_SERIES.list;
+  const list = (await arrReq('sonarr', '/api/v3/series')) || []; SONARR_SERIES = {at:Date.now(), list}; return list;
+}
+async function sonarrFind(d){
+  const L = await sonarrSeries(); const tv = String(d.ids?.tvdb || ''), f = fold(d.t);
+  return L.find(x => tv && String(x.tvdbId) === tv) || L.find(x => fold(x.title) === f && (!d.y || !x.year || Math.abs(x.year - d.y) <= 1)) || L.find(x => fold(x.title) === f) || null;
+}
+async function tvdbFind(d){
+  if(d.ids?.tvdb) return {id:+d.ids.tvdb};
+  const r = await TVDB.search({...d, s:'tv'}); return r?.id ? {id:+r.id, img:r.poster} : null;
+}
+async function epSource(d, want = EPSRC){
+  const order = want === 'auto' ? ['sonarr', 'tvdb', 'tvmaze'] : [want, ...['sonarr', 'tvdb', 'tvmaze'].filter(x => x !== want)];
+  for(const src of order){
+    try{
+      if(src === 'sonarr'){ if(!arrOn('sonarr')) continue; const x = await sonarrFind(d); if(!x) continue;
+        const poster = (x.images || []).find(i => i.coverType === 'poster');
+        return {src, id:x.id, name:x.title, img:poster?.remoteUrl ? px(poster.remoteUrl) : null, type:x.seriesType === 'daily' ? 'Talk Show' : '', link:`${ARR.sonarr.url}/series/${x.titleSlug}`}; }
+      if(src === 'tvdb'){ if(!tvdbOn()) continue; const x = await tvdbFind(d); if(!x) continue;
+        return {src, id:x.id, name:d.t, img:x.img || null, type:'', link:`https://thetvdb.com/dereferrer/series/${x.id}`}; }
+      const x = await tvmazeId(d); if(!x) continue;
+      return {src:'tvmaze', id:x.id, name:x.name, img:x.img, type:x.type || '', link:`https://www.tvmaze.com/shows/${x.id}`};
+    }catch(e){ if(e.net && src === 'tvmaze') throw e; }
+  }
+  return null;
+}
+/* every source is turned into TVmaze's episode shape: {season, number, airdate, name, summary, runtime, image, url} */
+async function epFetch(src, id){
+  const key = src + ':' + id; if(EPC.has(key)) return EPC.get(key);
+  let eps;
+  if(src === 'sonarr'){
+    eps = ((await arrReq('sonarr', '/api/v3/episode', {params:{seriesId:id, includeImages:true}})) || []).map(e => ({season:e.seasonNumber, number:e.episodeNumber, airdate:e.airDate || (e.airDateUtc || '').slice(0, 10) || null,
+      name:e.title, summary:e.overview || '', runtime:e.runtime || null, image:(() => { const sc = (e.images || []).find(i => i.coverType === 'screenshot'); return sc?.remoteUrl ? {medium:sc.remoteUrl, original:sc.remoteUrl} : null; })(), url:null}));
+  } else if(src === 'tvdb'){
+    eps = []; for(let page = 0; page < 40; page++){
+      const j = await TVDB.get(`/series/${id}/episodes/default?page=${page}`), list = j.data?.episodes || [];
+      list.forEach(e => eps.push({season:e.seasonNumber, number:e.number, airdate:e.aired || null, name:e.name, summary:e.overview || '', runtime:e.runtime || null, image:e.image ? {medium:TV_ART(e.image), original:TV_ART(e.image)} : null, url:`https://thetvdb.com/dereferrer/episode/${e.id}`}));
+      if(!j.links?.next || !list.length) break;
+    }
+  } else eps = await tvGet(`https://api.tvmaze.com/shows/${id}/episodes`);
+  EPC.set(key, eps); return eps;
+}
+const epKey = x => x ? x.src + ':' + x.id : '';
+document.addEventListener('change', e => { const sel = e.target.closest?.('[data-epsrc]'); if(!sel) return; EPSRC = sel.value; store.set('zn:epsrc', EPSRC); toast(`Episode lists will come from ${sel.value === 'auto' ? 'Sonarr, then TheTVDB, then TVmaze' : sel.selectedOptions[0].textContent}. Click Re-check to update your shows.`); });
 async function tvCheck(){
   if(TV.running) return;
   if(inPreview){ toast('Open the file in your web browser first — previews block internet access.'); return; }
-  TV.running = true; TV.err = null;
+  TV.running = true; TV.err = null; SONARR_SERIES = null;
   const titles = Object.keys(TV.eps), res = {}; let n = 0;
   TV.prog = {done:0, total:titles.length}; render();
   try{
     await pool(titles, 2, async t => {
       const d = showOf(t); if(!d) return;
       try{
-        const id = await tvmazeId(d);
+        const id = await epSource(d);
         if(id){
-          const eps = await tvGet(`https://api.tvmaze.com/shows/${id.id}/episodes`);
+          const eps = await epFetch(id.src, id.id);
           const seasons = seasonSummary(eps, TV.eps[t]);
           const missEp = seasons.reduce((s,x) => s + x.miss.length, 0);
-          EPC.set(id.id, eps);
-          res[t] = {t, id:id.id, i:d.i, c:d.c, type:id.type || '', name:id.name, img:id.img, seasons, missEp,
+          res[t] = {t, id:epKey(id), src:id.src, link:id.link, i:d.i, c:d.c, type:id.type || '', name:id.name, img:id.img || TV.ids[t]?.img || null, seasons, missEp,
             missS: seasons.filter(s => s.aired && !s.have).length, full: seasons.filter(s => s.aired && s.have===s.aired).length,
             aired: seasons.filter(s => s.aired).length};
         }
       }catch(e){ if(e.net) throw e; }
       TV.prog = {done:++n, total:titles.length}; if(state.s==='missing' && TV_CATS.includes(state.c)) renderTvMissing(true);
     });
-    TV.res = res; store.set('zn:tvr', res);
-    toast(`TV check done — ${Object.values(res).filter(r => r.missEp > 0).length} shows have missing episodes.`);
+    TV.res = res; TV.resSrc = EPSRC; store.set('zn:tvr', res);
+    const by = {}; Object.values(res).forEach(r => by[r.src || 'tvmaze'] = (by[r.src || 'tvmaze'] || 0) + 1);
+    toast(`TV check done — ${Object.values(res).filter(r => r.missEp > 0).length} shows have missing episodes. Checked against ${Object.entries(by).map(([k, v]) => `${EPSRC_NAMES[k]} (${v})`).join(', ')}.`);
   }catch(e){ TV.err = e.net ? `Couldn't reach ${e.host}. Check your connection or ad blocker.` : e.message; }
   finally{ TV.running = false; TV.prog = null; if(state.s==='missing'){ renderSide(); render(); } }
 }
@@ -2820,16 +2877,16 @@ function renderTvMissing(progressOnly){
     const p = TV.prog || {done:0,total:1};
     $('#count').textContent = '';
     g.innerHTML = `<div class="mpanel"><h2 class="bebas">Checking your TV shows</h2>
-      <p>Comparing your episode files with TVmaze — ${p.done} of ${p.total} shows</p>
+      <p>Comparing your episode files with ${EPSRC === 'auto' ? (arrOn('sonarr') ? 'Sonarr' : tvdbOn() ? 'TheTVDB' : 'TVmaze') : EPSRC_NAMES[EPSRC]} — ${p.done} of ${p.total} shows</p>
       <div class="pbar"><i style="width:${Math.round(p.done/Math.max(1,p.total)*100)}%"></i></div>
-      <p style="font-size:13px">TVmaze limits how fast we can ask, so this takes a couple of minutes for a big library.</p></div>`;
+      <p style="font-size:13px">This can take a couple of minutes for a big library.</p></div>`;
     return;
   }
   if(progressOnly) return;
   if(!Object.keys(TV.eps).length){
     $('#count').textContent = '';
     g.innerHTML = `<div class="mpanel"><h2 class="bebas">Find missing seasons &amp; episodes</h2>
-      <p>Connect Plex or Jellyfin (or add TV folders) and YAMZ will compare your episodes with TVmaze to find missing episodes and whole missing seasons.</p>
+      <p>Connect Plex or Jellyfin (or add TV folders) and YAMZ will compare your episodes with Sonarr, TheTVDB or TVmaze to find missing episodes and whole missing seasons.</p>
       <p>Episode files need the usual <b>S01E02</b> (or 1x02) naming.</p>
       <div class="actions"><button class="btn pri" data-act="folders-tv">Connect my library</button></div></div>`;
     return;
@@ -2837,7 +2894,7 @@ function renderTvMissing(progressOnly){
   if(!TV.res){
     $('#count').textContent = '';
     g.innerHTML = `<div class="mpanel"><h2 class="bebas">Check your TV shows</h2>
-      <p>You have ${Object.keys(TV.eps).length} shows in your library. Check them against TVmaze to find missing episodes and seasons. It takes a couple of minutes for a big library.</p>
+      <p>You have ${Object.keys(TV.eps).length} shows in your library. Check them against ${arrOn('sonarr') ? 'Sonarr' : tvdbOn() ? 'TheTVDB' : 'TVmaze'} to find missing episodes and seasons. It takes a couple of minutes for a big library.</p>
       ${TV.err ? `<p class="err">${esc(TV.err)}</p>` : ''}
       <div class="actions"><button class="btn pri" data-act="tvcheck">Check my shows</button></div></div>`;
     return;
@@ -2851,15 +2908,15 @@ function renderTvMissing(progressOnly){
       <div class="stat"><b>${inc.reduce((s,r) => s + r.missEp, 0).toLocaleString()}</b><small>episodes missing in total</small></div></div>
     <div class="mtools"><div class="mfilter"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="mfilter" type="search" placeholder="Find a show…" value="${esc(MISS.filter)}" autocomplete="off"></div>
       <label class="tog"><input type="checkbox" id="realTog" ${TV.real?'checked':''}> Include reality shows</label>
-      <button class="btn" data-act="tvcheck">↻ Re-check TVmaze</button><button class="btn" data-act="folders-tv">Manage library</button></div>
+      <button class="btn" data-act="tvcheck">↻ Re-check</button><button class="btn" data-act="folders-tv">Manage library</button></div>
     <div class="legend"><span class="l1">Complete</span><span class="l2">Some episodes missing</span><span class="l3">Whole season missing</span></div>` +
     (list.length ? list.map(r => `<div class="coll tvc" data-s="${esc((r.name+' '+r.t).toLowerCase())}"><div class="chead">
         <div class="tvp" data-open="${r.i}" style="${r.img ? `background-image:url('${esc(r.img)}')` : ''}"></div>
         <div style="flex:1;min-width:200px"><h3 class="bebas" data-open="${r.i}">${esc(r.name)}</h3>
-        <div class="sub">${r.full} of ${r.aired} season${r.aired===1?'':'s'} complete</div></div>
+        <div class="sub">${r.full} of ${r.aired} season${r.aired===1?'':'s'} complete · <a class="epsrc" href="${esc(r.link || (typeof r.id === 'number' ? 'https://www.tvmaze.com/shows/' + r.id : '#'))}" target="_blank" rel="noopener" title="Episode list from ${EPSRC_NAMES[r.src || 'tvmaze']}">via ${EPSRC_NAMES[r.src || 'tvmaze']} ↗</a></div></div>
         ${r.missS ? `<span class="chip miss">${r.missS} season${r.missS>1?'s':''} missing</span>` : ''}
         ${r.missEp ? `<span class="chip">${r.missEp} episode${r.missEp>1?'s':''} missing</span>` : `<span class="chip okc">✓ Every episode</span>`}</div>
-        ${seasonChips(r.seasons, r.t, r.id || TV.ids[r.t]?.id)}${cat === 'Complete shows' ? '' : missLines(r.seasons)}</div>`).join('')
+        ${seasonChips(r.seasons, r.t, typeof r.id === 'number' ? 'tvmaze:' + r.id : r.id || (TV.ids[r.t]?.id ? 'tvmaze:' + TV.ids[r.t].id : ''))}${cat === 'Complete shows' ? '' : missLines(r.seasons)}</div>`).join('')
       : `<div class="empty">${cat === 'Complete shows' ? 'None of your shows are complete yet.' : cat === 'Missing seasons' ? 'No whole seasons missing from any show. Nice!' : "Every show you've scanned is complete. Nice!"}</div>`) +
     '';
   applyFilter();
@@ -2867,15 +2924,15 @@ function renderTvMissing(progressOnly){
 async function fillSeasons(d, m){
   const box = () => document.querySelector('#seasonSec .misslist')?.parentElement;
   try{
-    const id = (P()===FREE && m.type==='tvmaze') ? {id:m.id} : await tvmazeId(d);
+    const id = await epSource(d);
     if(!id){ const b = box(); if(b) b.remove(); return; }
-    const eps = await showEpisodes(id.id);
+    const eps = await epFetch(id.src, id.id); id.id = epKey(id);
     const owned = TV.eps[d.t], seasons = seasonSummary(eps, owned);
     const b = box(); if(!b) return;
     const totEp = seasons.reduce((s,x) => s + x.total, 0);
     const miss = seasons.reduce((s,x) => s + x.miss.length, 0);
     b.innerHTML = `<h3 class="bebas">Seasons</h3>
-      <div class="misslist">${seasons.length} season${seasons.length===1?'':'s'} · ${totEp} episodes${owned ? (miss ? ` · <b style="color:var(--accent-t)">you're missing ${miss}</b>` : ` · <b style="color:var(--ok-t)">you have them all</b>`) : ''}</div>
+      <div class="misslist">${seasons.length} season${seasons.length===1?'':'s'} · ${totEp} episodes <span class="epsrc">via ${EPSRC_NAMES[id.src]}</span>${owned ? (miss ? ` · <b style="color:var(--accent-t)">you're missing ${miss}</b>` : ` · <b style="color:var(--ok-t)">you have them all</b>`) : ''}</div>
       ${owned ? seasonChips(seasons, d.t, id.id) + missLines(seasons) :
         `<div class="seas">${seasons.map(s => `<button class="sc" data-show="${esc(d.t)}" data-tvid="${id.id}" data-season="${s.n}" title="Click to see the episodes"><b>S${s.n}</b>${s.total} eps</button>`).join('')}</div>
          <div class="hint" style="margin:0">To see which episodes you're missing, check your shows on the <b>Gaps → TV</b> page.</div>`}`;
@@ -2894,10 +2951,12 @@ async function openSeason(title, tvid, n){
   md.innerHTML = `<button class="x" data-close="eov">×</button><div class="loading"><div class="spin"></div>Loading season ${n}…</div>`;
   try{
     const d = showOf(title);
-    let id = +tvid || null, info = TV.ids[title];
-    if(!id && d){ info = await tvmazeId(d); id = info?.id; }
-    if(!id) throw new Error('Show not found on TVmaze');
-    const eps = (await showEpisodes(id)).filter(e => e.number != null && e.season > 0);
+    let [src, raw] = String(tvid || '').includes(':') ? String(tvid).split(':') : ['tvmaze', tvid];
+    let id = +raw || null, info = src === 'tvmaze' ? TV.ids[title] : {name:TV.res?.[title]?.name || title, img:TV.res?.[title]?.img};
+    if(!id && d){ const x = await epSource(d); if(x){ src = x.src; id = x.id; info = x; } }
+    if(!id) throw new Error('Show not found');
+    tvid = src + ':' + id;
+    const eps = (await epFetch(src, id)).filter(e => e.number != null && e.season > 0);
     const seasons = [...new Set(eps.map(e => e.season))].sort((a,b) => a-b);
     const owned = TV.eps[title], scanned = !!owned;
     const list = eps.filter(e => e.season === +n).sort((a,b) => a.number - b.number);
@@ -2913,7 +2972,7 @@ async function openSeason(title, tvid, n){
           ${list[0]?.airdate ? `<span class="chip">${list[0].airdate.slice(0,4)}</span>` : ''}
           ${scanned ? `<span class="chip" style="color:var(--ok-t)">${counts.own} owned</span>${counts.miss ? `<span class="chip miss" style="color:var(--bad-t);border-color:rgba(199,67,47,.6)">${counts.miss} missing</span>` : ''}` : ''}
           ${counts.up ? `<span class="chip">${counts.up} not aired yet</span>` : ''}</div></div></div>
-      ${seasons.length > 1 ? `<div class="snav">${seasons.map(s => `<button class="${s===+n?'on':''} ${seasonMissing(s)?'m':''}" data-goseason="${s}" data-show="${esc(title)}" data-tvid="${id}" title="${seasonMissing(s)?'Has missing episodes':''}">S${s}</button>`).join('')}</div>` : ''}
+      ${seasons.length > 1 ? `<div class="snav">${seasons.map(s => `<button class="${s===+n?'on':''} ${seasonMissing(s)?'m':''}"  data-goseason="${s}" data-show="${esc(title)}" data-tvid="${tvid}" title="${seasonMissing(s)?'Has missing episodes':''}">S${s}</button>`).join('')}</div>` : ''}
       <div class="eplist">${list.map(e => { const s = st(e), sum = strip(e.summary); return `<div class="ep">
         <button class="eprow"><span class="epn">${pad(e.number)}</span>
           <span class="epimg" style="${e.image?.medium ? `background-image:url('${esc(e.image.medium)}')` : ''}"></span>
@@ -2922,7 +2981,7 @@ async function openSeason(title, tvid, n){
         <div class="epd">${e.image?.original || e.image?.medium ? `<img src="${esc(e.image.original || e.image.medium)}" alt="" loading="lazy">` : ''}
           <div><p>${esc(sum || 'No description available for this episode yet.')}</p>
           <div class="meta"><span class="chip">S${pad(e.season)}E${pad(e.number)}</span>${e.airdate ? `<span class="chip">Aired ${fmtDate(e.airdate)}</span>` : ''}${e.runtime ? `<span class="chip">${e.runtime} min</span>` : ''}${e.rating?.average ? `<span class="chip star">★ ${e.rating.average}</span>` : ''}
-          ${e.url ? `<a class="chip" href="${esc(e.url)}" target="_blank" rel="noopener" style="text-decoration:none">TVmaze ↗</a>` : ''}</div></div></div></div>`; }).join('')
+          ${e.url ? `<a class="chip" href="${esc(e.url)}" target="_blank" rel="noopener" style="text-decoration:none">${EPSRC_NAMES[src]} ↗</a>` : ''}</div></div></div></div>`; }).join('')
         || '<div class="empty">No episodes listed for this season.</div>'}
       ${!scanned ? `<div class="hint" style="margin:14px 12px 0">Check your shows on the Gaps → TV page to see which of these you own.</div>` : ''}</div>`;
     md.scrollIntoView?.({block:'start'}); ov.scrollTop = 0;

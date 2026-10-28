@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+**TV gaps: episode lists from Sonarr or TheTVDB** ([#2](https://github.com/zombifiedturkey/YAMZ/issues/2))
+- Gaps → TV used to compare your episodes with TVmaze only. When TVmaze numbers a show differently from TheTVDB (which Sonarr and usually Plex follow), episodes you have showed as missing, for example specials that TVmaze files inside a regular season.
+- New **Episode lists from** setting in the Gaps → TV side menu: **Auto** (the default) uses **Sonarr** for any show that's in Sonarr, then **TheTVDB** when it's your metadata source with a key, then TVmaze. You can also pick one source.
+- Each show says which source it was checked against ("via Sonarr ↗"), and the season pop-up and a title's Seasons section use the same source. Click **↻ Re-check** after changing it.
+- Specials (season 0) still don't count as missing. Thanks to @malh67 for the report.
+
 **Dashboard** (new tab)
 - One page that fits the window on desktop, no scrolling: a strip of key numbers along the top (movies, shows, episodes, libraries, streaming now, plays, peak streams, downloading), a **library map** where each library's tile is sized by how many titles it holds, poster strips of the most played movies and shows, plays per day, the most active people with the busiest day, peak time and top genre, and the download queue (which scrolls on its own). Smaller windows and phones get the same sections stacked.
 - Each library tile shows the artwork of a random title from that library: the poster for tall tiles, the backdrop for wide ones.
