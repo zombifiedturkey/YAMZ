@@ -203,11 +203,11 @@ header > :not(.search):not(.spacer){flex-shrink:0}
 .dqx svg{width:15px;height:15px}
 .dqitem:hover .dqx,.dqx:focus-visible{opacity:1}
 .dqx:hover{color:var(--bad-t);background:rgba(199,67,47,.12);border-color:rgba(199,67,47,.3)}
-.dqask{margin:10px 0 4px 46px;padding:12px 14px;border:1px solid rgba(199,67,47,.35);background:rgba(199,67,47,.07);border-radius:calc(10px * var(--rk,1));display:flex;flex-direction:column;gap:8px;font-size:13px}
+.dqask{margin:10px 0 4px 46px;padding:12px 14px;border:1px solid rgba(199,67,47,.35);background:rgba(199,67,47,.07);border-radius:calc(10px * var(--rk,1));display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:8px;font-size:13px}
 .dqhead + .dqask{margin-left:0;margin-bottom:12px}
-.dqask .tog{font-size:13px;align-items:flex-start} .dqask .tog input{margin-top:2px}
+.dqask .tog{font-size:13px;align-items:flex-start;flex-direction:row-reverse;justify-content:flex-start} .dqask .tog input{margin-top:2px}
 .dqbtns{display:flex;gap:8px}
-.btn.danger{background:#c7432f;border-color:#c7432f;color:#fff}
+.btn.danger,:root[data-theme] .dqask .btn.danger.danger{background:#c7432f;border-color:#c7432f;color:#fff}
 .btn.danger:hover{filter:brightness(1.08)}
 @media (hover:none){ .dqx{opacity:1} }
 .sttiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
@@ -5689,7 +5689,7 @@ function dashQueueHTML(){
       <b>${esc(what)}</b>
       <label class="tog"><input type="checkbox" data-dqopt="client" ${DASH.opt.client ? 'checked' : ''}> Also remove ${n === 1 ? 'it' : 'them'} from the download client and delete the downloaded files</label>
       <label class="tog"><input type="checkbox" data-dqopt="block" ${DASH.opt.block ? 'checked' : ''}> Blocklist ${n === 1 ? 'this release' : 'these releases'} so ${svcs} won't grab ${n === 1 ? 'it' : 'them'} again (${svcs} may then look for another)</label>
-      <div class="dqbtns"><button class="btn danger" data-dqgo="${esc(key)}" ${DASH.rmBusy ? 'disabled' : ''}>${DASH.rmBusy ? 'Removing…' : n === 1 ? 'Remove' : `Remove ${n}`}</button><button class="btn" data-dqno>Cancel</button></div></div>`;
+      <div class="dqbtns"><button class="btn" data-dqno>Cancel</button><button class="btn danger" data-dqgo="${esc(key)}" ${DASH.rmBusy ? 'disabled' : ''}>${DASH.rmBusy ? 'Removing…' : n === 1 ? 'Remove' : `Remove ${n}`}</button></div></div>`;
   const svcName = list => uniq(list.map(x => ARR_DEF[x.svc].name)).join(' and ');
   return errs + `<div class="dqhead"><p class="dqsum"><b>${down.length}</b> downloading · <b>${items.length - down.length}</b> other${items.length - down.length === 1 ? '' : 's'} in the queue${leftB ? ` · ${fmtBytes(leftB)} to go` : ''}</p>
       ${stuck.length >= 2 ? `<button class="linkbtn dqclear" data-dqask="stuck">Remove ${stuck.length} stuck</button>` : ''}</div>
