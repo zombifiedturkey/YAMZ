@@ -183,10 +183,45 @@ header > :not(.search):not(.spacer){flex-shrink:0}
 .dk small{display:block;font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dk.live{border-color:rgba(var(--acc-rgb),.5);background:linear-gradient(180deg,rgba(var(--acc-rgb),.12),var(--bg2))}
 .dk.live b{color:var(--accent-t)}
-.dlib{grid-area:lib}.dplay{grid-area:play}.dwho{grid-area:who}.ddl{grid-area:dl}
+.dlib{grid-area:lib}.dplay{grid-area:play}.dwho{grid-area:who}.dright{grid-area:dl;display:flex;flex-direction:column;gap:12px;min-height:0}
+.ddl{flex:1}
+.darr{flex:none}
+.dacards{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px}
+.dacard{border:1px solid var(--line);border-radius:calc(10px * var(--rk,1));padding:10px 12px;background:linear-gradient(180deg,color-mix(in srgb,var(--ac) 9%,transparent),transparent 70%);border-top:2px solid var(--ac);min-width:0}
+.dahead{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:4px}
+.dahead b{font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ac)}
+.dahealth{font-size:11px;font-weight:600;color:#e8a23a;white-space:nowrap;cursor:help}
+.dahealth.bad{color:var(--bad-t)} .dahealth.ok{color:var(--ok-t);font-weight:500}
+.dabig{display:flex;align-items:baseline;gap:6px}
+.dabig b{font-size:26px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.dabig span{font-size:12px;color:var(--muted)}
+.dabig small{margin-left:auto;font-size:11.5px;color:var(--dim)}
+.daring{height:4px;border-radius:2px;background:var(--bg3);overflow:hidden;margin:6px 0 8px}
+.daring i{display:block;height:100%;background:var(--ac)}
+.dagrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 8px}
+.dastat{display:block;text-align:left;border:0;background:none;padding:0;color:inherit;font:inherit;min-width:0}
+button.dastat{cursor:pointer;border-radius:6px}
+button.dastat:hover b{text-decoration:underline}
+.dastat span{display:block;font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dastat b{display:block;font-size:15px;font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dastat b small{font-size:11px;color:var(--dim);font-weight:500}
+.dastat.hot b{color:var(--ac)}
+.dadisks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px;margin-top:10px}
+.dadlab{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;margin-bottom:3px}
+.dadlab b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.dadlab span{color:var(--muted);white-space:nowrap}
+.dadbar{height:5px;border-radius:3px;background:var(--bg3);overflow:hidden}
+.dadbar i{display:block;height:100%;background:var(--ok-t)} .dadbar.warn i{background:#e8a23a} .dadbar.bad i{background:var(--bad-t)}
 .dtree{position:relative;flex:1;min-height:0}
 .dtc{position:absolute;border-radius:calc(6px * var(--rk,1));padding:6px 8px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.12);transition:filter .15s;cursor:default}
 .dtc:hover{filter:brightness(1.15)}
+.dtc > *{position:relative}
+.dtc > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .4s ease}
+.dtc:hover > img{transform:scale(1.04)}
+.dtc > .dtint{position:absolute;inset:0;opacity:.28;mix-blend-mode:multiply}
+.dtc.pic::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 35%,rgba(0,0,0,.82));pointer-events:none}
+.dtc.pic > b,.dtc.pic > span{z-index:1}
+.dtc.pic{box-shadow:inset 0 -3px 0 hsl(var(--dh,36) 70% 55%)}
 .dtc b{font-size:12.5px;font-weight:700;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dtc span{font-size:11.5px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 .dlegend{display:flex;gap:14px;margin-top:8px;font-size:11.5px;color:var(--muted)}
@@ -242,12 +277,14 @@ header > :not(.search):not(.spacer){flex-shrink:0}
   .dstrip{height:200px;flex:none}
   .dbars{height:120px;flex:none}
   .ddlbody{max-height:520px}
+  .dright{grid-column:1 / -1}
 }
 @media (max-width:600px){
   .dash1{grid-template-columns:minmax(0,1fr);grid-template-areas:"k" "lib" "play" "who" "dl"}
   .dkpis{grid-template-columns:repeat(2,minmax(0,1fr))}
   .dwho{flex-direction:column!important}
   .dstrip{height:150px;gap:6px}
+  .dacards{grid-template-columns:minmax(0,1fr)}
 }
 .stwrap.dash{gap:30px}
 .dhead{margin:0 0 12px;font-size:20px;font-weight:700;letter-spacing:-.01em}
@@ -5704,7 +5741,7 @@ document.addEventListener('click', e => {
   renderSide(); render(); scrollTo(0, 0);
 });
 /* ---------- Dashboard: library totals, server activity (last 14 days) and downloads from the Radarr / Sonarr queue ---------- */
-const DASH = {libs:null, libAt:0, libBusy:false, q:{radarr:null, sonarr:null}, qErr:{}, qAt:0, qBusy:false, timer:null, ask:null, opt:{client:true, block:false}, rmBusy:false, gone:new Set()};
+const DASH = {pics:{}, arr:{}, arrAt:0, arrBusy:false, libs:null, libAt:0, libBusy:false, q:{radarr:null, sonarr:null}, qErr:{}, qAt:0, qBusy:false, timer:null, ask:null, opt:{client:true, block:false}, rmBusy:false, gone:new Set()};
 const DASH_DAYS = 14;
 /* the most streams at once that YAMZ has seen (it can only count while YAMZ is open somewhere), kept per day for the 14-day figure */
 function peakNote(n){
@@ -5720,14 +5757,18 @@ async function dashLibLoad(force){
   DASH.libBusy = true; const out = [];
   await Promise.all((LIB.servers || []).filter(s => s.type === 'plex' || s.type === 'jellyfin').map(async s => {
     for(const L of (s.libs || []).filter(l => l.on)){
-      const row = {srv:s.name || SRV(s).label, type:s.type, name:L.name, kind:L.kind, n:null, eps:null};
+      const row = {srv:s.name || SRV(s).label, type:s.type, name:L.name, kind:L.kind, n:null, eps:null, key:s.id + ':' + L.key};
       try{
         if(s.type === 'jellyfin'){
           const c = t => JF.get(s, '/Items', {ParentId:L.key, Recursive:true, IncludeItemTypes:t, Limit:0, userId:s.user || ''}, 10000).then(r => r.TotalRecordCount ?? null);
           row.n = await c(L.kind === 'movie' ? 'Movie' : 'Series'); if(L.kind !== 'movie') row.eps = await c('Episode');
+          if(row.n && !DASH.pics[row.key]){ const r = await JF.get(s, '/Items', {ParentId:L.key, Recursive:true, IncludeItemTypes:L.kind === 'movie' ? 'Movie' : 'Series', StartIndex:Math.floor(Math.random() * row.n), Limit:1, Fields:'BackdropImageTags', userId:s.user || ''}, 10000).catch(() => null);
+            const it = r?.Items?.[0]; if(it) DASH.pics[row.key] = {tall:JF.img(s, it.ImageTags?.Primary ? it.Id : null), wide:it.BackdropImageTags?.length ? px(`${s.url}/Items/${it.Id}/Images/Backdrop?fillWidth=900&quality=85`) : null}; }
         } else {
           const c = t => PLEX.get(s, `/library/sections/${L.key}/all`, {type:t, 'X-Plex-Container-Start':0, 'X-Plex-Container-Size':0}, 10000).then(m => m.totalSize ?? m.size ?? null);
           row.n = await c(L.kind === 'movie' ? 1 : 2); if(L.kind !== 'movie') row.eps = await c(4);
+          if(row.n && !DASH.pics[row.key]){ const m = await PLEX.get(s, `/library/sections/${L.key}/all`, {type:L.kind === 'movie' ? 1 : 2, 'X-Plex-Container-Start':Math.floor(Math.random() * row.n), 'X-Plex-Container-Size':1}, 10000).catch(() => null);
+            const it = m?.Metadata?.[0]; if(it) DASH.pics[row.key] = {tall:PLEX.img(s, it.thumb), wide:it.art ? px(`${s.url}/photo/:/transcode?${qs({width:900, height:506, minSize:1, upscale:1, url:it.art, 'X-Plex-Token':s.token})}`) : null}; }
         }
       }catch{ row.err = true; }
       out.push(row);
@@ -5786,6 +5827,71 @@ function dashQueueHTML(){
       ${ask(it.svc + ':' + it.id, `Remove “${it.t}${it.sub ? ' ' + it.sub.split(' · ')[0] : ''}” from ${ARR_DEF[it.svc].name}'s queue?`, 1, ARR_DEF[it.svc].name)}</div>`).join('')}</div>
     ${items.length > MAXR ? `<p class="gpnote">And ${items.length - MAXR} more.</p>` : ''}`;
 }
+/* Radarr / Sonarr at a glance (documented v3 API, read-only): totals, missing, cutoff unmet, coming up, health, disk space */
+async function dashArrLoad(force){
+  if(DASH.arrBusy || (!force && Date.now() - DASH.arrAt < 3 * 60e3)) return;
+  DASH.arrBusy = true;
+  const wk = {start:new Date().toISOString(), end:new Date(Date.now() + 7 * 864e5).toISOString()};
+  const total = r => r?.totalRecords ?? null, soft = p => p.catch(() => null);
+  await Promise.all(['radarr', 'sonarr'].filter(arrOn).map(async svc => {
+    const A = {svc, err:null};
+    try{
+      if(svc === 'radarr'){
+        const [mv, cut, cal, health, disk] = await Promise.all([arrReq(svc, '/api/v3/movie'), soft(arrReq(svc, '/api/v3/wanted/cutoff', {params:{page:1, pageSize:1, monitored:true}})),
+          soft(arrReq(svc, '/api/v3/calendar', {params:wk})), soft(arrReq(svc, '/api/v3/health')), soft(arrReq(svc, '/api/v3/diskspace'))]);
+        const L = mv || [];
+        A.total = L.length; A.have = L.filter(m => m.hasFile).length; A.size = L.reduce((a, m) => a + (+m.sizeOnDisk || 0), 0);
+        A.missing = L.filter(m => m.monitored && !m.hasFile && m.isAvailable).length; A.unrel = L.filter(m => m.monitored && !m.hasFile && !m.isAvailable).length;
+        A.cutoff = total(cut); A.soon = (cal || []).filter(m => !m.hasFile).length; A.health = health || []; A.disk = disk || [];
+      } else {
+        const [se, miss, cut, cal, health, disk] = await Promise.all([arrReq(svc, '/api/v3/series'), soft(arrReq(svc, '/api/v3/wanted/missing', {params:{page:1, pageSize:1, monitored:true}})),
+          soft(arrReq(svc, '/api/v3/wanted/cutoff', {params:{page:1, pageSize:1, monitored:true}})), soft(arrReq(svc, '/api/v3/calendar', {params:wk})), soft(arrReq(svc, '/api/v3/health')), soft(arrReq(svc, '/api/v3/diskspace'))]);
+        const L = se || [], st = x => x.statistics || {};
+        A.total = L.length; A.eps = L.reduce((a, x) => a + (st(x).episodeCount || 0), 0); A.have = L.reduce((a, x) => a + (st(x).episodeFileCount || 0), 0);
+        A.size = L.reduce((a, x) => a + (+st(x).sizeOnDisk || 0), 0); A.ended = L.filter(x => x.status === 'ended').length;
+        A.missing = total(miss) ?? Math.max(0, A.eps - A.have); A.cutoff = total(cut); A.soon = (cal || []).length; A.health = health || []; A.disk = disk || [];
+      }
+    }catch(e){ A.err = e.message; }
+    DASH.arr[svc] = A;
+  }));
+  ['radarr', 'sonarr'].forEach(s => { if(!arrOn(s)) delete DASH.arr[s]; });
+  DASH.arrAt = Date.now(); DASH.arrBusy = false;
+  const el = $('#dashArr'); if(el && state.s === 'dash') el.innerHTML = dashArrHTML();
+}
+function dashArrHTML(){
+  const svcs = ['radarr', 'sonarr'].filter(arrOn);
+  if(!svcs.length) return `<p class="gpnote">Connect Radarr or Sonarr in Settings → Connections for missing titles, what's coming up, disk space and the download queue.</p><button class="btn" data-opensettings>Open Settings</button>`;
+  const f = n => n == null ? '–' : n.toLocaleString();
+  const card = svc => {
+    const A = DASH.arr[svc], D = ARR_DEF[svc], tv = svc === 'sonarr';
+    if(!A) return `<div class="dacard" style="--ac:${D.color}"><div class="dahead"><b>${D.name}</b></div><div class="loading"><div class="spin"></div></div></div>`;
+    if(A.err) return `<div class="dacard" style="--ac:${D.color}"><div class="dahead"><b>${D.name}</b></div><p class="err">${esc(A.err)}</p></div>`;
+    const bad = A.health.filter(h => h.type === 'error').length, warn = A.health.length;
+    const pct = tv ? (A.eps ? A.have / A.eps : 0) : (A.total ? A.have / A.total : 0);
+    const stat = (label, v, opt = {}) => `<${opt.go ? `button data-dago="${svc}"` : 'div'} class="dastat ${opt.cls || ''}" ${opt.tip ? `title="${esc(opt.tip)}"` : ''}><span>${label}</span><b>${v}</b></${opt.go ? 'button' : 'div'}>`;
+    return `<div class="dacard" style="--ac:${D.color}">
+      <div class="dahead"><b>${D.name}</b>${warn ? `<span class="dahealth ${bad ? 'bad' : ''}" title="${esc(A.health.map(h => h.message).join('\n'))}">${bad ? '⛔' : '⚠'} ${warn} issue${warn === 1 ? '' : 's'}</span>` : '<span class="dahealth ok" title="No health issues">● Healthy</span>'}</div>
+      <div class="dabig"><b>${f(A.total)}</b><span>${tv ? 'series' : 'movies'}</span><small>${fmtBytes(A.size) || ''}</small></div>
+      <div class="daring" title="${tv ? `${f(A.have)} of ${f(A.eps)} episodes on disk` : `${f(A.have)} of ${f(A.total)} movies on disk`}"><i style="width:${(pct * 100).toFixed(1)}%"></i></div>
+      <div class="dagrid">
+        ${stat(tv ? 'Episodes' : 'On disk', tv ? `${f(A.have)}<small>/${f(A.eps)}</small>` : f(A.have))}
+        ${stat('Missing', f(A.missing), {go:true, cls:A.missing ? 'hot' : '', tip:`Monitored ${tv ? 'episodes that have aired' : 'movies that are out'} with no file. Click to see them in Gaps.`})}
+        ${stat('Cutoff unmet', f(A.cutoff), {tip:'Have a file, but below the quality cutoff in its profile'})}
+        ${stat(tv ? 'Airing · 7d' : 'Due · 7d', f(A.soon), {tip:tv ? 'Episodes airing in the next 7 days' : 'Monitored movies with a release date in the next 7 days'})}
+        ${tv ? stat('Ended', f(A.ended), {tip:'Series that have finished airing'}) : stat('Unreleased', f(A.unrel), {tip:'Monitored, not out yet'})}
+      </div></div>`;
+  };
+  const disks = new Map(); svcs.forEach(s => (DASH.arr[s]?.disk || []).forEach(d => { if(+d.totalSpace > 200e9 && d.path !== '/' && !disks.has(d.path)) disks.set(d.path, d); }));
+  const dl = [...disks.values()].sort((a, b) => b.totalSpace - a.totalSpace).slice(0, 4);
+  return `<div class="dacards">${svcs.map(card).join('')}</div>
+    ${dl.length ? `<div class="dadisks">${dl.map(d => { const used = 1 - d.freeSpace / d.totalSpace;
+      return `<div class="dadisk" title="${esc(d.path)}: ${fmtBytes(d.freeSpace)} free of ${fmtBytes(d.totalSpace)}"><div class="dadlab"><b>${esc(d.label || d.path)}</b><span>${fmtBytes(d.freeSpace)} free</span></div><div class="dadbar ${used > .9 ? 'bad' : used > .8 ? 'warn' : ''}"><i style="width:${(used * 100).toFixed(1)}%"></i></div></div>`; }).join('')}</div>` : ''}`;
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-dago]'); if(!b || state.s !== 'dash') return;
+  const svc = b.dataset.dago; KIND = svc === 'sonarr' ? 'tv' : 'movie'; kindSync();
+  $('#tabs button[data-s="missing"]').click(); state.c = WAIT_C[KIND]; MISS.filter = ''; renderSide(); render(); scrollTo(0, 0);
+});
 function dashQueueRender(){ const el = $('#dashQ'); if(el) el.innerHTML = dashQueueHTML(); }
 /* remove from the queue through Radarr's / Sonarr's documented API: DELETE /api/v3/queue/{id} or /api/v3/queue/bulk */
 async function dashRemove(key){
@@ -5818,8 +5924,8 @@ document.addEventListener('click', e => {
 document.addEventListener('change', e => { const o = e.target.closest?.('[data-dqopt]'); if(o) DASH.opt[o.dataset.dqopt] = o.checked; });
 function dashTick(){
   clearTimeout(DASH.timer);
-  if(state.s !== 'dash') return;
-  if(document.visibilityState === 'visible'){ dashQueueLoad(); actKick(); }
+  if(state.s !== 'dash'){ DASH.timer = null; return; }
+  if(document.visibilityState === 'visible'){ dashQueueLoad(); actKick(); dashArrLoad(); }
   DASH.timer = setTimeout(dashTick, 10000);
 }
 /* one-page dashboard: KPI strip, library treemap, activity, downloads; fills the window on desktop */
@@ -5849,11 +5955,14 @@ function dashTree(){
   let mi = 0, ti = 0;
   cells.forEach(c => { const tv = c.kind !== 'movie', i = tv ? ti++ : mi++, f = Math.sqrt(c.n / max);
     const h = tv ? 205 + ((i * 29) % 50) - 25 : ah + ((i * 47) % 90) - 45;
+    c.dh = h;
     c.bg = `linear-gradient(150deg,hsl(${h.toFixed(0)} ${tv ? 58 : 62}% ${(30 + 16 * f).toFixed(0)}%),hsl(${(h + 14).toFixed(0)} ${tv ? 55 : 58}% ${(22 + 12 * f).toFixed(0)}%))`; });
   el.innerHTML = cells.map(c => {
     const big = c.w > 92 && c.h > 46, mid = !big && c.w > 54 && c.h > 30, tv = c.kind !== 'movie';
     const tip = `${c.name}${multi ? ' (' + c.srv + ')' : ''}: ${c.n.toLocaleString()} ${tv ? `shows${c.eps != null ? ', ' + c.eps.toLocaleString() + ' episodes' : ''}` : 'movies'}`;
-    return `<div class="dtc ${tv ? 'tv' : ''}" style="left:${c.x.toFixed(1)}px;top:${c.y.toFixed(1)}px;width:${(c.w - 3).toFixed(1)}px;height:${(c.h - 3).toFixed(1)}px;background:${c.bg}" title="${esc(tip)}">
+    const pic = DASH.pics[c.key], img = pic && (c.w / c.h > 1.15 ? pic.wide || pic.tall : pic.tall || pic.wide);
+    return `<div class="dtc ${tv ? 'tv' : ''} ${img ? 'pic' : ''}" style="left:${c.x.toFixed(1)}px;top:${c.y.toFixed(1)}px;width:${(c.w - 3).toFixed(1)}px;height:${(c.h - 3).toFixed(1)}px;background:${c.bg};--dh:${c.dh.toFixed(0)}" title="${esc(tip)}">
+      ${img ? `<img src="${esc(img)}" alt="" loading="lazy" onerror="this.remove()"><i class="dtint" style="background:${c.bg}"></i>` : ''}
       ${big ? `<b>${esc(c.name)}</b><span>${c.n.toLocaleString()}${tv && c.eps != null ? ` · ${c.eps.toLocaleString()} eps` : ''}</span>` : mid ? `<b>${esc(c.name)}</b>` : ''}</div>`;
   }).join('');
 }
@@ -5901,9 +6010,12 @@ function renderDash(){
       <div class="dwcol"><h3>Most active</h3>${users.length ? users.map((u, i) => `<div class="duser"><span class="dmedal m${i + 1}">${i + 1}</span><div><div class="dulab"><b>${esc(u.k)}</b><span>${u.n}</span></div><div class="dubar"><i style="width:${(u.n / mxU * 100).toFixed(1)}%"></i></div></div></div>`).join('') : '<p class="gpnote">Nobody yet.</p>'}
         ${H.length ? (() => { const wk = Array(7).fill(0), hr = Array(24).fill(0), gm = new Map(); H.forEach(x => { const d = new Date(x.at); wk[d.getDay()]++; hr[d.getHours()]++; (x.g || []).forEach(gn => gm.set(gn, (gm.get(gn) || 0) + 1)); });
           const hh = hr.indexOf(Math.max(...hr)), hl = hh === 0 ? '12am' : hh < 12 ? hh + 'am' : hh === 12 ? '12pm' : (hh - 12) + 'pm', tg = [...gm].sort((a, b) => b[1] - a[1])[0];
-          return `<div class="dfacts"><div><span>Busiest day</span><b>${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][wk.indexOf(Math.max(...wk))]}</b></div><div><span>Peak time</span><b>${hl}</b></div>${tg ? `<div><span>Top genre</span><b>${esc(tg[0])}</b></div>` : ''}</div>`; })() : ''}
+          return `<div class="dfacts"><div><span>Busiest day</span><b>${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][wk.indexOf(Math.max(...wk))]}</b></div><div><span>Peak time</span><b>${hl}</b></div>${tg ? `<div><span>Top genre</span><b>${esc(tg[0])}</b></div>` : ''}</div>`; })() : ''}
         ${HIST.approx ? '<p class="gpnote dsmall">Jellyfin counts repeat viewings once.</p>' : ''}</div></section>
-    <section class="stbox ddl"><h3>Downloads <small>Radarr &amp; Sonarr queue</small></h3><div class="ddlbody" id="dashQ">${dashQueueHTML()}</div></section>
+    <div class="dright">
+      <section class="stbox darr"><h3>Radarr &amp; Sonarr</h3><div id="dashArr">${dashArrHTML()}</div></section>
+      <section class="stbox ddl"><h3>Downloads <small>queue</small></h3><div class="ddlbody" id="dashQ">${dashQueueHTML()}</div></section>
+    </div>
   </div>`;
   requestAnimationFrame(() => { dashFit(); dashTree(); });
 }

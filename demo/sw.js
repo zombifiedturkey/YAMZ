@@ -201,18 +201,22 @@ async function arr(svc, u, req){
       ['Bone Orchard', null, -18, 'released'], ['The Hollow Hour', null, 37, 'inCinemas'], ['Grave Shift', null, 58, 'announced'], ['Night Feeders', null, 107, 'announced']]
       .map(([t, y, n, st], i) => ({id:200 + i, title:t, year:y || +daysFromNow(n).slice(0, 4), tmdbId:3000 + i, titleSlug:slug(t), hasFile:false, monitored:true, status:st, isAvailable:n <= 0,
         inCinemas:D(n), digitalRelease:D(n + 40), physicalRelease:D(n + 80), images:img(t, y || +daysFromNow(n).slice(0, 4)), added:D(-i * 3)}));
-    return J([...MOV.slice(0, 20).map(([t, y], i) => ({id:i + 1, title:t, year:y, tmdbId:100 + i, titleSlug:slug(t), hasFile:true, monitored:true, isAvailable:true})), ...wanted, ...ARRADD.radarr.map(x => ({...x, hasFile:false}))]);
+    return J([...MOV.slice(0, 20).map(([t, y], i) => ({id:i + 1, title:t, year:y, tmdbId:100 + i, titleSlug:slug(t), hasFile:true, monitored:true, isAvailable:true, sizeOnDisk:(4 + (i * 7) % 30) * 1e9})), ...wanted, ...ARRADD.radarr.map(x => ({...x, hasFile:false}))]);
   }
   if(P === '/api/v3/series' && m === 'GET'){
     const img = (t, y) => [{coverType:'poster', remoteUrl:P_(t, y)}];
     const ser = [['Severance', 2022, 19, 12, 'Apple TV+'], ['Deadwater County', 2025, 16, 9, 'HBO'], ['The Crypt Keepers', 2026, 3, 0, 'Shudder'], ['Breaking Bad', 2008, 62, 62, 'AMC']]
-      .map(([t, y, of, have, net], i) => ({id:400 + i, title:t, year:y, tvdbId:9000 + i, titleSlug:slug(t), monitored:true, network:net, images:img(t, y), statistics:{episodeCount:of, episodeFileCount:have, totalEpisodeCount:of + 4}}));
+      .map(([t, y, of, have, net], i) => ({id:400 + i, title:t, year:y, tvdbId:9000 + i, titleSlug:slug(t), monitored:true, network:net, images:img(t, y), status:i === 3 ? 'ended' : 'continuing', statistics:{episodeCount:of, episodeFileCount:have, totalEpisodeCount:of + 4, sizeOnDisk:have * 1.6e9}}));
     return J([...ser, ...ARRADD.sonarr.map(x => ({...x, statistics:{episodeCount:8, episodeFileCount:0}}))]);
   }
   if(/^\/api\/v3\/queue\/(\d+|bulk)$/.test(P) && m === 'DELETE'){
     const ids = P.endsWith('/bulk') ? ((await req.clone().json().catch(() => ({}))).ids || []) : [+P.split('/').pop()];
     ids.forEach(id => QGONE.add(svc + ':' + id)); return new Response('', {status:200, headers:{'Access-Control-Allow-Origin':'*'}});
   }
+  if(P === '/api/v3/wanted/cutoff') return J({page:1, pageSize:1, totalRecords:svc === 'radarr' ? 7 : 42, records:[]});
+  if(P === '/api/v3/wanted/missing') return J({page:1, pageSize:1, totalRecords:svc === 'radarr' ? 4 : 11, records:[]});
+  if(P === '/api/v3/health') return J(svc === 'radarr' ? [{type:'warning', source:'IndexerStatusCheck', message:'Indexers unavailable due to failures for more than 6 hours: NZBgeek'}] : []);
+  if(P === '/api/v3/diskspace') return J([{path:'/', label:'', freeSpace:41e9, totalSpace:64e9}, {path:'/data/media', label:'Media', freeSpace:6.8e12, totalSpace:24e12}, {path:'/data/downloads', label:'Downloads', freeSpace:0.9e12, totalSpace:2e12}]);
   if(P === '/api/v3/queue'){   // what Radarr / Sonarr have handed to the download client; progress creeps along each refresh
     const tick = Math.floor(Date.now() / 10000), img = (t, y) => [{coverType:'poster', remoteUrl:P_(t, y)}], hms = s => { s = Math.max(0, Math.round(s)); return `${String(Math.floor(s / 3600)).padStart(2, '0')}:${String(Math.floor(s / 60) % 60).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
     const mk = (i, size, rate, extra) => { const done = Math.min(size, ((tick * rate * 10 + i * 7e8) % size)), left = size - done; return {id:i, size, sizeleft:extra.status === 'downloading' ? left : extra.status === 'completed' ? 0 : size, timeleft:extra.status === 'downloading' ? hms(left / rate) : undefined, estimatedCompletionTime:extra.status === 'downloading' ? new Date(Date.now() + left / rate * 1000).toISOString() : undefined, trackedDownloadStatus:'ok', trackedDownloadState:'downloading', ...extra}; };

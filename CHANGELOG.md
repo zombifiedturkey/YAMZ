@@ -4,6 +4,8 @@
 
 **Dashboard** (new tab)
 - One page that fits the window on desktop, no scrolling: a strip of key numbers along the top (movies, shows, episodes, libraries, streaming now, plays, peak streams, downloading), a **library map** where each library's tile is sized by how many titles it holds, poster strips of the most played movies and shows, plays per day, the most active people with the busiest day, peak time and top genre, and the download queue (which scrolls on its own). Smaller windows and phones get the same sections stacked.
+- Each library tile shows the artwork of a random title from that library: the poster for tall tiles, the backdrop for wide ones.
+- **Radarr & Sonarr** at a glance: totals and size on disk, how much is on disk, missing (click to open it in Gaps), cutoff unmet, due or airing in the next 7 days, unreleased or ended, health warnings, and free space on your media disks. The download queue sits underneath. Read-only, through their documented API.
 - **Library**: total movies, TV shows and episodes, and a count for each Plex or Jellyfin library, read live from the server.
 - **Server activity, last 14 days**: who's streaming now, plays, movies and episodes watched, the 5 most played movies and shows, the 3 most active people, and the most streams at once. YAMZ can only count streams while it's open, so that figure covers what it has seen, with an all-time record.
 - **Downloads**: everything in the Radarr and Sonarr queue, with progress, size, time left, which download client has it, and anything stuck (for example "Waiting to import" with the reason). Refreshes every 10 seconds while the page is open. This uses Radarr's and Sonarr's own queue, so YAMZ still never talks to download clients itself.
