@@ -100,6 +100,7 @@ WL.forEach(([t, y]) => DEMOY[t] = y);
 
 /* ---------------- fake outside services ---------------- */
 let plexPolls = 0;
+const QGONE = new Set();   // queue items removed in this demo session
 const ARRADD = {radarr:[], sonarr:[]};
 function plexTv(u){
   if(/\/api\/v2\/pins$/.test(u.pathname)) return J({id:1, code:'ZMBY'}, 201);
@@ -208,18 +209,24 @@ async function arr(svc, u, req){
       .map(([t, y, of, have, net], i) => ({id:400 + i, title:t, year:y, tvdbId:9000 + i, titleSlug:slug(t), monitored:true, network:net, images:img(t, y), statistics:{episodeCount:of, episodeFileCount:have, totalEpisodeCount:of + 4}}));
     return J([...ser, ...ARRADD.sonarr.map(x => ({...x, statistics:{episodeCount:8, episodeFileCount:0}}))]);
   }
+  if(/^\/api\/v3\/queue\/(\d+|bulk)$/.test(P) && m === 'DELETE'){
+    const ids = P.endsWith('/bulk') ? ((await req.clone().json().catch(() => ({}))).ids || []) : [+P.split('/').pop()];
+    ids.forEach(id => QGONE.add(svc + ':' + id)); return new Response('', {status:200, headers:{'Access-Control-Allow-Origin':'*'}});
+  }
   if(P === '/api/v3/queue'){   // what Radarr / Sonarr have handed to the download client; progress creeps along each refresh
     const tick = Math.floor(Date.now() / 10000), img = (t, y) => [{coverType:'poster', remoteUrl:P_(t, y)}], hms = s => { s = Math.max(0, Math.round(s)); return `${String(Math.floor(s / 3600)).padStart(2, '0')}:${String(Math.floor(s / 60) % 60).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
     const mk = (i, size, rate, extra) => { const done = Math.min(size, ((tick * rate * 10 + i * 7e8) % size)), left = size - done; return {id:i, size, sizeleft:extra.status === 'downloading' ? left : extra.status === 'completed' ? 0 : size, timeleft:extra.status === 'downloading' ? hms(left / rate) : undefined, estimatedCompletionTime:extra.status === 'downloading' ? new Date(Date.now() + left / rate * 1000).toISOString() : undefined, trackedDownloadStatus:'ok', trackedDownloadState:'downloading', ...extra}; };
-    if(svc === 'radarr') return J({page:1, pageSize:100, totalRecords:4, records:[
+    const keep = r => r.filter(x => !QGONE.has(svc + ':' + x.id));
+    if(svc === 'radarr') return J({page:1, pageSize:100, totalRecords:4, records:keep([
       mk(1, 14.2e9, 9.5e6, {status:'downloading', downloadClient:'qBittorrent', protocol:'torrent', quality:{quality:{name:'Bluray-1080p'}}, movie:{title:'Mad Max 2', year:1981, images:img('Mad Max 2', 1981)}}),
       mk(2, 6.1e9, 21e6, {status:'downloading', downloadClient:'SABnzbd', protocol:'usenet', quality:{quality:{name:'WEBDL-1080p'}}, movie:{title:'Evil Dead Rise', year:2023, images:img('Evil Dead Rise', 2023)}}),
       mk(3, 4.4e9, 1, {status:'queued', downloadClient:'SABnzbd', protocol:'usenet', quality:{quality:{name:'Bluray-720p'}}, movie:{title:'Army of Darkness', year:1992, images:img('Army of Darkness', 1992)}}),
-      mk(4, 2.9e9, 1, {status:'completed', trackedDownloadState:'importPending', trackedDownloadStatus:'warning', statusMessages:[{title:'Furiosa', messages:['No files found are eligible for import']}], downloadClient:'qBittorrent', protocol:'torrent', movie:{title:'Furiosa: A Mad Max Saga', year:2024, images:img('Furiosa: A Mad Max Saga', 2024)}})]});
-    return J({page:1, pageSize:100, totalRecords:3, records:[
+      mk(4, 2.9e9, 1, {status:'completed', trackedDownloadState:'importPending', trackedDownloadStatus:'warning', statusMessages:[{title:'Furiosa', messages:['No files found are eligible for import']}], downloadClient:'qBittorrent', protocol:'torrent', movie:{title:'Furiosa: A Mad Max Saga', year:2024, images:img('Furiosa: A Mad Max Saga', 2024)}}),
+      mk(5, 1.1e9, 1, {status:'completed', trackedDownloadState:'importPending', trackedDownloadStatus:'warning', statusMessages:[{title:'Army', messages:['Sample']}], downloadClient:'SABnzbd', protocol:'usenet', movie:{title:'Evil Dead', year:1981, images:img('Evil Dead', 1981)}})])});
+    return J({page:1, pageSize:100, totalRecords:3, records:keep([
       mk(11, 2.2e9, 12e6, {status:'downloading', downloadClient:'SABnzbd', protocol:'usenet', series:{title:'Severance', year:2022, images:img('Severance', 2022)}, episode:{seasonNumber:2, episodeNumber:5, title:'Trojan’s Horse'}}),
       mk(12, 1.8e9, 6e6, {status:'downloading', downloadClient:'qBittorrent', protocol:'torrent', series:{title:'Deadwater County', year:2025, images:img('Deadwater County', 2025)}, episode:{seasonNumber:1, episodeNumber:10, title:'The Long Night'}}),
-      mk(13, 1.6e9, 1, {status:'paused', downloadClient:'qBittorrent', protocol:'torrent', series:{title:'The Crypt Keepers', year:2026, images:img('The Crypt Keepers', 2026)}, episode:{seasonNumber:1, episodeNumber:4, title:'Bone Dry'}})]});
+      mk(13, 1.6e9, 1, {status:'paused', downloadClient:'qBittorrent', protocol:'torrent', series:{title:'The Crypt Keepers', year:2026, images:img('The Crypt Keepers', 2026)}, episode:{seasonNumber:1, episodeNumber:4, title:'Bone Dry'}})])});
   }
   if(P === '/api/v3/calendar'){
     const D = n => daysFromNow(n) + 'T00:00:00Z', img = (t, y) => [{coverType:'poster', remoteUrl:P_(t, y)}];

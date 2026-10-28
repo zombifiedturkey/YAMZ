@@ -6,6 +6,7 @@
 - **Library**: total movies, TV shows and episodes, and a count for each Plex or Jellyfin library, read live from the server.
 - **Server activity, last 14 days**: who's streaming now, plays, movies and episodes watched, the 5 most played movies and shows, the 3 most active people, and the most streams at once. YAMZ can only count streams while it's open, so that figure covers what it has seen, with an all-time record.
 - **Downloads**: everything in the Radarr and Sonarr queue, with progress, size, time left, which download client has it, and anything stuck (for example "Waiting to import" with the reason). Refreshes every 10 seconds while the page is open. This uses Radarr's and Sonarr's own queue, so YAMZ still never talks to download clients itself.
+- Remove a download with the **×** on its row, or clear everything stuck (failed or waiting to import) with **Remove N stuck**. You confirm first, and can choose to also delete it from the download client and to blocklist the release. This goes through Radarr's and Sonarr's queue API, the same as their own Activity → Queue page.
 
 **Fixes**
 - Dark theme: a few colours (owned/upcoming labels, secondary text) were defined in terms of themselves and fell back to plain text colour. They now show as intended.

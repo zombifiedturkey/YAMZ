@@ -197,6 +197,19 @@ header > :not(.search):not(.spacer){flex-shrink:0}
 .dqrow.warn .dqbar i{background:var(--bad-t)}
 .dqmeta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .dqmsg{color:var(--bad-t)}
+.dqhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px} .dqhead .dqsum{margin:0}
+.dqclear{font-size:13px;color:var(--bad-t)}
+.dqx{flex:none;width:30px;height:30px;display:grid;place-items:center;border:1px solid transparent;border-radius:var(--rp,999px);background:none;color:var(--dim);cursor:pointer;opacity:.7;transition:opacity .15s,color .15s,background .15s}
+.dqx svg{width:15px;height:15px}
+.dqitem:hover .dqx,.dqx:focus-visible{opacity:1}
+.dqx:hover{color:var(--bad-t);background:rgba(199,67,47,.12);border-color:rgba(199,67,47,.3)}
+.dqask{margin:10px 0 4px 46px;padding:12px 14px;border:1px solid rgba(199,67,47,.35);background:rgba(199,67,47,.07);border-radius:calc(10px * var(--rk,1));display:flex;flex-direction:column;gap:8px;font-size:13px}
+.dqhead + .dqask{margin-left:0;margin-bottom:12px}
+.dqask .tog{font-size:13px;align-items:flex-start} .dqask .tog input{margin-top:2px}
+.dqbtns{display:flex;gap:8px}
+.btn.danger{background:#c7432f;border-color:#c7432f;color:#fff}
+.btn.danger:hover{filter:brightness(1.08)}
+@media (hover:none){ .dqx{opacity:1} }
 .sttiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
 .sttile{background:var(--bg2);border:1px solid var(--line);border-radius:calc(12px * var(--rk,1));padding:12px 14px}
 .sttile span{display:block;font-size:12px;color:var(--muted)}
@@ -5609,7 +5622,7 @@ document.addEventListener('click', e => {
   renderSide(); render(); scrollTo(0, 0);
 });
 /* ---------- Dashboard: library totals, server activity (last 14 days) and downloads from the Radarr / Sonarr queue ---------- */
-const DASH = {libs:null, libAt:0, libBusy:false, q:{radarr:null, sonarr:null}, qErr:{}, qAt:0, qBusy:false, timer:null};
+const DASH = {libs:null, libAt:0, libBusy:false, q:{radarr:null, sonarr:null}, qErr:{}, qAt:0, qBusy:false, timer:null, ask:null, opt:{client:true, block:false}, rmBusy:false, gone:new Set()};
 const DASH_DAYS = 14;
 /* the most streams at once that YAMZ has seen (it can only count while YAMZ is open somewhere), kept per day for the 14-day figure */
 function peakNote(n){
@@ -5647,7 +5660,7 @@ async function dashQueueLoad(){
     if(!arrOn(svc)){ DASH.q[svc] = null; return; }
     try{
       const r = await arrReq(svc, '/api/v3/queue', {params:{page:1, pageSize:100, sortKey:'timeleft', sortDirection:'ascending', ...(svc === 'radarr' ? {includeMovie:true} : {includeSeries:true, includeEpisode:true})}});
-      DASH.q[svc] = (r?.records || []).map(x => dashQItem(svc, x)); DASH.qErr[svc] = null;
+      DASH.q[svc] = (r?.records || []).map(x => dashQItem(svc, x)).filter(it => !DASH.gone.has(svc + ':' + it.id)); DASH.qErr[svc] = null;
     }catch(e){ DASH.qErr[svc] = e.message; }
   }));
   DASH.qAt = Date.now(); DASH.qBusy = false;
@@ -5671,16 +5684,56 @@ function dashQueueHTML(){
   const errs = svcs.filter(s => DASH.qErr[s]).map(s => `<p class="err">${esc(DASH.qErr[s])}</p>`).join('');
   if(!items.length) return errs + (svcs.some(s => DASH.q[s] === null && !DASH.qErr[s]) ? `<div class="loading"><div class="spin"></div>Checking the queue…</div>` : `<p class="gpnote">Nothing downloading right now.</p>`);
   const down = items.filter(x => x.label === 'Downloading'), leftB = items.reduce((a, x) => a + x.left, 0);
-  return errs + `<p class="dqsum"><b>${down.length}</b> downloading · <b>${items.length - down.length}</b> other${items.length - down.length === 1 ? '' : 's'} in the queue · ${fmtBytes(leftB) || '0 MB'} to go</p>
-    <div class="dqlist">${items.slice(0, 30).map(it => `<div class="dqrow ${it.warn ? 'warn' : ''}" title="${esc([it.client, it.proto, it.q, it.msg].filter(Boolean).join(' · '))}">
+  const stuck = items.filter(x => x.warn), MAXR = 30, shown = items.slice(0, MAXR);
+  const ask = (key, what, n, svcs) => DASH.ask !== key ? '' : `<div class="dqask" role="group" aria-label="Confirm removal">
+      <b>${esc(what)}</b>
+      <label class="tog"><input type="checkbox" data-dqopt="client" ${DASH.opt.client ? 'checked' : ''}> Also remove ${n === 1 ? 'it' : 'them'} from the download client and delete the downloaded files</label>
+      <label class="tog"><input type="checkbox" data-dqopt="block" ${DASH.opt.block ? 'checked' : ''}> Blocklist ${n === 1 ? 'this release' : 'these releases'} so ${svcs} won't grab ${n === 1 ? 'it' : 'them'} again (${svcs} may then look for another)</label>
+      <div class="dqbtns"><button class="btn danger" data-dqgo="${esc(key)}" ${DASH.rmBusy ? 'disabled' : ''}>${DASH.rmBusy ? 'Removing…' : n === 1 ? 'Remove' : `Remove ${n}`}</button><button class="btn" data-dqno>Cancel</button></div></div>`;
+  const svcName = list => uniq(list.map(x => ARR_DEF[x.svc].name)).join(' and ');
+  return errs + `<div class="dqhead"><p class="dqsum"><b>${down.length}</b> downloading · <b>${items.length - down.length}</b> other${items.length - down.length === 1 ? '' : 's'} in the queue${leftB ? ` · ${fmtBytes(leftB)} to go` : ''}</p>
+      ${stuck.length >= 2 ? `<button class="linkbtn dqclear" data-dqask="stuck">Remove ${stuck.length} stuck</button>` : ''}</div>
+    ${ask('stuck', `Remove all ${stuck.length} stuck downloads from ${svcName(stuck)}?`, stuck.length, svcName(stuck))}
+    <div class="dqlist">${shown.map(it => `<div class="dqitem"><div class="dqrow ${it.warn ? 'warn' : ''}" title="${esc([it.client, it.proto, it.q, it.msg].filter(Boolean).join(' · '))}">
       <div class="npposter dqposter" style="${it.img ? `background-image:url('${esc(px(it.img))}')` : `background:linear-gradient(160deg,hsl(${hue(it.t)} 45% 26%),hsl(${(hue(it.t)+40)%360} 50% 10%))`}"></div>
       <div class="dqmain"><div class="dqtop"><b>${esc(it.t)}${it.y && !it.sub ? ` <small>${it.y}</small>` : ''}</b><span class="dqst ${it.warn ? 'bad' : it.label === 'Downloading' ? 'on' : ''}">${esc(it.label)}</span></div>
         ${it.sub ? `<div class="dqsub">${esc(it.sub)}</div>` : ''}
         <div class="dqbar"><i style="width:${it.pct.toFixed(1)}%"></i></div>
-        <div class="dqmeta"><span>${Math.round(it.pct)}%${it.size ? ` of ${fmtBytes(it.size)}` : ''}</span><span>${esc(dashLeft(it))}</span><span>${esc(it.client || ARR_DEF[it.svc].name)}</span>${it.msg ? `<span class="dqmsg">${esc(it.msg)}</span>` : ''}</div></div></div>`).join('')}</div>
-    ${items.length > 30 ? `<p class="gpnote">And ${items.length - 30} more.</p>` : ''}`;
+        <div class="dqmeta"><span>${Math.round(it.pct)}%${it.size ? ` of ${fmtBytes(it.size)}` : ''}</span><span>${esc(dashLeft(it))}</span><span>${esc(it.client || ARR_DEF[it.svc].name)}</span>${it.msg ? `<span class="dqmsg">${esc(it.msg)}</span>` : ''}</div></div>
+      <button class="dqx" data-dqask="${it.svc}:${it.id}" title="Remove from ${ARR_DEF[it.svc].name}'s queue" aria-label="Remove ${esc(it.t)} from the queue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      ${ask(it.svc + ':' + it.id, `Remove “${it.t}${it.sub ? ' ' + it.sub.split(' · ')[0] : ''}” from ${ARR_DEF[it.svc].name}'s queue?`, 1, ARR_DEF[it.svc].name)}</div>`).join('')}</div>
+    ${items.length > MAXR ? `<p class="gpnote">And ${items.length - MAXR} more.</p>` : ''}`;
 }
 function dashQueueRender(){ const el = $('#dashQ'); if(el) el.innerHTML = dashQueueHTML(); }
+/* remove from the queue through Radarr's / Sonarr's documented API: DELETE /api/v3/queue/{id} or /api/v3/queue/bulk */
+async function dashRemove(key){
+  const all = ['radarr', 'sonarr'].flatMap(s => DASH.q[s] || []);
+  const list = key === 'stuck' ? all.filter(x => x.warn) : all.filter(x => x.svc + ':' + x.id === key);
+  if(!list.length){ DASH.ask = null; return dashQueueRender(); }
+  DASH.rmBusy = true; dashQueueRender();
+  const params = {removeFromClient:DASH.opt.client, blocklist:DASH.opt.block, skipRedownload:false};
+  let ok = 0, fail = [];
+  for(const svc of ['radarr', 'sonarr']){
+    const ids = list.filter(x => x.svc === svc).map(x => x.id); if(!ids.length) continue;
+    try{
+      if(ids.length === 1) await arrReq(svc, `/api/v3/queue/${ids[0]}`, {method:'DELETE', params});
+      else await arrReq(svc, '/api/v3/queue/bulk', {method:'DELETE', params, body:{ids}});
+      ids.forEach(id => DASH.gone.add(svc + ':' + id)); ok += ids.length;
+      DASH.q[svc] = (DASH.q[svc] || []).filter(x => !ids.includes(x.id));
+    }catch(e){ fail.push(e.message); }
+  }
+  DASH.rmBusy = false; DASH.ask = null; dashQueueRender();
+  if(ok) toast(`✓ Removed ${ok === 1 ? `“${list[0].t}”` : ok + ' downloads'} from the queue${DASH.opt.client ? ' and the download client' : ''}${DASH.opt.block ? ', and blocklisted' : ''}.`);
+  if(fail.length) toast(fail[0]);
+  setTimeout(() => { DASH.gone.clear(); dashQueueLoad(); }, 4000);
+}
+document.addEventListener('click', e => {
+  if(state.s !== 'dash') return;
+  const a = e.target.closest('[data-dqask]'); if(a){ DASH.ask = DASH.ask === a.dataset.dqask ? null : a.dataset.dqask; dashQueueRender(); return; }
+  if(e.target.closest('[data-dqno]')){ DASH.ask = null; dashQueueRender(); return; }
+  const g = e.target.closest('[data-dqgo]'); if(g && !DASH.rmBusy) dashRemove(g.dataset.dqgo);
+});
+document.addEventListener('change', e => { const o = e.target.closest?.('[data-dqopt]'); if(o) DASH.opt[o.dataset.dqopt] = o.checked; });
 function dashTick(){
   clearTimeout(DASH.timer);
   if(state.s !== 'dash') return;
