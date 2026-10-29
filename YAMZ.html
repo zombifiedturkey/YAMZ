@@ -408,6 +408,12 @@ button.dastat:hover b{text-decoration:underline}
 .fysec h3{margin:0;font-size:17px}
 .fysec h3 em{font-style:normal;color:var(--accent-t)}
 .fysub{margin:2px 0 10px;color:var(--muted);font-size:12.5px}
+.xhead{margin:0 0 12px;font-size:15px;font-weight:700;letter-spacing:.01em}
+.xhead small{font-weight:500;font-size:12.5px;color:var(--muted);margin-left:6px}
+#xres{margin-top:30px}
+#xres .dgrid{margin-bottom:30px}
+#xres .loading{padding:30px 0}
+.xnone{margin-top:8px}
 .loading.fymore{padding:18px 0}
 .fyhead{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin:10px 0 8px}
 .fyscroll{position:relative}
@@ -1216,7 +1222,9 @@ body > header > *{--rk:var(--rk-panel,1)}   /* the bar's buttons, tabs and searc
         <option value="old">Oldest first</option>
       </select>
     </div>
+    <h3 class="xhead" id="libHead" hidden>In your library</h3>
     <div class="grid" id="grid"></div>
+    <div id="xres" hidden></div>
   </main>
 </div>
 
@@ -1826,6 +1834,7 @@ function cardHTML(d, showCat){
 let io;
 function render(){
   $('#gdock').hidden = true; gfloatSet(false);
+  if(!state.q.trim()){ $('#libHead').hidden = true; $('#xres').hidden = true; }
   $('#grid').className = 'grid'; $('#sort').style.display = ''; $('#attnBtn').style.display = 'none';
   if(state.s==='calendar') return renderCalendar();
   if(state.s==='activity') return renderActivity();
@@ -1845,10 +1854,12 @@ function render(){
   const list = visible();
   const q = state.q.trim();
   $('#title').textContent = q ? `“${q}”` : (state.c==='All' ? (state.s==='tv'?'All TV':'All Movies') : state.c);
-  $('#count').textContent = `${list.length} title${list.length===1?'':'s'}`;
+  $('#count').textContent = q ? `${list.length} in your library` : `${list.length} title${list.length===1?'':'s'}`;
   if(!q) $('#count').insertAdjacentHTML('beforeend', mediaNoteHTML());
   updateAttn();
-  $('#grid').innerHTML = list.length ? list.map(d => cardHTML(d, !!q)).join('') : `<div class="empty">Nothing matches that.</div>`;
+  $('#libHead').hidden = !q; $('#libHead').textContent = list.length ? 'In your library' : 'Nothing in your library matches';
+  $('#grid').innerHTML = list.length ? list.map(d => cardHTML(d, !!q)).join('') : q ? '' : `<div class="empty">Nothing matches that.</div>`;
+  if(q) xSearch(q);
   io?.disconnect();
   io = new IntersectionObserver(es => es.forEach(e => {
     if(!e.isIntersecting) return;
@@ -2509,7 +2520,7 @@ const missPeople = (D, c) => (c === 'Directors' ? D?.directors : D?.actors) || [
 const missDefault = () => MISS.kind === 'tv' ? 'Incomplete shows' : 'Collections';
 function renderMissingSide(){
   const D = MISS.data, tv = MISS.kind === 'tv';
-  if(state.c !== MAN_C && !missCats().includes(state.c)) state.c = missDefault();
+  if(!missCats().includes(state.c)) state.c = missDefault();
   const nA = D ? D.actors.filter(a => (MISS.kids ? a.all : a.adult) >= 4).length : 0;
   const nD = D?.directors ? D.directors.filter(a => (MISS.kids ? a.all : a.adult) >= 3 && a.miss > 0).length : '–';
   const rows = TV.res ? tvList() : null;
@@ -2527,7 +2538,7 @@ function renderMissingSide(){
     : `${D ? `Last analysed ${new Date(D.at).toLocaleDateString()}<br>${D.matched} of ${D.total} movies matched on Wikidata.` : 'Not analysed yet.'}
       <button class="btn" data-act="scan" ${MISS.running?'disabled':''}>${MISS.running ? 'Analysing…' : D ? '↻ Re-analyse' : 'Analyse collection'}</button>`;
   $('#side').innerHTML = `<h4>${MISS_TITLE}</h4>
-    <button class="cat mansrch ${state.c===MAN_C?'on':''}" data-c="${MAN_C}"><b class="catlbl"><i class="catico">${SRCH_ICO}</i>${MAN_C}</b></button>
+
     <div class="side-div" role="separator"></div>
     <h5 class="side-sub">${tv ? 'Check your shows' : 'Find the gaps'}</h5>` +
     missCats().map(c => `<button class="cat ${state.c===c?'on':''}" data-c="${c}">${c}<span>${counts[c]}</span></button>`).join('') +
@@ -2613,7 +2624,7 @@ document.addEventListener('input', e => { if(e.target.id !== 'wfilter') return; 
 function renderMissing(){
   $('#grid').className = 'mview'; $('#sort').style.display = 'none'; $('#progress').textContent = '';
   const D = MISS.data, g = $('#grid');
-  if(state.c===MAN_C) return renderManual();
+  if(state.c===MAN_C) state.c = missDefault();
   if(state.c===WAIT_C[MISS.kind]) return renderWaiting();
   if(TV_CATS.includes(state.c)) return renderTvMissing();
   if(MISS.running){
@@ -2734,16 +2745,45 @@ function renderManRes(){
   $('#count').textContent = `${items.length} result${items.length === 1 ? '' : 's'}`;
   if(!items.length){ r.innerHTML = `<div class="empty">No ${what} found for “${esc(MAN.q)}”. Try a different spelling, or switch to ${MAN.kind === 'movie' ? 'TV' : 'Movies'} at the top of the menu.</div>`; return; }
   const LS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z"/><path class="pl" d="M12 7.5v6M9 10.5h6"/></svg>';
-  r.innerHTML = `<div class="dgrid">${items.map(x => {
-    DMAP.set(x.q, x); const h = hue(x.t), p = x.img || PP[x.art], listed = inAnyList('w:'+x.q), soon = x.date && x.date > today;
+  r.innerHTML = `<div class="dgrid">${items.map(x => manCardHTML(x, today)).join('')}</div>`;
+  loadPosters(r, '.dcard');
+}
+/* a search result you don't own (yet): poster, release date, and add to list / Plex Watchlist / Radarr / Sonarr */
+function manCardHTML(x, today = isoDay(new Date())){
+  const LS = LS_ICO;
+  { DMAP.set(x.q, x); const h = hue(x.t), p = x.img || PP[x.art], listed = inAnyList('w:'+x.q), soon = x.date && x.date > today;
     const badge = x.have ? `<div class="badge have">✓ In library</div>` : soon ? `<div class="badge date">${esc(fmtWhen(x.date))}</div>` : '';
     return `<button class="dcard" data-q="${x.q}" data-art="${esc(x.art)}"><div class="poster">
       <div class="ph" style="background:linear-gradient(160deg,hsl(${h} 45% 26%),hsl(${(h+40)%360} 50% 10%))">${esc(x.t)}${x.y?`<em>${x.y}</em>`:''}</div>
       ${p ? `<img class="ld" src="${esc(p)}" alt="">` : ''}${badge}
       <span class="lbtn ${listed?'in':''}" role="button" tabindex="0" data-adddisc="${x.q}" title="Add to a list">${LS}</span>
       ${x.have ? '' : (pb => pb + arrBtn({t:x.t, y:x.y, s:x.s, q:x.q}, pb ? 2 : 1, `data-pwq="d:${x.q}"`))(pwBtn({t:x.t, y:x.y, s:x.s}, `data-pwq="d:${x.q}"`))}</div>
-      <div class="ct">${esc(x.t)}</div><div class="cy">${soon ? esc(fmtWhen(x.date)) : x.y || '&nbsp;'}${x.have ? ' · <b class="own-t">Owned</b>' : ''}</div></button>`; }).join('')}</div>`;
-  loadPosters(r, '.dcard');
+      <div class="ct">${esc(x.t)}</div><div class="cy">${soon ? esc(fmtWhen(x.date)) : x.y || '&nbsp;'}${x.have ? ' · <b class="own-t">Owned</b>' : ''}</div></button>`; }
+}
+/* top bar search: your library first, then everything else that matches (movies and TV) so it can be added */
+const XS = {q:'', res:{}, busy:false, err:null, t:null, seq:0};
+function xSearch(q){
+  const box = $('#xres'); box.hidden = false;
+  if(q.length < 2){ box.innerHTML = ''; return; }
+  if(XS.q === q && !XS.busy){ xPaint(); return; }
+  XS.q = q; XS.res = {}; XS.err = null; XS.busy = true; xPaint();
+  clearTimeout(XS.t); const my = ++XS.seq;
+  XS.t = setTimeout(async () => {
+    await Promise.all(['movie', 'tv'].map(async kind => { try{ const r = await manSearch(q, kind); if(my === XS.seq) XS.res[kind] = r; }catch(e){ if(my === XS.seq) XS.err = e; } }));
+    if(my !== XS.seq) return; XS.busy = false; if(state.q.trim() === q) xPaint();
+  }, 450);
+}
+function xPaint(){
+  const box = $('#xres'); if(!box || !state.q.trim()) return;
+  if(XS.busy){ box.innerHTML = `<div class="loading"><div class="spin"></div>Looking for more “${esc(XS.q)}” to add…</div>`; return; }
+  const today = isoDay(new Date());
+  const sec = (kind, label) => { const own = ownedTest(kind), list = (XS.res[kind] || []).filter(x => !own(x)).slice(0, 24);
+    return list.length ? `<h3 class="xhead">${label} <small>not in your library</small></h3><div class="dgrid">${list.map(x => manCardHTML({...x, have:false}, today)).join('')}</div>` : ''; };
+  const html = sec('movie', 'Movies') + sec('tv', 'TV shows');
+  box.innerHTML = html || (XS.err ? `<p class="err">Couldn't search beyond your library${XS.err.net ? ` (couldn't reach ${esc(XS.err.host)})` : ''}. Try again in a moment.</p>` : `<p class="gpnote xnone">Nothing else found for “${esc(XS.q)}”.</p>`);
+  const n = ['movie', 'tv'].reduce((a, k) => a + (XS.res[k] || []).filter(x => !ownedTest(k)(x)).length, 0);
+  const c = $('#count'); if(c && n) c.textContent = c.textContent.replace(/ · \d+ more to add$/, '') + ` · ${n} more to add`;
+  loadPosters(box, '.dcard');
 }
 document.addEventListener('submit', e => { if(e.target.id !== 'manForm') return; e.preventDefault(); MAN.q = $('#manQ').value; manGo(); });
 document.addEventListener('click', e => {
@@ -5266,14 +5306,14 @@ function headKind(){
   const on = ['movie', 'tv', 'missing', 'discover', 'calendar'].includes(state.s) && !(state.q || '').trim();
   $('#kindSeg').hidden = !on;
   $('#kindSeg').querySelectorAll('button').forEach(b => { const a = b.dataset.kind === KIND; b.classList.toggle('on', a); b.setAttribute('aria-pressed', a); });
-  document.documentElement.toggleAttribute('data-noside', state.s === 'movie' || state.s === 'tv' || (state.s === 'dash' && !(state.q || '').trim()));
+  document.documentElement.toggleAttribute('data-noside', state.s === 'movie' || state.s === 'tv' || state.s === 'dash' || !!(state.q || '').trim());   // search results use the full width
   document.documentElement.toggleAttribute('data-dash', state.s === 'dash' && !(state.q || '').trim());
 }
 $('#kindSeg').onclick = e => {
   const b = e.target.closest('[data-kind]'); if(!b || b.dataset.kind === KIND) return;
   KIND = b.dataset.kind; kindSync();
   if(state.s === 'movie' || state.s === 'tv'){ state.s = KIND; state.c = 'All'; }
-  else if(state.s === 'missing'){ if(state.c === MAN_C){ MAN.items = null; if(MAN.q.trim()) manGo(); } else state.c = missDefault(); MISS.filter = ''; }
+  else if(state.s === 'missing'){ state.c = missDefault(); MISS.filter = ''; }
   else if(state.s === 'discover') loadDiscover();
   renderSide(); render(); scrollTo(0, 0);
 };
@@ -5289,6 +5329,7 @@ $('#q').addEventListener('keydown', e => { if(e.key === 'Escape'){ if($('#q').va
 document.addEventListener('keydown', e => { if(e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey || e.target.closest('input,textarea,select,[contenteditable]') || document.querySelector('.ov.open')) return; e.preventDefault(); $('#q').focus(); });
 let qt; $('#q').oninput = e => { clearTimeout(qt); qt = setTimeout(() => { state.q = e.target.value; renderSide(); render(); }, 180); };
 $('#sort').onchange = e => { state.sort = e.target.value; render(); };
+$('#xres').addEventListener('click', e => $('#grid').onclick?.(e));   // search results beyond the library behave like Discover cards
 $('#attnBtn').onclick = () => { state.attn = !state.attn; render(); scrollTo(0,0); };
 $('#grid').onclick = e => {
   const dl = e.target.closest('[data-adddisc]'); if(dl){ e.stopPropagation(); const x = DMAP.get(dl.dataset.adddisc); if(x) openListPop(dl, itemOf(synth(x))); return; }

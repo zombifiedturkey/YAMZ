@@ -20,7 +20,7 @@ const args = new Set(process.argv.slice(2));
 const OBS = args.has('--obs'), WATCH = args.has('--watch');
 const W = 1920, H = 1080;
 const OUT = path.resolve('output');
-const SEARCH_TERM = process.env.YAMZ_SEARCH || 'Alien';     // typed into Gaps → Search & add
+const SEARCH_TERM = process.env.YAMZ_SEARCH || 'Alien';     // typed into the top bar search
 const GENRE = process.env.YAMZ_GENRE || 'Horror';           // used for Discover
 const DECADE = process.env.YAMZ_DECADE || '1980s';
 
@@ -262,11 +262,12 @@ if(pickShow){
 await card('Gaps', 'Find what’s missing, then fill it', 1900);
 await click('#tabs button[data-s="missing"]', {post:1300});
 await tryClick('#kindSeg [data-kind="movie"]', {post:600});
-await click('#side .mansrch', {post:900});
-await cap('Search & add', 'Look up any movie or show and send it to a list, your Plex Watchlist, Radarr or Sonarr.', 600);
-await type('#manQ', SEARCH_TERM, 90); await page.keyboard.press('Enter'); await wait(2600);
-const res = page.locator('#manRes .dcard');
+await click('.search', {post:400});
+await cap('Search', 'Search shows what you own first, then anything else to send to a list, your Plex Watchlist, Radarr or Sonarr.', 600);
+await type('#q', SEARCH_TERM, 90); await wait(3200);
+const res = page.locator('#xres .dcard');
 for(const i of [0, 1, 2]){ if(await res.nth(i).count()){ await to(res.nth(i).locator('.poster')); await wait(800); } }
+await page.locator('#q').press('Escape'); await wait(800);
 if(info.analysed){
   await click('#side .cat[data-c="Collections"]', {post:1500});
   await cap('Collections', 'Franchises you own part of, with the films you’re missing up front.', 1800);

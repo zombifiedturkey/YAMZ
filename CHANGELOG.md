@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+**Search**
+- The search in the top bar now finds everything: titles in your library come first under **In your library**, then any other **movies** and **TV shows** that match, each ready to add to a list, your Plex Watchlist, Radarr or Sonarr, or open for details. It uses TMDB when you have a key, otherwise Wikipedia and Wikidata.
+- Gaps → **Search & add** is gone, since the top bar search now does the same job from anywhere.
+- The side menu hides while search results are showing, so they get the full width.
+
 ## 1.3.0 — 29 October 2026
 
 A new Dashboard, Radarr and Sonarr at a glance, TV gaps that match Sonarr, and your own name and icon.
