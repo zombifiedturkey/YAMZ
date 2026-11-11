@@ -84,8 +84,8 @@ const TVS = [
   ['The Walking Dead', 2010, ['Horror', 'Drama'], [6, 13, 16], [[1, 6], [2, 13]]]
 ];
 const ADDED = i => Math.floor(Date.now() / 1000) - (12 + (i * 137) % 1900) * 86400;   // spread over ~5 years
-const PLEXMOV = MOV.map(([t, y, g, rt, imdb], i) => ({ratingKey:String(1000 + i), addedAt:ADDED(i), Media:[{Part:[{size:(3 + (i * 7) % 28) * 1.07e9}]}], title:t, year:y, thumb:`/library/metadata/${1000 + i}/thumb/1`, Genre:g.map(tag => ({tag})), Guid:[{id:`imdb://tt${9000000 + i}`}], rating:rt / 10, ratingImage:'rottentomatoes://image.rating.ripe', audienceRating:imdb, audienceRatingImage:'imdb://image.rating'}));
-const PLEXTV = TVS.map(([t, y, g], i) => ({ratingKey:String(2000 + i), addedAt:ADDED(i + 40), leafCount:20 + i * 6, title:t, year:y, thumb:`/library/metadata/${2000 + i}/thumb/1`, Genre:g.map(tag => ({tag})), Guid:[{id:`tvdb://${70000 + i}`}]}));
+const PLEXMOV = MOV.map(([t, y, g, rt, imdb], i) => ({ratingKey:String(1000 + i), addedAt:ADDED(i), Media:[{Part:[{size:(3 + (i * 7) % 28) * 1.07e9, file:`/data/media/movies/${t.replace(/:/g, '')} (${y})/${t.replace(/:/g, '')} (${y}) ${['Bluray-1080p', 'WEBDL-1080p', 'Remux-2160p'][i % 3]}.mkv`}]}], title:t, year:y, thumb:`/library/metadata/${1000 + i}/thumb/1`, Genre:g.map(tag => ({tag})), Guid:[{id:`imdb://tt${9000000 + i}`}, ...(i < 20 ? [{id:`tmdb://${100 + i}`}] : [])], rating:rt / 10, ratingImage:'rottentomatoes://image.rating.ripe', audienceRating:imdb, audienceRatingImage:'imdb://image.rating'}));
+const PLEXTV = TVS.map(([t, y, g], i) => ({ratingKey:String(2000 + i), addedAt:ADDED(i + 40), leafCount:20 + i * 6, Location:[{path:`/data/media/tv/${t}`}], title:t, year:y, thumb:`/library/metadata/${2000 + i}/thumb/1`, Genre:g.map(tag => ({tag})), Guid:[{id:`tvdb://${70000 + i}`}]}));
 const PLEXEPS = TVS.flatMap(([t, y, g, all, own], i) => own.flatMap(([s, n]) => Array.from({length:n}, (_, k) => ({grandparentRatingKey:String(2000 + i), parentIndex:s, index:k + 1}))));
 const TITLE_BY_KEY = Object.fromEntries([...PLEXMOV, ...PLEXTV].map(m => [m.ratingKey, [m.title, m.year]]));
 const WL = [['RoboCop', 1987, '5d1'], ['Escape from New York', 1981, '5d2'], ['The Fog', 1980, '5d3'], ['Severance', 2022, '5d4', 'show']];
@@ -196,13 +196,14 @@ async function arr(svc, u, req){
   if(P === '/api/v3/rootfolder') return J([{id:1, path:svc === 'radarr' ? '/data/media/movies' : '/data/media/tv', freeSpace:6.8e12, accessible:true}]);
   if(P === '/api/v3/tag') return J([{id:2, label:'horror'}, {id:3, label:'4k'}]);
   if(/^\/api\/v3\/movie\/\d+$/.test(P) && m === 'GET'){ const id = +P.split('/').pop(); const all = await (await arr(svc, new URL(u.origin + '/api/v3/movie?apikey=' + ARR_KEY), new Request(u.origin + '/api/v3/movie?apikey=' + ARR_KEY))).json(); const one = all.find(x => x.id === id); return one ? J(one) : J({message:'NotFound'}, 404); }
+  if(/^\/api\/v3\/(movie|series)\/\d+$/.test(P) && m === 'DELETE'){ QGONE.add(svc + ':m' + P.split('/').pop()); return new Response('', {status:200, headers:{'Access-Control-Allow-Origin':'*'}}); }
   if(P === '/api/v3/movie' && m === 'GET'){
     const img = (t, y) => [{coverType:'poster', remoteUrl:P_(t, y)}], D = n => daysFromNow(n) + 'T00:00:00Z';
     const wanted = [['Mad Max 2', 1981, -9000, 'released'], ['Furiosa: A Mad Max Saga', 2024, -800, 'released'], ['Evil Dead Rise', 2023, -1200, 'released'], ['Army of Darkness', 1992, -12000, 'released'],
       ['Bone Orchard', null, -18, 'released'], ['The Hollow Hour', null, 37, 'inCinemas'], ['Grave Shift', null, 58, 'announced'], ['Night Feeders', null, 107, 'announced']]
       .map(([t, y, n, st], i) => ({id:200 + i, title:t, year:y || +daysFromNow(n).slice(0, 4), tmdbId:3000 + i, titleSlug:slug(t), hasFile:false, monitored:true, status:st, isAvailable:n <= 0,
         inCinemas:D(n), digitalRelease:D(n + 40), physicalRelease:D(n + 80), images:img(t, y || +daysFromNow(n).slice(0, 4)), added:D(-i * 3)}));
-    return J([...MOV.slice(0, 20).map(([t, y], i) => ({id:i + 1, title:t, year:y, tmdbId:100 + i, titleSlug:slug(t), hasFile:true, monitored:true, isAvailable:true, sizeOnDisk:(4 + (i * 7) % 30) * 1e9})), ...wanted, ...ARRADD.radarr.map(x => ({...x, hasFile:false}))]);
+    return J([...MOV.slice(0, 20).filter((_, i) => !QGONE.has('radarr:m' + (i + 1))).map(([t, y], i) => ({id:i + 1, title:t, year:y, tmdbId:100 + i, path:`/movies/${t.replace(/:/g, '')} (${y})`, titleSlug:slug(t), hasFile:true, monitored:true, isAvailable:true, sizeOnDisk:(4 + (i * 7) % 30) * 1e9})), ...wanted, ...ARRADD.radarr.map(x => ({...x, hasFile:false}))]);
   }
   if(P === '/api/v3/series' && m === 'GET'){
     const img = (t, y) => [{coverType:'poster', remoteUrl:P_(t, y)}];
@@ -356,6 +357,7 @@ async function outside(url, req){
   if(h === 'img.demo') return images(u);
   if(h === 'plex.tv') return plexTv(u);
   if(h === 'discover.provider.plex.tv' || h === 'metadata.provider.plex.tv') return plexDiscover(u, req);
+  if(u.host === '192.168.1.20:32400' && req.method === 'DELETE') return new Response('', {status:200, headers:{'Access-Control-Allow-Origin':'*'}});   // Plex "Allow media deletion" is on in the demo
   if(u.host === '192.168.1.20:32400') return plexServer(u);
   if(u.host === '192.168.1.20:7878') return arr('radarr', u, req);
   if(u.host === '192.168.1.20:8989') return arr('sonarr', u, req);

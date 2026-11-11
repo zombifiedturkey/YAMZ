@@ -322,6 +322,30 @@ button.dastat:hover b{text-decoration:underline}
 .uwc b{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .uwc small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .uwc small.uwd{color:var(--dim)}
+.uwlist{display:flex;flex-direction:column;gap:2px}
+.uwitem{border-radius:calc(10px * var(--rk,1));transition:background .15s}
+.uwitem:hover,.uwitem.open{background:var(--bg2)}
+.uwrow{display:flex;align-items:center;gap:14px;padding:8px 10px}
+.uwthumb{flex:none;width:46px;height:69px;border:0;padding:0;border-radius:calc(var(--pr) * .6);overflow:hidden;position:relative;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.3)}
+.uwthumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.uwinfo{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.uwt{display:flex;align-items:baseline;gap:8px;min-width:0}
+.uwt .linkbtn{padding:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+.uwt b{font-size:14.5px;font-weight:600}
+.uwt small{color:var(--muted);font-size:12.5px}
+.uwsrc{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:1px 7px;border-radius:var(--rp,999px);background:var(--bg3);color:var(--muted);flex:none}
+.uwsrc.radarr{background:rgba(255,194,48,.16);color:#ffc230} .uwsrc.sonarr{background:rgba(53,197,244,.16);color:#35c5f4} .uwsrc.man{background:rgba(199,67,47,.14);color:var(--bad-t)}
+.uwmeta{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:12px;color:var(--muted)}
+.uwfile{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:rtl;text-align:left}
+.uwage{flex:none;font-size:12px;font-weight:700;padding:3px 9px;border-radius:var(--rp,999px);background:var(--bg3);color:var(--text2);white-space:nowrap}
+.uwage.mid{background:rgba(214,140,30,.2);color:#e8a23a} .uwage.old{background:rgba(199,67,47,.2);color:var(--bad-t)}
+.uwsize{flex:none;width:72px;text-align:right;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.uwdel{opacity:.55}
+.uwitem:hover .uwdel,.uwitem.open .uwdel{opacity:1}
+.uwask{margin:0 10px 10px auto;width:fit-content;max-width:min(620px,calc(100% - 20px));padding:12px 14px;border:1px solid rgba(199,67,47,.35);background:rgba(199,67,47,.07);border-radius:calc(10px * var(--rk,1));display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:8px;font-size:13px}
+.uwask .tog{flex-direction:row-reverse;font-size:13px}
+.uwask small{color:var(--muted);font-size:12px;max-width:640px}
+@media (max-width:700px){ .uwage{display:none} .uwsize{width:auto} .uwask{margin-left:10px} }
 .dhead{margin:0 0 12px;font-size:20px;font-weight:700;letter-spacing:-.01em}
 .dhead small{font-size:13px;font-weight:500;color:var(--muted);margin-left:6px}
 .sttile small{display:block;font-size:11.5px;color:var(--dim);margin-top:2px}
@@ -6216,8 +6240,8 @@ function renderDash(){
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && state.s === 'dash') dashTick(); });
 /* ---------- Unwatched: never watched (and for how long it's been on the server), or not watched for a while ---------- */
 const UW = {items:null, busy:null, at:0, err:null};
-const UWV = Object.assign({mode:'never', age:'0', since:'365', sort:'old', show:120}, store.get('zn:uw') || {}); UWV.show = 120;
-const uwSave = () => store.set('zn:uw', {mode:UWV.mode, age:UWV.age, since:UWV.since, sort:UWV.sort});
+const UWV = Object.assign({mode:'never', age:'0', since:'365', sort:'old', show:120, lib:'all', view:'grid'}, store.get('zn:uw') || {}); UWV.show = 120;
+const uwSave = () => store.set('zn:uw', {mode:UWV.mode, age:UWV.age, since:UWV.since, sort:UWV.sort, lib:UWV.lib, view:UWV.view});
 const DAY = 864e5;
 function uwAge(ms){
   const d = Math.max(0, Math.floor(ms / DAY));
@@ -6236,16 +6260,19 @@ async function uwLoad(force){
         const tv = L.kind !== 'movie';
         try{
           if(s.type === 'jellyfin'){
-            const r = await JF.get(s, '/Items', {ParentId:L.key, Recursive:true, IncludeItemTypes:tv ? 'Series' : 'Movie', Fields:'DateCreated,MediaSources,RecursiveItemCount', userId:s.user || '', EnableImages:false}, 60000);
-            (r.Items || []).forEach(it => out.push({key:s.id + ':' + it.Id, kind:tv ? 'tv' : 'movie', t:it.Name, y:it.ProductionYear || null, lib:L.name,
+            const r = await JF.get(s, '/Items', {ParentId:L.key, Recursive:true, IncludeItemTypes:tv ? 'Series' : 'Movie', Fields:'DateCreated,MediaSources,RecursiveItemCount,Path,ProviderIds', userId:s.user || '', EnableImages:false}, 60000);
+            (r.Items || []).forEach(it => out.push({key:s.id + ':' + it.Id, kind:tv ? 'tv' : 'movie', t:it.Name, y:it.ProductionYear || null, lib:L.name, libKey:L.key, srv:s.id, id:it.Id,
+              file:(tv ? it.Path : it.MediaSources?.[0]?.Path || it.Path) || '', ids:{imdb:it.ProviderIds?.Imdb || '', tmdb:it.ProviderIds?.Tmdb || '', tvdb:it.ProviderIds?.Tvdb || ''},
               added:Date.parse(it.DateCreated || '') || 0, last:Date.parse(it.UserData?.LastPlayedDate || '') || 0, plays:+it.UserData?.PlayCount || (it.UserData?.Played ? 1 : 0),
               size:tv ? 0 : +(it.MediaSources?.[0]?.Size || 0), img:JF.img(s, it.Id), eps:tv ? [null, +it.RecursiveItemCount || null] : null}));
           } else {
-            const mc = await PLEX.get(s, `/library/sections/${L.key}/all`, {type:tv ? 2 : 1}, 60000);
-            (mc.Metadata || []).forEach(m => out.push({key:s.id + ':' + m.ratingKey, kind:tv ? 'tv' : 'movie', t:m.title, y:+m.year || null, lib:L.name,
+            const mc = await PLEX.get(s, `/library/sections/${L.key}/all`, {type:tv ? 2 : 1, includeGuids:1}, 60000);
+            (mc.Metadata || []).forEach(m => { const gid = k => ((m.Guid || []).find(g => g.id?.startsWith(k + '://'))?.id || '').slice(k.length + 3);
+              out.push({key:s.id + ':' + m.ratingKey, kind:tv ? 'tv' : 'movie', t:m.title, y:+m.year || null, lib:L.name, libKey:L.key, srv:s.id, id:m.ratingKey,
+              file:tv ? (m.Location?.[0]?.path || '') : (m.Media?.[0]?.Part?.[0]?.file || ''), ids:{imdb:gid('imdb'), tmdb:gid('tmdb'), tvdb:gid('tvdb')},
               added:(+m.addedAt || 0) * 1000, last:(+m.lastViewedAt || 0) * 1000, plays:+m.viewCount || 0,
               size:tv ? 0 : (m.Media || []).reduce((a, md) => a + (md.Part || []).reduce((b, p) => b + (+p.size || 0), 0), 0), img:PLEX.img(s, m.thumb),
-              eps:tv ? [+m.viewedLeafCount || 0, +m.leafCount || null] : null}));
+              eps:tv ? [+m.viewedLeafCount || 0, +m.leafCount || null] : null}); });
           }
         }catch(e){ err = e; }
       }
@@ -6264,21 +6291,25 @@ function uwMerged(){
 const UW_AGE = [['0', 'Any time'], ['30', '1 month+'], ['182', '6 months+'], ['365', '1 year+'], ['730', '2 years+']];
 const UW_SINCE = [['182', '6 months'], ['365', '1 year'], ['730', '2 years'], ['1095', '3 years']];
 function uwList(){
-  const now = Date.now(), kind = KIND, all = uwMerged().filter(x => x.kind === kind);
+  const now = Date.now(), kind = KIND, all = uwMerged().filter(x => x.kind === kind && (UWV.lib === 'all' || x.lib === UWV.lib));
   let list = UWV.mode === 'never' ? all.filter(x => !x.plays && x.added && now - x.added >= +UWV.age * DAY)
     : all.filter(x => x.plays && x.last && now - x.last >= +UWV.since * DAY);
   const by = {old:(a, b) => (UWV.mode === 'never' ? a.added - b.added : a.last - b.last), new:(a, b) => (UWV.mode === 'never' ? b.added - a.added : b.last - a.last),
-    big:(a, b) => b.size - a.size || a.added - b.added, az:(a, b) => sortKey(a.t).localeCompare(sortKey(b.t))}[UWV.sort] || ((a, b) => a.added - b.added);
+    big:(a, b) => b.size - a.size || a.added - b.added, az:(a, b) => sortKey(a.t).localeCompare(sortKey(b.t)), lib:(a, b) => a.lib.localeCompare(b.lib) || sortKey(a.t).localeCompare(sortKey(b.t))}[UWV.sort] || ((a, b) => a.added - b.added);
   return {list:list.sort(by), total:all.length};
 }
 function renderUwSide(){
   const seg = (k, opts) => `<div class="side-seg"><div class="seg hseg uwseg" data-uw="${k}">${opts.map(([v, l]) => `<button data-v="${v}" class="${UWV[k] === v ? 'on' : ''}">${l}</button>`).join('')}</div></div>`;
   const tv = KIND === 'tv';
+  const libs = [...new Set((UW.items || []).filter(x => x.kind === KIND).map(x => x.lib))].sort((a, b) => a.localeCompare(b));
+  if(UWV.lib !== 'all' && UW.items && !libs.includes(UWV.lib)) UWV.lib = 'all';
   $('#side').innerHTML = `${actCats()}
     <h4>Show</h4>${seg('mode', [['never', 'Never'], ['stale', 'Not lately']])}
+    <h4>Library</h4><div class="side-seg"><select data-uwsel="lib" aria-label="Library"><option value="all">All ${tv ? 'TV' : 'movie'} libraries</option>${libs.map(l => `<option ${UWV.lib === l ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></div>
     ${UWV.mode === 'never' ? `<h4>On the server for</h4><div class="side-seg"><select data-uwsel="age" aria-label="On the server for">${UW_AGE.map(([v, l]) => `<option value="${v}" ${UWV.age === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>`
       : `<h4>Not watched in</h4><div class="side-seg"><select data-uwsel="since" aria-label="Not watched in">${UW_SINCE.map(([v, l]) => `<option value="${v}" ${UWV.since === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>`}
-    <h4>Sort</h4><div class="side-seg"><select data-uwsel="sort" aria-label="Sort">${[['old', UWV.mode === 'never' ? 'Oldest added' : 'Longest unwatched'], ['new', UWV.mode === 'never' ? 'Newest added' : 'Most recent'], ...(tv ? [] : [['big', 'Biggest']]), ['az', 'A → Z']].map(([v, l]) => `<option value="${v}" ${UWV.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+    <h4>Sort</h4><div class="side-seg"><select data-uwsel="sort" aria-label="Sort">${[['old', UWV.mode === 'never' ? 'Oldest added' : 'Longest unwatched'], ['new', UWV.mode === 'never' ? 'Newest added' : 'Most recent'], ...(tv ? [] : [['big', 'Biggest']]), ['az', 'A → Z'], ...(libs.length > 1 && UWV.lib === 'all' ? [['lib', 'By library']] : [])].map(([v, l]) => `<option value="${v}" ${UWV.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+    <h4>View</h4>${seg('view', [['grid', 'Posters'], ['list', 'List']])}
     <div class="side-foot">${UWV.mode === 'never' ? `${tv ? 'Shows' : 'Movies'} nobody has played, from everyone's play history and the server owner's watched marks.` : `${tv ? 'Shows' : 'Movies'} that have been watched before, but not by anyone for a while.`}${HIST.approx ? ' Jellyfin only records the last time each title was played.' : ''}
       <button class="btn" data-uwrefresh style="margin-top:10px" ${UW.busy ? 'disabled' : ''}>${UW.busy ? 'Reading…' : '↻ Refresh'}</button></div>`;
 }
@@ -6300,14 +6331,90 @@ function renderUnwatched(){
         <span class="uwbadge ${tone}">${UWV.mode === 'never' ? '' : 'last '}${esc(uwAge(age))}${UWV.mode === 'never' ? '' : ' ago'}</span></div>
       <b>${esc(x.t)}</b><small>${[x.y, x.size ? fmtBytes(x.size) : '', tv && x.eps?.[1] ? `${x.eps[0] || 0}/${x.eps[1]} eps` : ''].filter(Boolean).join(' · ')}</small>
       <small class="uwd">${UWV.mode === 'never' ? `Added ${x.added ? new Date(x.added).toLocaleDateString([], {day:'numeric', month:'short', year:'numeric'}) : '—'}` : `Watched ${x.plays}× · added ${uwAge(now - x.added)} ago`}</small></button>`; };
+  if(UWV.view === 'list'){ uwArrIndex(); g.innerHTML = `<div class="uwlist">${list.slice(0, UWV.show).map(x => uwRowHTML(x, now)).join('')}</div>${list.length > UWV.show ? `<div class="hmore"><button class="btn" data-uwmore>Show ${Math.min(240, list.length - UWV.show)} more</button></div>` : ''}`; return; }
   g.innerHTML = `<div class="uwgrid">${list.slice(0, UWV.show).map(card).join('')}</div>${list.length > UWV.show ? `<div class="hmore"><button class="btn" data-uwmore>Show ${Math.min(240, list.length - UWV.show)} more</button></div>` : ''}`;
+}
+/* which Radarr / Sonarr entry a library title belongs to: by IMDb / TMDB / TheTVDB id, then by folder name */
+const UWA = {radarr:null, sonarr:null, at:0, busy:null};
+const fname = p => String(p || '').split(/[\\/]/).filter(Boolean).pop() || '';
+const dname = p => { const a = String(p || '').split(/[\\/]/).filter(Boolean); return a.length > 1 ? a[a.length - 2] : ''; };
+function uwArrIndex(force){
+  if(UWA.busy || (!force && Date.now() - UWA.at < 5 * 60e3)) return UWA.busy;
+  UWA.busy = (async () => {
+    for(const svc of ['radarr', 'sonarr']){
+      if(!arrOn(svc)){ UWA[svc] = null; continue; }
+      try{ const L = await arrReq(svc, svc === 'radarr' ? '/api/v3/movie' : '/api/v3/series') || [];
+        const by = {imdb:new Map(), tmdb:new Map(), tvdb:new Map(), dir:new Map()};
+        L.forEach(m => { if(m.imdbId) by.imdb.set(String(m.imdbId), m); if(m.tmdbId) by.tmdb.set(String(m.tmdbId), m); if(m.tvdbId) by.tvdb.set(String(m.tvdbId), m); if(m.path) by.dir.set(fold(fname(m.path)), m); });
+        UWA[svc] = by; }catch{ UWA[svc] = null; }
+    }
+    UWA.at = Date.now(); UWA.busy = null;
+    if(state.s === 'activity' && actSec() === 'Unwatched' && UWV.view === 'list') renderUnwatched();
+  })();
+  return UWA.busy;
+}
+function uwArrOf(x){
+  const svc = x.kind === 'movie' ? 'radarr' : 'sonarr', by = UWA[svc]; if(!by) return null;
+  const m = (x.ids?.tmdb && by.tmdb.get(String(x.ids.tmdb))) || (x.ids?.imdb && by.imdb.get(String(x.ids.imdb))) || (x.ids?.tvdb && by.tvdb.get(String(x.ids.tvdb)))
+    || by.dir.get(fold(x.kind === 'movie' ? dname(x.file) : fname(x.file)));
+  return m ? {svc, id:m.id, title:m.title} : null;
+}
+const UWDEL = {key:null, files:true, excl:false, busy:false};
+function uwRowHTML(x, now){
+  const tv = x.kind === 'tv', h = hue(x.t), arr = uwArrOf(x), srv = (LIB.servers || []).find(s => s.id === x.srv), plexish = srv ? SRV(srv).label : 'Plex';
+  const age = UWV.mode === 'never' ? now - x.added : now - x.last, tone = age > 730 * DAY ? 'old' : age > 365 * DAY ? 'mid' : '';
+  const src = arr ? `<span class="uwsrc ${arr.svc}">${ARR_DEF[arr.svc].name}</span>` : (UWA.at ? `<span class="uwsrc man" title="Not found in ${tv ? 'Sonarr' : 'Radarr'}">Added by hand</span>` : `<span class="uwsrc">…</span>`);
+  const open = UWDEL.key === x.key;
+  const ask = !open ? '' : `<div class="uwask">${arr
+      ? `<b>Delete “${esc(x.t)}${x.y ? ` (${x.y})` : ''}” through ${ARR_DEF[arr.svc].name}?</b>
+        <label class="tog"><input type="checkbox" data-uwdopt="files" ${UWDEL.files ? 'checked' : ''}> Delete the ${tv ? 'show’s files' : 'file'} from disk${x.size ? ` (${fmtBytes(x.size)})` : ''}</label>
+        <label class="tog"><input type="checkbox" data-uwdopt="excl" ${UWDEL.excl ? 'checked' : ''}> Stop ${ARR_DEF[arr.svc].name} adding it again from import lists</label>
+        <small>${ARR_DEF[arr.svc].name} removes it, then ${plexish} drops it on its next library scan (YAMZ asks for one straight away).</small>`
+      : `<b>Delete “${esc(x.t)}${x.y ? ` (${x.y})` : ''}” through ${plexish}?</b>
+        <small>It isn't in ${tv ? 'Sonarr' : 'Radarr'}, so YAMZ asks ${plexish} to delete it, which removes ${tv ? 'every episode file' : 'the file'} from disk${x.size ? ` (${fmtBytes(x.size)})` : ''}. ${srv?.type === 'jellyfin' ? 'Your Jellyfin account needs permission to delete media (Dashboard → Users → your user → Allow media deletion).' : 'Plex only allows this when <b>Settings → Library → Allow media deletion</b> is turned on, using the server owner’s sign-in.'} This can't be undone.</small>`}
+      <div class="dqbtns"><button class="btn" data-uwdno>Cancel</button><button class="btn danger" data-uwdgo="${esc(x.key)}" ${UWDEL.busy || (arr && !UWDEL.files) ? '' : ''} ${UWDEL.busy ? 'disabled' : ''}>${UWDEL.busy ? 'Deleting…' : arr && !UWDEL.files ? `Remove from ${ARR_DEF[arr.svc].name}` : 'Delete'}</button></div></div>`;
+  return `<div class="uwitem ${open ? 'open' : ''}"><div class="uwrow">
+    <button class="uwthumb" data-st-t="${esc(x.t)}" data-st-k="${x.kind}" data-st-y="${x.y || ''}" style="background:linear-gradient(160deg,hsl(${h} 45% 26%),hsl(${(h+40)%360} 50% 10%))">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</button>
+    <div class="uwinfo"><div class="uwt"><button class="linkbtn" data-st-t="${esc(x.t)}" data-st-k="${x.kind}" data-st-y="${x.y || ''}"><b>${esc(x.t)}</b></button>${x.y ? `<small>${x.y}</small>` : ''}${src}</div>
+      <div class="uwmeta"><span>${esc(x.lib)}</span><span>Added ${x.added ? new Date(x.added).toLocaleDateString([], {day:'numeric', month:'short', year:'numeric'}) : '—'}</span>${x.last ? `<span>Last watched ${new Date(x.last).toLocaleDateString([], {day:'numeric', month:'short', year:'numeric'})}${x.plays > 1 ? ` · ${x.plays}×` : ''}</span>` : ''}${tv && x.eps?.[1] ? `<span>${x.eps[0] || 0}/${x.eps[1]} episodes watched</span>` : ''}</div>
+      ${x.file ? `<div class="uwfile" title="${esc(x.file)}">${esc(tv ? x.file : fname(x.file))}</div>` : ''}</div>
+    <span class="uwage ${tone}">${UWV.mode === 'never' ? '' : 'last '}${esc(uwAge(age))}${UWV.mode === 'never' ? '' : ' ago'}</span>
+    <span class="uwsize">${x.size ? fmtBytes(x.size) : tv ? '' : '–'}</span>
+    <button class="dqx uwdel" data-uwdask="${esc(x.key)}" title="Delete…" aria-label="Delete ${esc(x.t)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+  </div>${ask}</div>`;
+}
+async function uwDelete(key){
+  const x = (UW.items || []).find(i => i.key === key); if(!x) return;
+  const arr = uwArrOf(x), srv = (LIB.servers || []).find(s => s.id === x.srv);
+  UWDEL.busy = true; renderUnwatched();
+  try{
+    if(arr){
+      await arrReq(arr.svc, `/api/v3/${arr.svc === 'radarr' ? 'movie' : 'series'}/${arr.id}`, {method:'DELETE', params:{deleteFiles:UWDEL.files, [arr.svc === 'radarr' ? 'addImportExclusion' : 'addImportListExclusion']:UWDEL.excl}});
+      if(UWDEL.files && srv?.type === 'plex') PLEX.get(srv, `/library/sections/${x.libKey}/refresh`, {}, 10000).catch(() => {});
+      if(UWDEL.files && srv?.type === 'jellyfin') fetchT(`${srv.url}/Library/Refresh`, {method:'POST', headers:JF.hdr(srv.token)}, 10000).catch(() => {});
+    } else {
+      if(!srv) throw new Error('Server not found');
+      const r = srv.type === 'jellyfin' ? await fetchT(`${srv.url}/Items/${x.id}`, {method:'DELETE', headers:JF.hdr(srv.token)}, 30000)
+        : await fetchT(`${srv.url}/library/metadata/${x.id}?${qs({'X-Plex-Token':srv.token})}`, {method:'DELETE', headers:{Accept:'application/json'}}, 30000);
+      if(!r.ok){ const e = new Error(r.status === 401 || r.status === 403 ? (srv.type === 'jellyfin' ? "Jellyfin refused: your account isn't allowed to delete media." : "Plex refused. Turn on Settings → Library → Allow media deletion in Plex, and make sure YAMZ uses the server owner's sign-in.") : 'HTTP ' + r.status); e.status = r.status; throw e; }
+    }
+    if(arr && !UWDEL.files) toast(`✓ Removed “${x.t}” from ${ARR_DEF[arr.svc].name}. The files are still on disk.`);
+    else { UW.items = UW.items.filter(i => i.key !== key); toast(`✓ Deleted “${x.t}”${x.size ? `, freeing ${fmtBytes(x.size)}` : ''}.`); }
+    if(arr) UWA.at = 0;
+    UWDEL.key = null;
+  }catch(e){ toast(e.message || 'Delete failed'); }
+  UWDEL.busy = false; renderUnwatched();
 }
 document.addEventListener('click', e => {
   if(state.s !== 'activity' || actSec() !== 'Unwatched') return;
-  const b = e.target.closest('.uwseg button'); if(b){ UWV[b.closest('[data-uw]').dataset.uw] = b.dataset.v; UWV.show = 120; if(!['old', 'new', 'az', 'big'].includes(UWV.sort)) UWV.sort = 'old'; uwSave(); renderUwSide(); renderUnwatched(); return; }
+  const da = e.target.closest('[data-uwdask]'); if(da){ UWDEL.key = UWDEL.key === da.dataset.uwdask ? null : da.dataset.uwdask; UWDEL.files = true; UWDEL.excl = false; renderUnwatched(); return; }
+  if(e.target.closest('[data-uwdno]')){ UWDEL.key = null; renderUnwatched(); return; }
+  const dg = e.target.closest('[data-uwdgo]'); if(dg && !UWDEL.busy){ uwDelete(dg.dataset.uwdgo); return; }
+  const b = e.target.closest('.uwseg button'); if(b){ UWV[b.closest('[data-uw]').dataset.uw] = b.dataset.v; UWV.show = 120; if(!['old', 'new', 'az', 'big', 'lib'].includes(UWV.sort)) UWV.sort = 'old'; uwSave(); renderUwSide(); renderUnwatched(); return; }
   if(e.target.closest('[data-uwmore]')){ UWV.show += 240; renderUnwatched(); return; }
   if(e.target.closest('[data-uwrefresh]')){ UW.at = 0; HIST.at = 0; renderUwSide(); renderUnwatched(); }
 });
+document.addEventListener('change', e => { const o = e.target.closest?.('[data-uwdopt]'); if(o){ UWDEL[o.dataset.uwdopt] = o.checked; const sy = scrollY; renderUnwatched(); scrollTo(0, sy); } });
 document.addEventListener('change', e => { const sel = e.target.closest?.('[data-uwsel]'); if(!sel || state.s !== 'activity') return; UWV[sel.dataset.uwsel] = sel.value; UWV.show = 120; uwSave(); renderUwSide(); renderUnwatched(); });
 function renderStats(){
   const g = $('#grid'); histNeed();

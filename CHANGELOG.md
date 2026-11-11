@@ -6,6 +6,9 @@
 - **Never watched**: movies or shows nobody has played, each with how long it's been on the server (amber after a year, red after two), the date it was added and its size. Filter to titles on the server for 1 month, 6 months, 1 year or 2 years or more, and sort by oldest or newest added, biggest, or A → Z. The count line totals the size, handy for freeing up space.
 - **Not lately**: titles that have been watched before, but not by anyone in the last 6 months, 1, 2 or 3 years, with when they were last watched and how many times.
 - Uses everyone's all-time play history plus the server owner's watched marks, for Plex and Jellyfin. The Movies / TV switch in the top bar picks which. Click a poster for its details.
+- **Library** filter, and a **By library** sort when showing all of them.
+- **List view**: poster, title, library, date added, last watched, the file name (hover for the full path), how long it's sat there and its size.
+- **Delete** from the list: YAMZ first checks whether Radarr or Sonarr manages the title (by IMDb / TMDB / TheTVDB id, then folder name) and shows **Radarr**, **Sonarr** or **Added by hand**. Managed titles are deleted through Radarr's or Sonarr's documented API, with the files, optionally adding an import list exclusion, and YAMZ asks Plex or Jellyfin to rescan. Titles added by hand are deleted through Plex or Jellyfin, which only works when Plex's **Allow media deletion** setting is on (owner's sign-in) or the Jellyfin account may delete media; YAMZ says so if the server refuses. Every delete is confirmed first.
 
 **Search**
 - The search in the top bar now finds everything: titles in your library come first under **In your library**, then any other **movies** and **TV shows** that match, each ready to add to a list, your Plex Watchlist, Radarr or Sonarr, or open for details. It uses TMDB when you have a key, otherwise Wikipedia and Wikidata.
