@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+**Activity → Unwatched** (new)
+- **Never watched**: movies or shows nobody has played, each with how long it's been on the server (amber after a year, red after two), the date it was added and its size. Filter to titles on the server for 1 month, 6 months, 1 year or 2 years or more, and sort by oldest or newest added, biggest, or A → Z. The count line totals the size, handy for freeing up space.
+- **Not lately**: titles that have been watched before, but not by anyone in the last 6 months, 1, 2 or 3 years, with when they were last watched and how many times.
+- Uses everyone's all-time play history plus the server owner's watched marks, for Plex and Jellyfin. The Movies / TV switch in the top bar picks which. Click a poster for its details.
+
 **Search**
 - The search in the top bar now finds everything: titles in your library come first under **In your library**, then any other **movies** and **TV shows** that match, each ready to add to a list, your Plex Watchlist, Radarr or Sonarr, or open for details. It uses TMDB when you have a key, otherwise Wikipedia and Wikidata.
 - Gaps → **Search & add** is gone, since the top bar search now does the same job from anywhere.

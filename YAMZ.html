@@ -311,6 +311,17 @@ button.dastat:hover b{text-decoration:underline}
   .dacards{grid-template-columns:minmax(0,1fr)}
 }
 .stwrap.dash{gap:30px}
+.uwgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:22px 16px}
+.uwc{display:flex;flex-direction:column;gap:3px;border:0;background:none;padding:0;color:inherit;text-align:left;cursor:pointer;min-width:0}
+.uwp{position:relative;aspect-ratio:2/3;border-radius:var(--pr);overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.35);margin-bottom:6px;transition:transform .15s}
+.uwc:hover .uwp{transform:translateY(-3px)}
+.uwp img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.uwp i{position:absolute;inset:10px;display:flex;align-items:center;justify-content:center;text-align:center;font-style:normal;font-weight:700;font-size:13px}
+.uwbadge{position:absolute;left:7px;bottom:7px;font-size:11.5px;font-weight:700;padding:3px 8px;border-radius:var(--rp,999px);background:rgba(0,0,0,.72);color:#fff;backdrop-filter:blur(6px)}
+.uwbadge.mid{background:rgba(214,140,30,.9)} .uwbadge.old{background:rgba(199,67,47,.92)}
+.uwc b{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.uwc small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.uwc small.uwd{color:var(--dim)}
 .dhead{margin:0 0 12px;font-size:20px;font-weight:700;letter-spacing:-.01em}
 .dhead small{font-size:13px;font-weight:500;color:var(--muted);margin-left:6px}
 .sttile small{display:block;font-size:11.5px;color:var(--dim);margin-top:2px}
@@ -5303,7 +5314,7 @@ let KIND = store.get('zn:kind') || store.get('zn:mediakind') || 'movie';
 function kindSync(){ if(typeof CAL !== 'undefined' && CAL.kind !== KIND){ CAL.kind = KIND; CAL.loadedFor = null; store.set('zn:ckind', KIND); } store.set('zn:kind', KIND); store.set('zn:mediakind', KIND); MISS.kind = MAN.kind = KIND; store.set('zn:misskind', KIND); store.set('zn:mankind', KIND); DISC.kind = KIND; store.set('zn:dkind', KIND); }
 kindSync();
 function headKind(){
-  const on = ['movie', 'tv', 'missing', 'discover', 'calendar'].includes(state.s) && !(state.q || '').trim();
+  const on = (['movie', 'tv', 'missing', 'discover', 'calendar'].includes(state.s) || (state.s === 'activity' && state.c === 'Unwatched')) && !(state.q || '').trim();
   $('#kindSeg').hidden = !on;
   $('#kindSeg').querySelectorAll('button').forEach(b => { const a = b.dataset.kind === KIND; b.classList.toggle('on', a); b.setAttribute('aria-pressed', a); });
   document.documentElement.toggleAttribute('data-noside', state.s === 'movie' || state.s === 'tv' || state.s === 'dash' || !!(state.q || '').trim());   // search results use the full width
@@ -5315,6 +5326,7 @@ $('#kindSeg').onclick = e => {
   if(state.s === 'movie' || state.s === 'tv'){ state.s = KIND; state.c = 'All'; }
   else if(state.s === 'missing'){ state.c = missDefault(); MISS.filter = ''; }
   else if(state.s === 'discover') loadDiscover();
+  else if(state.s === 'activity') UWV.show = 120;
   renderSide(); render(); scrollTo(0, 0);
 };
 $('#side').addEventListener('click', e => {
@@ -5531,10 +5543,11 @@ function actOpenTitle(x){
   openDetail(own || synthFromItem({k:'act:' + fold(x.t) + (x.y || ''), t:x.t, y:x.y, s:x.kind}));
 }
 /* ---- Activity page: the full view of what's playing ---- */
-const ACT_SECS = ['Now playing', 'Recently watched', 'Stats'];
+const ACT_SECS = ['Now playing', 'Recently watched', 'Stats', 'Unwatched'];
 const actSec = () => ACT_SECS.includes(state.c) ? state.c : 'Now playing';
 function actCats(){ return `<h4>Activity</h4>${ACT_SECS.map(c => `<button class="cat ${actSec() === c ? 'on' : ''}" data-c="${c}">${c}${c === 'Now playing' ? `<span>${ACT.streams.length}</span>` : c === 'Recently watched' && HIST.items.length ? `<span>${histView().length.toLocaleString()}</span>` : ''}</button>`).join('')}`; }
 function renderActivitySide(){
+  if(actSec() === 'Unwatched') return renderUwSide();
   if(actSec() !== 'Now playing') return renderHistSide();
   const {n, tc, mbps} = actSummary(), by = k => ACT.streams.filter(x => x.mode === k).length;
   const loc = ACT.streams.filter(x => !x.remote).reduce((a, x) => a + x.kbps, 0) / 1000, rem = mbps - loc;
@@ -5554,6 +5567,7 @@ function renderActivity(){
   const g = $('#grid'); g.className = 'mview'; $('#sort').style.display = 'none'; $('#progress').textContent = '';
   if(actSec() === 'Recently watched') return renderRecent();
   if(actSec() === 'Stats') return renderStats();
+  if(actSec() === 'Unwatched') return renderUnwatched();
   const {n, tc, bw} = actSummary();
   $('#title').textContent = 'Now playing';
   $('#count').textContent = n ? `${n} stream${n > 1 ? 's' : ''}${bw ? ' · ' + bw : ''}${tc ? ` · ${tc} transcoding` : ''}` : '';
@@ -6200,6 +6214,101 @@ function renderDash(){
   requestAnimationFrame(() => { dashFit(); dashTree(); });
 }
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && state.s === 'dash') dashTick(); });
+/* ---------- Unwatched: never watched (and for how long it's been on the server), or not watched for a while ---------- */
+const UW = {items:null, busy:null, at:0, err:null};
+const UWV = Object.assign({mode:'never', age:'0', since:'365', sort:'old', show:120}, store.get('zn:uw') || {}); UWV.show = 120;
+const uwSave = () => store.set('zn:uw', {mode:UWV.mode, age:UWV.age, since:UWV.since, sort:UWV.sort});
+const DAY = 864e5;
+function uwAge(ms){
+  const d = Math.max(0, Math.floor(ms / DAY));
+  if(d < 1) return 'today'; if(d < 14) return d + ' day' + (d === 1 ? '' : 's');
+  if(d < 60) return Math.round(d / 7) + ' weeks';
+  const mo = Math.floor(d / 30.44); if(mo < 12) return mo + ' month' + (mo === 1 ? '' : 's');
+  const y = Math.floor(mo / 12), m = mo % 12; return y + ' yr' + (y === 1 ? '' : 's') + (m && y < 5 ? ` ${m} mo` : '');
+}
+async function uwLoad(force){
+  if(UW.busy) return UW.busy;
+  if(!force && UW.items && Date.now() - UW.at < 10 * 60e3) return;
+  UW.busy = (async () => {
+    const out = []; let err = null;
+    for(const s of actServers()){
+      for(const L of (s.libs || []).filter(l => l.on)){
+        const tv = L.kind !== 'movie';
+        try{
+          if(s.type === 'jellyfin'){
+            const r = await JF.get(s, '/Items', {ParentId:L.key, Recursive:true, IncludeItemTypes:tv ? 'Series' : 'Movie', Fields:'DateCreated,MediaSources,RecursiveItemCount', userId:s.user || '', EnableImages:false}, 60000);
+            (r.Items || []).forEach(it => out.push({key:s.id + ':' + it.Id, kind:tv ? 'tv' : 'movie', t:it.Name, y:it.ProductionYear || null, lib:L.name,
+              added:Date.parse(it.DateCreated || '') || 0, last:Date.parse(it.UserData?.LastPlayedDate || '') || 0, plays:+it.UserData?.PlayCount || (it.UserData?.Played ? 1 : 0),
+              size:tv ? 0 : +(it.MediaSources?.[0]?.Size || 0), img:JF.img(s, it.Id), eps:tv ? [null, +it.RecursiveItemCount || null] : null}));
+          } else {
+            const mc = await PLEX.get(s, `/library/sections/${L.key}/all`, {type:tv ? 2 : 1}, 60000);
+            (mc.Metadata || []).forEach(m => out.push({key:s.id + ':' + m.ratingKey, kind:tv ? 'tv' : 'movie', t:m.title, y:+m.year || null, lib:L.name,
+              added:(+m.addedAt || 0) * 1000, last:(+m.lastViewedAt || 0) * 1000, plays:+m.viewCount || 0,
+              size:tv ? 0 : (m.Media || []).reduce((a, md) => a + (md.Part || []).reduce((b, p) => b + (+p.size || 0), 0), 0), img:PLEX.img(s, m.thumb),
+              eps:tv ? [+m.viewedLeafCount || 0, +m.leafCount || null] : null}));
+          }
+        }catch(e){ err = e; }
+      }
+    }
+    Object.assign(UW, {items:out, at:Date.now(), err:out.length ? null : err, busy:null});
+  })();
+  return UW.busy;
+}
+/* everyone's plays (all time) on top of the owner's own watched flags */
+function uwMerged(){
+  const lastBy = new Map(), nBy = new Map();
+  HIST.items.forEach(h => { if(h.at > (lastBy.get(h.key) || 0)) lastBy.set(h.key, h.at); nBy.set(h.key, (nBy.get(h.key) || 0) + 1); });
+  return (UW.items || []).map(x => { const hl = lastBy.get(x.key) || 0, last = Math.max(x.last, hl), plays = Math.max(x.plays, nBy.get(x.key) || 0) || (x.eps?.[0] ? 1 : 0) || (last ? 1 : 0);
+    return {...x, last, plays}; });
+}
+const UW_AGE = [['0', 'Any time'], ['30', '1 month+'], ['182', '6 months+'], ['365', '1 year+'], ['730', '2 years+']];
+const UW_SINCE = [['182', '6 months'], ['365', '1 year'], ['730', '2 years'], ['1095', '3 years']];
+function uwList(){
+  const now = Date.now(), kind = KIND, all = uwMerged().filter(x => x.kind === kind);
+  let list = UWV.mode === 'never' ? all.filter(x => !x.plays && x.added && now - x.added >= +UWV.age * DAY)
+    : all.filter(x => x.plays && x.last && now - x.last >= +UWV.since * DAY);
+  const by = {old:(a, b) => (UWV.mode === 'never' ? a.added - b.added : a.last - b.last), new:(a, b) => (UWV.mode === 'never' ? b.added - a.added : b.last - a.last),
+    big:(a, b) => b.size - a.size || a.added - b.added, az:(a, b) => sortKey(a.t).localeCompare(sortKey(b.t))}[UWV.sort] || ((a, b) => a.added - b.added);
+  return {list:list.sort(by), total:all.length};
+}
+function renderUwSide(){
+  const seg = (k, opts) => `<div class="side-seg"><div class="seg hseg uwseg" data-uw="${k}">${opts.map(([v, l]) => `<button data-v="${v}" class="${UWV[k] === v ? 'on' : ''}">${l}</button>`).join('')}</div></div>`;
+  const tv = KIND === 'tv';
+  $('#side').innerHTML = `${actCats()}
+    <h4>Show</h4>${seg('mode', [['never', 'Never'], ['stale', 'Not lately']])}
+    ${UWV.mode === 'never' ? `<h4>On the server for</h4><div class="side-seg"><select data-uwsel="age" aria-label="On the server for">${UW_AGE.map(([v, l]) => `<option value="${v}" ${UWV.age === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>`
+      : `<h4>Not watched in</h4><div class="side-seg"><select data-uwsel="since" aria-label="Not watched in">${UW_SINCE.map(([v, l]) => `<option value="${v}" ${UWV.since === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>`}
+    <h4>Sort</h4><div class="side-seg"><select data-uwsel="sort" aria-label="Sort">${[['old', UWV.mode === 'never' ? 'Oldest added' : 'Longest unwatched'], ['new', UWV.mode === 'never' ? 'Newest added' : 'Most recent'], ...(tv ? [] : [['big', 'Biggest']]), ['az', 'A → Z']].map(([v, l]) => `<option value="${v}" ${UWV.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+    <div class="side-foot">${UWV.mode === 'never' ? `${tv ? 'Shows' : 'Movies'} nobody has played, from everyone's play history and the server owner's watched marks.` : `${tv ? 'Shows' : 'Movies'} that have been watched before, but not by anyone for a while.`}${HIST.approx ? ' Jellyfin only records the last time each title was played.' : ''}
+      <button class="btn" data-uwrefresh style="margin-top:10px" ${UW.busy ? 'disabled' : ''}>${UW.busy ? 'Reading…' : '↻ Refresh'}</button></div>`;
+}
+function renderUnwatched(){
+  const g = $('#grid'), tv = KIND === 'tv', noun = tv ? 'shows' : 'movies';
+  $('#title').textContent = UWV.mode === 'never' ? 'Never watched' : `Not watched in ${(UW_SINCE.find(x => x[0] === UWV.since) || UW_SINCE[1])[1]}`; $('#count').textContent = '';
+  if(!actServers().length){ g.innerHTML = `<div class="mpanel"><p>Connect a Plex or Jellyfin server to see what's never been watched.</p></div>`; return; }
+  const needH = HIST.since == null || HIST.since > 0 || Date.now() - HIST.at > 10 * 60e3, needL = !UW.items || Date.now() - UW.at > 10 * 60e3;
+  if((needH && !HIST.busy) || (needL && !UW.busy)){ Promise.all([needH ? histLoad(false, 0) : null, needL ? uwLoad() : null]).then(() => { if(state.s === 'activity' && actSec() === 'Unwatched'){ renderUwSide(); renderUnwatched(); } }); }
+  if(!UW.items || HIST.since == null || HIST.since > 0){ g.innerHTML = `<div class="loading"><div class="spin"></div>Reading your library and all-time play history…</div>`; return; }
+  if(UW.err && !UW.items.length){ g.innerHTML = `<div class="actidle"><b>Couldn't read your library</b><p>${esc(UW.err.message || '')}</p></div>`; return; }
+  const {list, total} = uwList(), now = Date.now(), size = list.reduce((a, x) => a + x.size, 0);
+  const avg = list.length ? list.reduce((a, x) => a + (now - (UWV.mode === 'never' ? x.added : x.last)), 0) / list.length : 0;
+  $('#count').textContent = `${list.length.toLocaleString()} of ${total.toLocaleString()} ${noun}${size ? ' · ' + fmtBytes(size) : ''}${list.length ? ` · ${UWV.mode === 'never' ? 'on the server' : 'unwatched'} for ${uwAge(avg)} on average` : ''}`;
+  if(!list.length){ g.innerHTML = `<div class="actidle"><div class="actidle-ico">✓</div><b>${UWV.mode === 'never' ? `Every ${tv ? 'show' : 'movie'} has been watched` : `Everything watched before has been watched again in the last ${(UW_SINCE.find(x => x[0] === UWV.since) || UW_SINCE[1])[1]}`}</b><p>${UWV.mode === 'never' && UWV.age !== '0' ? 'Try a shorter time on the server.' : ''}</p></div>`; return; }
+  const card = x => { const h = hue(x.t), age = UWV.mode === 'never' ? now - x.added : now - x.last, tone = age > 730 * DAY ? 'old' : age > 365 * DAY ? 'mid' : '';
+    return `<button class="uwc" data-st-t="${esc(x.t)}" data-st-k="${x.kind}" data-st-y="${x.y || ''}" title="${esc(`${x.t}${x.y ? ` (${x.y})` : ''} · ${x.lib}\nAdded ${x.added ? new Date(x.added).toLocaleDateString() : 'unknown'}${x.last ? `\nLast watched ${new Date(x.last).toLocaleDateString()}` : ''}`)}">
+      <div class="uwp" style="background:linear-gradient(160deg,hsl(${h} 45% 26%),hsl(${(h+40)%360} 50% 10%))">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy" onerror="this.remove()">` : `<i>${esc(x.t)}</i>`}
+        <span class="uwbadge ${tone}">${UWV.mode === 'never' ? '' : 'last '}${esc(uwAge(age))}${UWV.mode === 'never' ? '' : ' ago'}</span></div>
+      <b>${esc(x.t)}</b><small>${[x.y, x.size ? fmtBytes(x.size) : '', tv && x.eps?.[1] ? `${x.eps[0] || 0}/${x.eps[1]} eps` : ''].filter(Boolean).join(' · ')}</small>
+      <small class="uwd">${UWV.mode === 'never' ? `Added ${x.added ? new Date(x.added).toLocaleDateString([], {day:'numeric', month:'short', year:'numeric'}) : '—'}` : `Watched ${x.plays}× · added ${uwAge(now - x.added)} ago`}</small></button>`; };
+  g.innerHTML = `<div class="uwgrid">${list.slice(0, UWV.show).map(card).join('')}</div>${list.length > UWV.show ? `<div class="hmore"><button class="btn" data-uwmore>Show ${Math.min(240, list.length - UWV.show)} more</button></div>` : ''}`;
+}
+document.addEventListener('click', e => {
+  if(state.s !== 'activity' || actSec() !== 'Unwatched') return;
+  const b = e.target.closest('.uwseg button'); if(b){ UWV[b.closest('[data-uw]').dataset.uw] = b.dataset.v; UWV.show = 120; if(!['old', 'new', 'az', 'big'].includes(UWV.sort)) UWV.sort = 'old'; uwSave(); renderUwSide(); renderUnwatched(); return; }
+  if(e.target.closest('[data-uwmore]')){ UWV.show += 240; renderUnwatched(); return; }
+  if(e.target.closest('[data-uwrefresh]')){ UW.at = 0; HIST.at = 0; renderUwSide(); renderUnwatched(); }
+});
+document.addEventListener('change', e => { const sel = e.target.closest?.('[data-uwsel]'); if(!sel || state.s !== 'activity') return; UWV[sel.dataset.uwsel] = sel.value; UWV.show = 120; uwSave(); renderUwSide(); renderUnwatched(); });
 function renderStats(){
   const g = $('#grid'); histNeed();
   $('#title').textContent = 'Stats'; $('#count').textContent = '';
@@ -6235,7 +6344,7 @@ function renderStats(){
 }
 $('#side').addEventListener('click', e => {
   if(state.s !== 'activity') return;
-  const b = e.target.closest('.hseg button'); if(b){ HV[b.closest('[data-hv]').dataset.hv] = b.dataset.v; HV.show = 80; hvSave(); renderHistSide(); histNeed() || renderActivity(); return; }
+  const b = e.target.closest('[data-hv] button'); if(b){ HV[b.closest('[data-hv]').dataset.hv] = b.dataset.v; HV.show = 80; hvSave(); renderHistSide(); histNeed() || renderActivity(); return; }
   if(e.target.closest('[data-hreload]')){ histLoad(true).then(() => { renderHistSide(); renderActivity(); }); renderActivity(); }
 });
 $('#side').addEventListener('change', e => { const sel = e.target.closest('[data-hvsel]'); if(!sel || (state.s !== 'activity' && state.s !== 'discover')) return; HV[sel.dataset.hvsel] = sel.value; HV.show = 80; hvSave(); state.s === 'discover' ? render() : renderActivity(); });
