@@ -341,6 +341,29 @@ button.dastat:hover b{text-decoration:underline}
 .uwage.mid{background:rgba(214,140,30,.2);color:#e8a23a} .uwage.old{background:rgba(199,67,47,.2);color:var(--bad-t)}
 .uwsize{flex:none;width:72px;text-align:right;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
 .uwdel{opacity:.55}
+.uwmultitog{margin:10px 0 4px;font-size:13px}
+body:has(#uwbar) #toast{bottom:110px}
+.uwchk{flex:none;width:18px;height:18px;accent-color:var(--accent);pointer-events:none}
+.uwrow[data-uwsel-k]{cursor:pointer}
+.uwitem.sel{background:rgba(var(--acc-rgb),.1);box-shadow:inset 0 0 0 1px rgba(var(--acc-rgb),.35)}
+.uwc.pick .uwp{outline:2px solid transparent;outline-offset:2px;transition:outline-color .12s,transform .15s}
+.uwc.sel .uwp{outline-color:var(--accent)}
+.uwtick{position:absolute;top:7px;right:7px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;background:rgba(0,0,0,.55);border:2px solid rgba(255,255,255,.85);color:var(--on-accent);z-index:1}
+.uwc.sel .uwtick{background:var(--accent);border-color:var(--accent)}
+#uwbar{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:30;width:min(760px,calc(100vw - 32px));background:var(--hdr);-webkit-backdrop-filter:blur(16px) saturate(1.3);backdrop-filter:blur(16px) saturate(1.3);border:1px solid var(--line);border-radius:calc(16px * var(--rk,1));box-shadow:0 18px 50px rgba(0,0,0,.5);padding:12px 14px;animation:gdin .2s ease-out}
+:root[data-theme="glass"] #uwbar{background:var(--glass);-webkit-backdrop-filter:var(--gfx);backdrop-filter:var(--gfx)}
+.uwbmain{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.uwbsum{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.uwbsum b{font-size:14px}
+.uwbsize{font-size:20px;font-weight:750;color:var(--accent-t);font-variant-numeric:tabular-nums}
+.uwbsum small{font-size:12px;color:var(--muted)}
+.uwbbtns{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.uwbask{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:8px;font-size:13px}
+.uwbask .tog{flex-direction:row-reverse;font-size:13px}
+.uwbask small{color:var(--muted);font-size:12px}
+.uwbprog{width:100%;height:5px;border-radius:3px;background:var(--bg3);overflow:hidden}
+.uwbprog i{display:block;height:100%;background:var(--bad-t);transition:width .3s}
+
 .uwitem:hover .uwdel,.uwitem.open .uwdel{opacity:1}
 .uwask{margin:0 10px 10px auto;width:fit-content;max-width:min(620px,calc(100% - 20px));padding:12px 14px;border:1px solid rgba(199,67,47,.35);background:rgba(199,67,47,.07);border-radius:calc(10px * var(--rk,1));display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:8px;font-size:13px}
 .uwask .tog{flex-direction:row-reverse;font-size:13px}
@@ -1869,6 +1892,7 @@ function cardHTML(d, showCat){
 let io;
 function render(){
   $('#gdock').hidden = true; gfloatSet(false);
+  if(!(state.s === 'activity' && state.c === 'Unwatched')) $('#uwbar')?.remove();
   if(!state.q.trim()){ $('#libHead').hidden = true; $('#xres').hidden = true; }
   $('#grid').className = 'grid'; $('#sort').style.display = ''; $('#attnBtn').style.display = 'none';
   if(state.s==='calendar') return renderCalendar();
@@ -6310,6 +6334,7 @@ function renderUwSide(){
       : `<h4>Not watched in</h4><div class="side-seg"><select data-uwsel="since" aria-label="Not watched in">${UW_SINCE.map(([v, l]) => `<option value="${v}" ${UWV.since === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>`}
     <h4>Sort</h4><div class="side-seg"><select data-uwsel="sort" aria-label="Sort">${[['old', UWV.mode === 'never' ? 'Oldest added' : 'Longest unwatched'], ['new', UWV.mode === 'never' ? 'Newest added' : 'Most recent'], ...(tv ? [] : [['big', 'Biggest']]), ['az', 'A → Z'], ...(libs.length > 1 && UWV.lib === 'all' ? [['lib', 'By library']] : [])].map(([v, l]) => `<option value="${v}" ${UWV.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
     <h4>View</h4>${seg('view', [['grid', 'Posters'], ['list', 'List']])}
+    <label class="tog uwmultitog"><input type="checkbox" data-uwmulti ${UWMULTI ? 'checked' : ''}> Select several</label>
     <div class="side-foot">${UWV.mode === 'never' ? `${tv ? 'Shows' : 'Movies'} nobody has played, from everyone's play history and the server owner's watched marks.` : `${tv ? 'Shows' : 'Movies'} that have been watched before, but not by anyone for a while.`}${HIST.approx ? ' Jellyfin only records the last time each title was played.' : ''}
       <button class="btn" data-uwrefresh style="margin-top:10px" ${UW.busy ? 'disabled' : ''}>${UW.busy ? 'Reading…' : '↻ Refresh'}</button></div>`;
 }
@@ -6322,13 +6347,15 @@ function renderUnwatched(){
   if(!UW.items || HIST.since == null || HIST.since > 0){ g.innerHTML = `<div class="loading"><div class="spin"></div>Reading your library and all-time play history…</div>`; return; }
   if(UW.err && !UW.items.length){ g.innerHTML = `<div class="actidle"><b>Couldn't read your library</b><p>${esc(UW.err.message || '')}</p></div>`; return; }
   const {list, total} = uwList(), now = Date.now(), size = list.reduce((a, x) => a + x.size, 0);
+  UW.list = list.slice(0, UWV.show); [...UWSEL].forEach(k => { if(!list.some(x => x.key === k)) UWSEL.delete(k); }); setTimeout(() => { uwBarRender(); if(UWMULTI && !g.querySelector('.uwpad')) g.insertAdjacentHTML('beforeend', '<div class="uwpad" style="height:120px"></div>'); }, 0);
   const avg = list.length ? list.reduce((a, x) => a + (now - (UWV.mode === 'never' ? x.added : x.last)), 0) / list.length : 0;
   $('#count').textContent = `${list.length.toLocaleString()} of ${total.toLocaleString()} ${noun}${size ? ' · ' + fmtBytes(size) : ''}${list.length ? ` · ${UWV.mode === 'never' ? 'on the server' : 'unwatched'} for ${uwAge(avg)} on average` : ''}`;
-  if(!list.length){ g.innerHTML = `<div class="actidle"><div class="actidle-ico">✓</div><b>${UWV.mode === 'never' ? `Every ${tv ? 'show' : 'movie'} has been watched` : `Everything watched before has been watched again in the last ${(UW_SINCE.find(x => x[0] === UWV.since) || UW_SINCE[1])[1]}`}</b><p>${UWV.mode === 'never' && UWV.age !== '0' ? 'Try a shorter time on the server.' : ''}</p></div>`; return; }
+  if(!list.length){ UW.list = []; g.innerHTML = `<div class="actidle"><div class="actidle-ico">✓</div><b>${UWV.mode === 'never' ? `Every ${tv ? 'show' : 'movie'} has been watched` : `Everything watched before has been watched again in the last ${(UW_SINCE.find(x => x[0] === UWV.since) || UW_SINCE[1])[1]}`}</b><p>${UWV.mode === 'never' && UWV.age !== '0' ? 'Try a shorter time on the server.' : ''}</p></div>`; return; }
   const card = x => { const h = hue(x.t), age = UWV.mode === 'never' ? now - x.added : now - x.last, tone = age > 730 * DAY ? 'old' : age > 365 * DAY ? 'mid' : '';
-    return `<button class="uwc" data-st-t="${esc(x.t)}" data-st-k="${x.kind}" data-st-y="${x.y || ''}" title="${esc(`${x.t}${x.y ? ` (${x.y})` : ''} · ${x.lib}\nAdded ${x.added ? new Date(x.added).toLocaleDateString() : 'unknown'}${x.last ? `\nLast watched ${new Date(x.last).toLocaleDateString()}` : ''}`)}">
+    const selA = UWMULTI ? `data-uwsel-k="${esc(x.key)}"` : `data-st-t="${esc(x.t)}" data-st-k="${x.kind}" data-st-y="${x.y || ''}"`;
+    return `<button class="uwc ${UWMULTI ? 'pick' : ''} ${UWSEL.has(x.key) ? 'sel' : ''}" ${selA} title="${esc(`${x.t}${x.y ? ` (${x.y})` : ''} · ${x.lib}\nAdded ${x.added ? new Date(x.added).toLocaleDateString() : 'unknown'}${x.last ? `\nLast watched ${new Date(x.last).toLocaleDateString()}` : ''}`)}">
       <div class="uwp" style="background:linear-gradient(160deg,hsl(${h} 45% 26%),hsl(${(h+40)%360} 50% 10%))">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy" onerror="this.remove()">` : `<i>${esc(x.t)}</i>`}
-        <span class="uwbadge ${tone}">${UWV.mode === 'never' ? '' : 'last '}${esc(uwAge(age))}${UWV.mode === 'never' ? '' : ' ago'}</span></div>
+        ${UWMULTI ? `<span class="uwtick" aria-hidden="true">${UWSEL.has(x.key) ? '✓' : ''}</span>` : ''}<span class="uwbadge ${tone}">${UWV.mode === 'never' ? '' : 'last '}${esc(uwAge(age))}${UWV.mode === 'never' ? '' : ' ago'}</span></div>
       <b>${esc(x.t)}</b><small>${[x.y, x.size ? fmtBytes(x.size) : '', tv && x.eps?.[1] ? `${x.eps[0] || 0}/${x.eps[1]} eps` : ''].filter(Boolean).join(' · ')}</small>
       <small class="uwd">${UWV.mode === 'never' ? `Added ${x.added ? new Date(x.added).toLocaleDateString([], {day:'numeric', month:'short', year:'numeric'}) : '—'}` : `Watched ${x.plays}× · added ${uwAge(now - x.added)} ago`}</small></button>`; };
   if(UWV.view === 'list'){ uwArrIndex(); g.innerHTML = `<div class="uwlist">${list.slice(0, UWV.show).map(x => uwRowHTML(x, now)).join('')}</div>${list.length > UWV.show ? `<div class="hmore"><button class="btn" data-uwmore>Show ${Math.min(240, list.length - UWV.show)} more</button></div>` : ''}`; return; }
@@ -6373,7 +6400,8 @@ function uwRowHTML(x, now){
       : `<b>Delete “${esc(x.t)}${x.y ? ` (${x.y})` : ''}” through ${plexish}?</b>
         <small>It isn't in ${tv ? 'Sonarr' : 'Radarr'}, so YAMZ asks ${plexish} to delete it, which removes ${tv ? 'every episode file' : 'the file'} from disk${x.size ? ` (${fmtBytes(x.size)})` : ''}. ${srv?.type === 'jellyfin' ? 'Your Jellyfin account needs permission to delete media (Dashboard → Users → your user → Allow media deletion).' : 'Plex only allows this when <b>Settings → Library → Allow media deletion</b> is turned on, using the server owner’s sign-in.'} This can't be undone.</small>`}
       <div class="dqbtns"><button class="btn" data-uwdno>Cancel</button><button class="btn danger" data-uwdgo="${esc(x.key)}" ${UWDEL.busy || (arr && !UWDEL.files) ? '' : ''} ${UWDEL.busy ? 'disabled' : ''}>${UWDEL.busy ? 'Deleting…' : arr && !UWDEL.files ? `Remove from ${ARR_DEF[arr.svc].name}` : 'Delete'}</button></div></div>`;
-  return `<div class="uwitem ${open ? 'open' : ''}"><div class="uwrow">
+  return `<div class="uwitem ${open ? 'open' : ''} ${UWSEL.has(x.key) ? 'sel' : ''}"><div class="uwrow" ${UWMULTI ? `data-uwsel-k="${esc(x.key)}"` : ''}>
+    ${UWMULTI ? `<input type="checkbox" class="uwchk" ${UWSEL.has(x.key) ? 'checked' : ''} aria-label="Select ${esc(x.t)}" tabindex="-1">` : ''}
     <button class="uwthumb" data-st-t="${esc(x.t)}" data-st-k="${x.kind}" data-st-y="${x.y || ''}" style="background:linear-gradient(160deg,hsl(${h} 45% 26%),hsl(${(h+40)%360} 50% 10%))">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</button>
     <div class="uwinfo"><div class="uwt"><button class="linkbtn" data-st-t="${esc(x.t)}" data-st-k="${x.kind}" data-st-y="${x.y || ''}"><b>${esc(x.t)}</b></button>${x.y ? `<small>${x.y}</small>` : ''}${src}</div>
       <div class="uwmeta"><span>${esc(x.lib)}</span><span>Added ${x.added ? new Date(x.added).toLocaleDateString([], {day:'numeric', month:'short', year:'numeric'}) : '—'}</span>${x.last ? `<span>Last watched ${new Date(x.last).toLocaleDateString([], {day:'numeric', month:'short', year:'numeric'})}${x.plays > 1 ? ` · ${x.plays}×` : ''}</span>` : ''}${tv && x.eps?.[1] ? `<span>${x.eps[0] || 0}/${x.eps[1]} episodes watched</span>` : ''}</div>
@@ -6383,28 +6411,97 @@ function uwRowHTML(x, now){
     <button class="dqx uwdel" data-uwdask="${esc(x.key)}" title="Delete…" aria-label="Delete ${esc(x.t)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
   </div>${ask}</div>`;
 }
+/* delete one title: through Radarr / Sonarr when they manage it, otherwise through Plex / Jellyfin. Throws with a readable message. */
+async function uwDeleteOne(x, opt, rescan = true){
+  const arr = uwArrOf(x), srv = (LIB.servers || []).find(s => s.id === x.srv);
+  if(arr){
+    await arrReq(arr.svc, `/api/v3/${arr.svc === 'radarr' ? 'movie' : 'series'}/${arr.id}`, {method:'DELETE', params:{deleteFiles:opt.files, [arr.svc === 'radarr' ? 'addImportExclusion' : 'addImportListExclusion']:opt.excl}});
+    if(rescan && opt.files) uwRescan(srv, x.libKey);
+    return {arr, gone:opt.files};
+  }
+  if(!srv) throw new Error('Server not found');
+  const r = srv.type === 'jellyfin' ? await fetchT(`${srv.url}/Items/${x.id}`, {method:'DELETE', headers:JF.hdr(srv.token)}, 30000)
+    : await fetchT(`${srv.url}/library/metadata/${x.id}?${qs({'X-Plex-Token':srv.token})}`, {method:'DELETE', headers:{Accept:'application/json'}}, 30000);
+  if(!r.ok){ const e = new Error(r.status === 401 || r.status === 403 ? (srv.type === 'jellyfin' ? "Jellyfin refused: your account isn't allowed to delete media." : "Plex refused. Turn on Settings → Library → Allow media deletion in Plex, and make sure YAMZ uses the server owner's sign-in.") : 'HTTP ' + r.status); e.status = r.status; throw e; }
+  return {arr:null, gone:true};
+}
+function uwRescan(srv, libKey){
+  if(srv?.type === 'plex') PLEX.get(srv, `/library/sections/${libKey}/refresh`, {}, 10000).catch(() => {});
+  if(srv?.type === 'jellyfin') fetchT(`${srv.url}/Library/Refresh`, {method:'POST', headers:JF.hdr(srv.token)}, 10000).catch(() => {});
+}
 async function uwDelete(key){
   const x = (UW.items || []).find(i => i.key === key); if(!x) return;
-  const arr = uwArrOf(x), srv = (LIB.servers || []).find(s => s.id === x.srv);
   UWDEL.busy = true; renderUnwatched();
   try{
-    if(arr){
-      await arrReq(arr.svc, `/api/v3/${arr.svc === 'radarr' ? 'movie' : 'series'}/${arr.id}`, {method:'DELETE', params:{deleteFiles:UWDEL.files, [arr.svc === 'radarr' ? 'addImportExclusion' : 'addImportListExclusion']:UWDEL.excl}});
-      if(UWDEL.files && srv?.type === 'plex') PLEX.get(srv, `/library/sections/${x.libKey}/refresh`, {}, 10000).catch(() => {});
-      if(UWDEL.files && srv?.type === 'jellyfin') fetchT(`${srv.url}/Library/Refresh`, {method:'POST', headers:JF.hdr(srv.token)}, 10000).catch(() => {});
-    } else {
-      if(!srv) throw new Error('Server not found');
-      const r = srv.type === 'jellyfin' ? await fetchT(`${srv.url}/Items/${x.id}`, {method:'DELETE', headers:JF.hdr(srv.token)}, 30000)
-        : await fetchT(`${srv.url}/library/metadata/${x.id}?${qs({'X-Plex-Token':srv.token})}`, {method:'DELETE', headers:{Accept:'application/json'}}, 30000);
-      if(!r.ok){ const e = new Error(r.status === 401 || r.status === 403 ? (srv.type === 'jellyfin' ? "Jellyfin refused: your account isn't allowed to delete media." : "Plex refused. Turn on Settings → Library → Allow media deletion in Plex, and make sure YAMZ uses the server owner's sign-in.") : 'HTTP ' + r.status); e.status = r.status; throw e; }
-    }
-    if(arr && !UWDEL.files) toast(`✓ Removed “${x.t}” from ${ARR_DEF[arr.svc].name}. The files are still on disk.`);
-    else { UW.items = UW.items.filter(i => i.key !== key); toast(`✓ Deleted “${x.t}”${x.size ? `, freeing ${fmtBytes(x.size)}` : ''}.`); }
-    if(arr) UWA.at = 0;
+    const r = await uwDeleteOne(x, UWDEL);
+    if(r.arr && !r.gone) toast(`✓ Removed “${x.t}” from ${ARR_DEF[r.arr.svc].name}. The files are still on disk.`);
+    else { UW.items = UW.items.filter(i => i.key !== key); UWSEL.delete(key); toast(`✓ Deleted “${x.t}”${x.size ? `, freeing ${fmtBytes(x.size)}` : ''}.`); }
+    if(r.arr) UWA.at = 0;
     UWDEL.key = null;
   }catch(e){ toast(e.message || 'Delete failed'); }
   UWDEL.busy = false; renderUnwatched();
 }
+/* ---- select several: tick titles, see their total size, delete them together ---- */
+const UWSEL = new Set(); let UWMULTI = false;
+const UWB = {ask:false, files:true, excl:false, busy:false, done:0, total:0};
+function uwBarRender(){
+  let bar = $('#uwbar');
+  const on = UWMULTI && state.s === 'activity' && actSec() === 'Unwatched' && !state.q.trim();
+  if(!on){ if(bar) bar.remove(); return; }
+  if(!bar){ bar = document.createElement('div'); bar.id = 'uwbar'; bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'Selection'); document.body.appendChild(bar); }
+  const shown = UW.list || [], sel = shown.filter(x => UWSEL.has(x.key)), size = sel.reduce((a, x) => a + x.size, 0);
+  const by = {radarr:0, sonarr:0, man:0}; sel.forEach(x => { const a = uwArrOf(x); by[a ? a.svc : 'man']++; });
+  const parts = [by.radarr && `${by.radarr} in Radarr`, by.sonarr && `${by.sonarr} in Sonarr`, by.man && `${by.man} added by hand`].filter(Boolean).join(' · ');
+  const srvT = [...new Set(sel.filter(x => !uwArrOf(x)).map(x => ((LIB.servers || []).find(s => s.id === x.srv)?.type)))];
+  bar.innerHTML = `<div class="uwbmain">
+      <div class="uwbsum"><b>${sel.length.toLocaleString()} selected</b><span class="uwbsize">${fmtBytes(size) || '0 GB'}</span>${parts ? `<small>${parts}</small>` : ''}</div>
+      <div class="uwbbtns">
+        <button class="btn" data-uwball>${sel.length && sel.length === shown.length ? 'Select none' : `Select all ${shown.length.toLocaleString()}`}</button>
+        ${sel.length ? `<button class="btn" data-uwclear>Clear</button><button class="btn danger" data-uwbask>Delete ${sel.length}…</button>` : ''}
+        <button class="dqx" data-uwmultioff title="Stop selecting" aria-label="Stop selecting"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div></div>
+    ${UWB.ask && sel.length ? `<div class="uwbask">
+      <b>Delete ${sel.length} title${sel.length === 1 ? '' : 's'} (${fmtBytes(size) || '0 GB'})?</b>
+      ${by.radarr || by.sonarr ? `<label class="tog"><input type="checkbox" data-uwbopt="files" ${UWB.files ? 'checked' : ''}> Radarr and Sonarr also delete the files from disk</label>
+      <label class="tog"><input type="checkbox" data-uwbopt="excl" ${UWB.excl ? 'checked' : ''}> Stop them adding these again from import lists</label>` : ''}
+      ${by.man ? `<small>${by.man} added by hand ${by.man === 1 ? 'goes' : 'go'} through ${srvT.map(t => t === 'jellyfin' ? 'Jellyfin' : 'Plex').join(' and ')}, which deletes the files from disk${srvT.includes('plex') ? ' (needs Plex’s <b>Allow media deletion</b> setting)' : ''}${srvT.includes('jellyfin') ? ' (needs a Jellyfin account allowed to delete media)' : ''}. This can't be undone.</small>` : ''}
+      ${UWB.busy ? `<div class="uwbprog"><i style="width:${UWB.total ? (UWB.done / UWB.total * 100).toFixed(1) : 0}%"></i></div><small>Deleting ${UWB.done} of ${UWB.total}…</small>` : ''}
+      <div class="dqbtns"><button class="btn" data-uwbno ${UWB.busy ? 'disabled' : ''}>Cancel</button><button class="btn danger" data-uwbgo ${UWB.busy ? 'disabled' : ''}>${UWB.busy ? 'Deleting…' : `Delete ${sel.length}`}</button></div></div>` : ''}`;
+}
+async function uwBulkDelete(){
+  const sel = (UW.list || []).filter(x => UWSEL.has(x.key)); if(!sel.length) return;
+  UWB.busy = true; UWB.done = 0; UWB.total = sel.length; uwBarRender();
+  let ok = 0, freed = 0, kept = 0; const fails = [], rescan = new Map();
+  for(const x of sel){
+    try{ const r = await uwDeleteOne(x, UWB, false);
+      if(r.gone){ ok++; freed += x.size; UW.items = UW.items.filter(i => i.key !== x.key); } else kept++;
+      UWSEL.delete(x.key); if(r.arr && UWB.files){ const srv = (LIB.servers || []).find(s => s.id === x.srv); rescan.set(x.srv + ':' + x.libKey, [srv, x.libKey]); }
+    }catch(e){ fails.push(`${x.t}: ${e.message || 'failed'}`); }
+    UWB.done++; uwBarRender();
+  }
+  rescan.forEach(([srv, k]) => uwRescan(srv, k)); UWA.at = 0;
+  UWB.busy = false; UWB.ask = false;
+  toast(fails.length ? `Deleted ${ok}${freed ? ` (${fmtBytes(freed)})` : ''}. ${fails.length} couldn't be deleted — ${fails[0]}` : `✓ Deleted ${ok} title${ok === 1 ? '' : 's'}${freed ? `, freeing ${fmtBytes(freed)}` : ''}${kept ? `. ${kept} removed from Radarr/Sonarr only, files kept` : ''}.`);
+  renderUnwatched();
+}
+document.addEventListener('click', e => {
+  if(!e.target.closest('#uwbar')) return;
+  if(e.target.closest('[data-uwmultioff]')){ UWMULTI = false; UWSEL.clear(); UWB.ask = false; renderUwSide(); renderUnwatched(); return; }
+  if(e.target.closest('[data-uwball]')){ const shown = UW.list || [], all = shown.length && shown.every(x => UWSEL.has(x.key)); if(all) UWSEL.clear(); else shown.forEach(x => UWSEL.add(x.key)); renderUnwatched(); return; }
+  if(e.target.closest('[data-uwclear]')){ UWSEL.clear(); UWB.ask = false; renderUnwatched(); return; }
+  if(e.target.closest('[data-uwbask]')){ UWB.ask = !UWB.ask; UWB.files = true; UWB.excl = false; uwBarRender(); return; }
+  if(e.target.closest('[data-uwbno]')){ UWB.ask = false; uwBarRender(); return; }
+  if(e.target.closest('[data-uwbgo]') && !UWB.busy) uwBulkDelete();
+});
+document.addEventListener('change', e => { const o = e.target.closest?.('[data-uwbopt]'); if(o){ UWB[o.dataset.uwbopt] = o.checked; return; } const m = e.target.closest?.('[data-uwmulti]'); if(m){ UWMULTI = m.checked; if(!UWMULTI){ UWSEL.clear(); UWB.ask = false; } renderUnwatched(); } });
+document.addEventListener('click', e => {
+  if(state.s !== 'activity' || actSec() !== 'Unwatched' || !UWMULTI) return;
+  const r = e.target.closest('[data-uwsel-k]'); if(!r || e.target.closest('[data-uwdask],.uwask')) return;
+  e.preventDefault(); e.stopImmediatePropagation();
+  const k = r.dataset.uwselK; UWSEL.has(k) ? UWSEL.delete(k) : UWSEL.add(k);
+  const it = r.closest('.uwitem') || r; it.classList.toggle('sel', UWSEL.has(k)); const c = it.querySelector('.uwchk'); if(c) c.checked = UWSEL.has(k); const t = it.querySelector('.uwtick'); if(t) t.textContent = UWSEL.has(k) ? '✓' : '';
+  uwBarRender();
+}, true);
 document.addEventListener('click', e => {
   if(state.s !== 'activity' || actSec() !== 'Unwatched') return;
   const da = e.target.closest('[data-uwdask]'); if(da){ UWDEL.key = UWDEL.key === da.dataset.uwdask ? null : da.dataset.uwdask; UWDEL.files = true; UWDEL.excl = false; renderUnwatched(); return; }
