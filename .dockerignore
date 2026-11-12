@@ -6,6 +6,7 @@ node_modules
 unraid
 *.md
 !README.md
+!CHANGELOG.md
 demo
 _site
 scripts
