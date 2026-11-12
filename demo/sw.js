@@ -323,14 +323,15 @@ async function sparql(req){
   const body = req.method === 'POST' ? await req.text() : new URL(req.url).search;
   const q = decodeURIComponent(body.replace(/^\??query=/, '').replace(/\+/g, ' '));
   if(q.includes('#yamz:cols')){
-    const out = []; [...q.matchAll(/"(tt\d+)"/g)].forEach(([, im]) => { const i = +im.slice(2) - 9000000, t = MOV[i]?.[0]; if(!t) return;
-      DCOLS.forEach(c => { if(c.k === 'studio' ? c.test(i) : c.re.test(t)) out.push(B({imdb:im, s:E + c.id, sLabel:c.name, k:c.k})); }); });
+    const out = [], want = new Set([...q.matchAll(/wd:(Q\d+)/g)].map(m => m[1]));
+    MOV.forEach(([t], i) => { if(!want.has(QID(t))) return;
+      DCOLS.forEach(c => { if(c.k === 'studio' ? c.test(i) : c.re.test(t)) out.push(B({f:E + QID(t), s:E + c.id, sLabel:c.name, k:c.k})); }); });
     return J({results:{bindings:out}});
   }
   if(q.includes('#yamz:colcount')) return J({results:{bindings:DCOLS.filter(c => c.total && q.includes('wd:' + c.id)).map(c => B({s:E + c.id, n:String(c.total)}))}});
   if(q.includes('#yamz:colmembers')){
     const c = DCOLS.find(x => q.includes('wd:' + x.id)); if(!c) return J({results:{bindings:[]}});
-    const own = MOV.map((m, i) => [m, i]).filter(([m]) => c.re.test(m[0])).map(([m, i]) => B({m:E + 'Q77' + i, mLabel:m[0], date:m[1] + '-06-01T00:00:00Z', imdb:'tt' + (9000000 + i), art:'https://en.wikipedia.org/wiki/' + encodeURIComponent(m[0])}));
+    const own = MOV.map((m, i) => [m, i]).filter(([m]) => c.re.test(m[0])).map(([m, i]) => B({m:E + QID(m[0]), mLabel:m[0], date:m[1] + '-06-01T00:00:00Z', imdb:'tt' + (9000000 + i), art:'https://en.wikipedia.org/wiki/' + encodeURIComponent(m[0])}));
     const miss = (c.more || []).map(([t, y], j) => B({m:E + 'Q88' + j + c.id.slice(1), mLabel:t, date:y + '-06-01T00:00:00Z', art:'https://en.wikipedia.org/wiki/' + encodeURIComponent(t)}));
     return J({results:{bindings:[...own, ...miss]}});
   }
@@ -364,6 +365,7 @@ async function sparql(req){
     const ids = new Set([...q.matchAll(/wd:(Q\d+)/g)].map(m => m[1])), tv = q.includes('Q5398426');
     return J({results:{bindings:CATALOG.filter(c => ids.has(QID(c.t)) && (c.k === 'tv') === tv).map(c => B({f:E + QID(c.t), date:c.date + 'T00:00:00Z'}))}});
   }
+  if(q.includes('SELECT DISTINCT ?f') && q.includes('wd:Q11424')){ return J({results:{bindings:[...q.matchAll(/wd:(Q\d+)/g)].map(m => m[1]).filter(id => id !== 'Q11424').map(id => B({f:E + id}))}}); }   // "is it a film?" — yes
   if(q.includes('SELECT DISTINCT ?f')){ const ids = [...q.matchAll(/wd:(Q\d+)/g)].map(m => m[1]); return J({results:{bindings:ids.filter((_, i) => i % 3 === 1).map(id => B({f:E + id}))}}); }
   return J({results:{bindings:[]}});
 }

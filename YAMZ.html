@@ -2434,52 +2434,57 @@ async function verifyFilms(qids){
   return ok;
 }
 
+/* match movies to their Wikidata item (shared by Gaps and Collections; results kept in MISS.qmap) */
+async function qidMatch(items, prog = () => {}){
+  const withI = items.filter(d => d.ids?.imdb && !(keyOf(d) in MISS.qmap));
+  if(withI.length){
+    prog(1, 'Matching your movies by IMDb ID', 0, 1);
+    const hits = await imdbToQ(withI.map(d => d.ids.imdb));
+    withI.forEach(d => { const h = hits[d.ids.imdb]; if(h) MISS.qmap[keyOf(d)] = h.q; });
+  }
+  const todo = items.filter(d => !(keyOf(d) in MISS.qmap));
+  const cands = new Map();
+  todo.forEach(d => { const q = d.q; cands.set(d, uniq([d.y ? `${q} (${d.y} film)` : null, `${q} (film)`, q].filter(Boolean))); });
+  const titles = uniq([...cands.values()].flat()), found = {};
+  let n = 0;
+  prog(1, 'Matching your movies to Wikipedia', 0, titles.length);
+  await pool(chunk(titles, 50), 2, async c => {
+    const j = await wqr({action:'query', titles:c.join('|'), redirects:'1', prop:'pageprops', ppprop:'wikibase_item|disambiguation'});
+    const nm = {}, rd = {}, pg = {};
+    (j.query?.normalized||[]).forEach(x => nm[x.from] = x.to);
+    (j.query?.redirects||[]).forEach(x => rd[x.from] = x.to);
+    (j.query?.pages||[]).forEach(p => pg[p.title] = p);
+    c.forEach(t => { let x = nm[t] || t; x = rd[x] || x; const p = pg[x];
+      if(p && !p.missing && p.pageprops?.wikibase_item && !('disambiguation' in p.pageprops)) found[t] = p.pageprops.wikibase_item; });
+    n += c.length; prog(1, 'Matching your movies to Wikipedia', n, titles.length);
+  });
+  prog(2, 'Checking matches are films', 0, 1);
+  const films = await verifyFilms(Object.values(found));
+  const unresolved = [];
+  todo.forEach(d => { const q = cands.get(d).map(t => found[t]).find(q => q && films.has(q)); if(q) MISS.qmap[keyOf(d)] = q; else unresolved.push(d); });
+  /* 1b. search for the rest */
+  const guesses = new Map(); n = 0;
+  prog(2, 'Searching for harder-to-find titles', 0, unresolved.length);
+  await pool(unresolved, 2, async d => {
+    try{
+      const j = await wqr({action:'query', generator:'search', gsrsearch:`${d.q} ${d.y||''} film`, gsrlimit:'3', prop:'pageprops', ppprop:'wikibase_item'});
+      guesses.set(d, (j.query?.pages||[]).sort((a,b) => a.index-b.index).map(p => p.pageprops?.wikibase_item).filter(Boolean));
+    }catch{}
+    prog(2, 'Searching for harder-to-find titles', ++n, unresolved.length);
+  });
+  const films2 = await verifyFilms([...guesses.values()].flat());
+  unresolved.forEach(d => { MISS.qmap[keyOf(d)] = (guesses.get(d)||[]).find(q => films2.has(q)) || null; });
+  store.set('zn:qid', MISS.qmap);
+}
+
 async function runScan(){
   if(MISS.running) return;
   if(inPreview){ toast('Open the file in your web browser first — previews block internet access.'); return; }
   MISS.running = true; MISS.err = null; if(state.s==='missing') renderSide();
   try{
     const items = ownedMovies();
-    /* 1. match titles to Wikipedia/Wikidata */
-    const withI = items.filter(d => d.ids?.imdb && !(keyOf(d) in MISS.qmap));
-    if(withI.length){
-      setProg(1, 'Matching your movies by IMDb ID', 0, 1);
-      const hits = await imdbToQ(withI.map(d => d.ids.imdb));
-      withI.forEach(d => { const h = hits[d.ids.imdb]; if(h) MISS.qmap[keyOf(d)] = h.q; });
-    }
-    const todo = items.filter(d => !(keyOf(d) in MISS.qmap));
-    const cands = new Map();
-    todo.forEach(d => { const q = d.q; cands.set(d, uniq([d.y ? `${q} (${d.y} film)` : null, `${q} (film)`, q].filter(Boolean))); });
-    const titles = uniq([...cands.values()].flat()), found = {};
+    await qidMatch(items, setProg);
     let n = 0;
-    setProg(1, 'Matching your movies to Wikipedia', 0, titles.length);
-    await pool(chunk(titles, 50), 2, async c => {
-      const j = await wqr({action:'query', titles:c.join('|'), redirects:'1', prop:'pageprops', ppprop:'wikibase_item|disambiguation'});
-      const nm = {}, rd = {}, pg = {};
-      (j.query?.normalized||[]).forEach(x => nm[x.from] = x.to);
-      (j.query?.redirects||[]).forEach(x => rd[x.from] = x.to);
-      (j.query?.pages||[]).forEach(p => pg[p.title] = p);
-      c.forEach(t => { let x = nm[t] || t; x = rd[x] || x; const p = pg[x];
-        if(p && !p.missing && p.pageprops?.wikibase_item && !('disambiguation' in p.pageprops)) found[t] = p.pageprops.wikibase_item; });
-      n += c.length; setProg(1, 'Matching your movies to Wikipedia', n, titles.length);
-    });
-    setProg(2, 'Checking matches are films', 0, 1);
-    const films = await verifyFilms(Object.values(found));
-    const unresolved = [];
-    todo.forEach(d => { const q = cands.get(d).map(t => found[t]).find(q => q && films.has(q)); if(q) MISS.qmap[keyOf(d)] = q; else unresolved.push(d); });
-    /* 1b. search for the rest */
-    const guesses = new Map(); n = 0;
-    setProg(2, 'Searching for harder-to-find titles', 0, unresolved.length);
-    await pool(unresolved, 2, async d => {
-      try{
-        const j = await wqr({action:'query', generator:'search', gsrsearch:`${d.q} ${d.y||''} film`, gsrlimit:'3', prop:'pageprops', ppprop:'wikibase_item'});
-        guesses.set(d, (j.query?.pages||[]).sort((a,b) => a.index-b.index).map(p => p.pageprops?.wikibase_item).filter(Boolean));
-      }catch{}
-      setProg(2, 'Searching for harder-to-find titles', ++n, unresolved.length);
-    });
-    const films2 = await verifyFilms([...guesses.values()].flat());
-    unresolved.forEach(d => { MISS.qmap[keyOf(d)] = (guesses.get(d)||[]).find(q => films2.has(q)) || null; });
-    store.set('zn:qid', MISS.qmap);
 
     const owned = items.map(d => ({d, q:MISS.qmap[keyOf(d)]})).filter(o => o.q);
     const ownedQ = new Set(owned.map(o => o.q));
@@ -3269,7 +3274,7 @@ const PLEX = {
     const movies = [], shows = {};
     for(const L of s.libs.filter(l => l.on)){
       if(L.kind==='movie'){
-        await this.paged(s, `/library/sections/${L.key}/all`, {type:1, includeGuids:1}, x => movies.push({t:x.title, y:x.year || null, n:x.editionTitle || '', ids:this.ids(x), th:x.thumb || null, g:(x.Genre||[]).map(g => g.tag), r:this.ratings(x), k:x.ratingKey}), n => prog?.(`${L.name}: ${n.toLocaleString()} movies`));
+        await this.paged(s, `/library/sections/${L.key}/all`, {type:1, includeGuids:1}, x => movies.push({t:x.title, y:x.year || null, n:x.editionTitle || '', ids:this.ids(x), th:x.thumb || null, g:(x.Genre||[]).map(g => g.tag), r:this.ratings(x), k:x.ratingKey, lb:L.key}), n => prog?.(`${L.name}: ${n.toLocaleString()} movies`));
       } else {
         await this.paged(s, `/library/sections/${L.key}/all`, {type:2, includeGuids:1}, x => { shows[x.ratingKey] = {t:x.title, y:x.year || null, ids:this.ids(x), th:x.thumb || null, g:(x.Genre||[]).map(g => g.tag), r:this.ratings(x), k:x.ratingKey, eps:{}}; }, n => prog?.(`${L.name}: ${n.toLocaleString()} shows`));
         await this.paged(s, `/library/sections/${L.key}/all`, {type:4}, x => { const S = shows[x.grandparentRatingKey]; if(!S || x.parentIndex == null || x.index == null) return; const a = (S.eps[x.parentIndex] ||= []); if(!a.includes(x.index)) a.push(x.index); }, n => prog?.(`${L.name}: ${n.toLocaleString()} episodes`));
@@ -3337,7 +3342,7 @@ const JF = {
     for(const L of s.libs.filter(l => l.on)){
       if(L.kind==='movie'){
         await this.paged(s, {ParentId:L.key, IncludeItemTypes:'Movie', Fields:'Genres,ProviderIds,ProductionYear,CriticRating,CommunityRating'},
-          x => movies.push({t:x.Name, y:x.ProductionYear || null, n:'', ids:this.ids(x), th:x.ImageTags?.Primary ? x.Id : null, g:x.Genres || [], r:this.ratings(x), k:x.Id}), n => prog?.(`${L.name}: ${n.toLocaleString()} movies`));
+          x => movies.push({t:x.Name, y:x.ProductionYear || null, n:'', ids:this.ids(x), th:x.ImageTags?.Primary ? x.Id : null, g:x.Genres || [], r:this.ratings(x), k:x.Id, lb:L.key}), n => prog?.(`${L.name}: ${n.toLocaleString()} movies`));
       } else {
         await this.paged(s, {ParentId:L.key, IncludeItemTypes:'Series', Fields:'Genres,ProviderIds,ProductionYear,CommunityRating'},
           x => { shows[x.Id] = {t:x.Name, y:x.ProductionYear || null, ids:this.ids(x), th:x.ImageTags?.Primary ? x.Id : null, g:x.Genres || [], r:this.ratings(x), k:x.Id, eps:{}}; }, n => prog?.(`${L.name}: ${n.toLocaleString()} shows`));
@@ -6656,24 +6661,27 @@ document.addEventListener('keydown', e => { if(e.key === 'Escape' && $('#wnov').
 setTimeout(() => whatsNew(), 1800);
 if(YSRV?.version && /^\d/.test(YSRV.version)){ const v = $('#setVer'); v.hidden = false; v.innerHTML = `YAMZ ${esc(YSRV.version)} · <button class="linkbtn" data-whatsnew>What's new</button>`; }
 /* ---------- Collections: film series, shared universes and studios found in your movie library, and making them into Plex / Jellyfin collections ---------- */
-const COL = Object.assign({groups:null, at:0}, store.get('zn:cols') || {}); COL.busy = null; COL.err = null; COL.srvCols = null;
+const COL = Object.assign({groups:null, at:0}, (c => c?.v === 2 ? c : {})(store.get('zn:cols'))); COL.busy = null; COL.err = null; COL.srvCols = null;
 const COLV = Object.assign({kind:'all', sort:'owned', min:2}, store.get('zn:colv') || {});
 const COL_KINDS = {series:'Franchises', universe:'Universes', studio:'Studios'};
 const colName = n => String(n || '').replace(/\s*\((?:film|movie) (?:series|franchise)\)$/i, '').replace(/\s+(?:film|movie) (?:series|franchise|trilogy)$/i, '').replace(/\s+franchise$/i, '').replace(/\s+films$/i, '').trim();
+const colProgSoon = () => { if(COL.progT) return; COL.progT = setTimeout(() => { COL.progT = null; if(state.s === 'collections' && !COL.groups && !state.q.trim()) renderCollections(); }, 250); };
 async function colLoad(force){
   if(COL.busy) return COL.busy;
   if(!force && COL.groups && Date.now() - COL.at < 7 * DAY) return;
   COL.busy = (async () => {
     try{
-      await uwLoad();
-      const mv = (UW.items || []).filter(x => x.kind === 'movie');
-      const imdb = uniq(mv.map(x => x.ids?.imdb).filter(v => /^tt\d+$/.test(v))), tmdb = uniq(mv.filter(x => !x.ids?.imdb && /^\d+$/.test(x.ids?.tmdb || '')).map(x => x.ids.tmdb));
-      const G = new Map(), add = (r, k) => { const id = qidOf(r.s.value), f = r.imdb?.value || ('tmdb:' + r.tmdb?.value); const g = G.get(id) || {id, kind:k, name:r.sLabel?.value || id, films:new Set()}; g.films.add(f); G.set(id, g); };
-      const run = async (vals, prop) => { for(const c of chunk(vals, 180)){ const rows = await sparql(`#yamz:cols
-SELECT ?${prop} ?s ?sLabel ?k WHERE { VALUES ?${prop} { ${c.map(v => '"' + v + '"').join(' ')} } ?f wdt:${prop === 'imdb' ? 'P345' : 'P4947'} ?${prop} .
+      /* the same Wikidata matching Gaps uses, from your library titles (and IMDb ids where the server has them) */
+      const items = ownedMovies();
+      if(items.some(d => !(keyOf(d) in MISS.qmap))) await qidMatch(items, (st, label, done, total) => { COL.prog = {label, done, total}; colProgSoon(); });
+      COL.prog = {label:'Finding franchises, universes and studios', done:0, total:0}; colProgSoon();
+      const qids = uniq(items.map(d => MISS.qmap[keyOf(d)]).filter(Boolean));
+      const G = new Map();
+      for(const c of chunk(qids, 150)){ const rows = await sparql(`#yamz:cols
+SELECT ?f ?s ?sLabel ?k WHERE { VALUES ?f { ${c.map(q => 'wd:' + q).join(' ')} }
   { ?f wdt:P179 ?s . BIND("series" AS ?k) } UNION { ?f wdt:P1434 ?s . BIND("universe" AS ?k) } UNION { ?f wdt:P272 ?s . BIND("studio" AS ?k) }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } }`); rows.forEach(r => add(r, r.k.value)); } };
-      await run(imdb, 'imdb'); if(tmdb.length) await run(tmdb, 'tmdb');
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } }`);
+        rows.forEach(r => { const id = qidOf(r.s.value), k = r.k.value; const g = G.get(id) || {id, kind:k, name:r.sLabel?.value || id, films:new Set()}; g.films.add(qidOf(r.f.value)); G.set(id, g); }); }
       const min = {series:2, universe:2, studio:4};
       let groups = [...G.values()].filter(g => g.films.size >= min[g.kind] && !/^Q\d+$/.test(g.name)).map(g => ({id:g.id, kind:g.kind, name:colName(g.name), films:[...g.films]}));
       const sig = g => g.films.slice().sort().join(','); const seen = new Set();   // a universe or studio with exactly the same films as a series adds nothing
@@ -6684,17 +6692,31 @@ SELECT ?${prop} ?s ?sLabel ?k WHERE { VALUES ?${prop} { ${c.map(v => '"' + v + '
 SELECT ?s (COUNT(DISTINCT ?m) AS ?n) WHERE { VALUES ?s { ${c.map(q => 'wd:' + q).join(' ')} } { ?m wdt:P179 ?s } UNION { ?m wdt:P1434 ?s } ?m wdt:P31 ?ft . ${FTYPES} } GROUP BY ?s`);
           rows.forEach(r => { const g = groups.find(x => x.id === qidOf(r.s.value)); if(g) g.n = +r.n.value; }); }catch{}
       }
-      Object.assign(COL, {groups, at:Date.now(), err:null}); store.set('zn:cols', {groups, at:COL.at});
+      Object.assign(COL, {groups, at:Date.now(), err:null}); store.set('zn:cols', {v:2, groups, at:COL.at});
     }catch(e){ COL.err = e; }
-    COL.busy = null;
+    COL.busy = null; COL.prog = null;
   })();
   return COL.busy;
 }
 /* your copies of a group's films (every library they're in, so each Plex library gets its own collection) */
-function colOwned(g){
-  const want = new Set(g.films); return (UW.items || []).filter(x => x.kind === 'movie' && ((x.ids?.imdb && want.has(x.ids.imdb)) || (x.ids?.tmdb && want.has('tmdb:' + x.ids.tmdb))));
+/* qid → the copies you own: the server's item (file, size, library — needed to make a collection) when it has been read, otherwise the library card */
+function colIndex(){
+  const sig = DATA.length + ':' + (UW.at || 0) + ':' + Object.keys(MISS.qmap).length + ':' + (LIB.at || 0);
+  if(COL.idx?.sig === sig) return COL.idx.map;
+  const uw = new Map(); (UW.items || []).filter(x => x.kind === 'movie').forEach(x => { const k = fold(x.t); uw.set(k + '|' + (x.y || ''), [...(uw.get(k + '|' + (x.y || '')) || []), x]); if(!uw.has(k)) uw.set(k, [x]); });
+  /* the copies the library sync recorded (id + library), used when the file read has nothing for a title */
+  const syn = new Map(); actServers().forEach(s => (s.movies || []).forEach(m => { if(!m.k || (s.type !== 'jellyfin' && !m.lb)) return; const L = (s.libs || []).find(l => l.key === m.lb);
+    if(m.lb && L && !L.on) return; const k = fold(m.t), x = {key:s.id + ':' + m.k, kind:'movie', t:m.t, y:m.y || null, srv:s.id, id:String(m.k), libKey:m.lb || '', lib:L?.name || '', size:0, img:m.th ? SRV(s).img(s, m.th) : null};
+    [k + '|' + (m.y || ''), k].forEach((kk, i) => { if(i && syn.has(kk)) return; syn.set(kk, [...(syn.get(kk) || []), x]); }); }));
+  const map = new Map();
+  ownedMovies().forEach(d => { const q = MISS.qmap[keyOf(d)]; if(!q) return;
+    const hit = uw.get(fold(d.t) + '|' + (d.y || '')) || uw.get(fold(d.t)) || syn.get(fold(d.t) + '|' + (d.y || '')) || syn.get(fold(d.t));
+    const xs = hit?.length ? hit.map(x => ({...x, q})) : [{key:'d:' + keyOf(d), kind:'movie', t:d.t, y:d.y, q, img:cached(d)?.poster || null, size:0, d}];
+    map.set(q, [...(map.get(q) || []), ...xs.filter(x => !(map.get(q) || []).some(o => o.key === x.key))]); });
+  COL.idx = {sig, map}; return map;
 }
-const colFilmsOwned = g => { const own = colOwned(g); return {own, has:new Set(own.map(x => x.ids?.imdb || x.ids?.tmdb || x.key)).size}; };
+function colOwned(g){ const ix = colIndex(); return g.films.flatMap(q => ix.get(q) || []); }
+const colFilmsOwned = g => { const own = colOwned(g); return {own, has:new Set(own.map(x => x.q)).size}; };
 /* what collections already exist on your servers, by name */
 async function colServerLoad(force){
   if(COL.srvBusy) return COL.srvBusy;
@@ -6739,10 +6761,10 @@ function renderCollections(){
   const g = $('#grid'); g.className = 'mview'; $('#sort').style.display = 'none';
   $('#title').textContent = COLV.kind === 'all' ? 'Collections' : COL_KINDS[COLV.kind]; $('#count').textContent = '';
   if(!actServers().length){ g.innerHTML = `<div class="mpanel"><p>Connect a Plex or Jellyfin server to find and build collections.</p></div>`; return; }
-  const need = !COL.groups || !UW.items;
+  const need = !COL.groups;
   if(!COL.busy && (need || Date.now() - COL.at > 7 * DAY)) colLoad().then(() => { if(state.s === 'collections'){ renderColSide(); renderCollections(); } });
   if(!COL.srvCols && !COL.srvBusy) colServerLoad().then(() => state.s === 'collections' && renderCollections());
-  if(need){ g.innerHTML = COL.err ? `<div class="actidle"><b>Couldn't look up your collections</b><p>${esc(COL.err.message || '')}</p><button class="btn" data-colrefresh>Try again</button></div>` : `<div class="loading"><div class="spin"></div>Matching your movies to film series, universes and studios…</div>`; return; }
+  if(need){ g.innerHTML = COL.err ? `<div class="actidle"><b>Couldn't look up your collections</b><p>${esc(COL.err.message || '')}</p><button class="btn" data-colrefresh>Try again</button></div>` : `<div class="loading"><div class="spin"></div>${esc(COL.prog?.label || 'Matching your movies to film series, universes and studios')}…${COL.prog?.total ? `<small style="display:block;margin-top:6px;color:var(--muted)">${COL.prog.done.toLocaleString()} of ${COL.prog.total.toLocaleString()}</small>` : ''}<small style="display:block;margin-top:6px;color:var(--muted)">The first look can take a few minutes on a big library. If you've run Gaps, it reuses those matches.</small></div>`; return; }
   const list = colList();
   $('#count').innerHTML = `${list.length} collection${list.length === 1 ? '' : 's'}${COL.busy ? ' · <span class="cntnote">updating…</span>' : ''}`;
   g.innerHTML = `<div class="colbar field"><input type="text" id="colQ" placeholder="Filter collections…" value="${esc(COLV.q || '')}" aria-label="Filter collections"></div>
@@ -6777,7 +6799,7 @@ async function openCollection(id){
   /* films: whole franchise / universe from Wikidata, or the ones you own for a studio */
   (async () => {
     let items = [];
-    const ownIm = new Set(own.map(x => x.ids?.imdb).filter(Boolean)), ownTm = new Set(own.map(x => x.ids?.tmdb).filter(Boolean));
+    const ownQ = new Set(own.map(x => x.q));
     if(g.kind !== 'studio'){
       try{ const rows = await sparql(`#yamz:colmembers
 SELECT ?m ?mLabel ?date ?imdb ?tmdb ?art WHERE { { ?m wdt:P179 wd:${id} } UNION { ?m wdt:P1434 wd:${id} } ?m wdt:P31 ?ft . ${FTYPES}
@@ -6785,18 +6807,19 @@ SELECT ?m ?mLabel ?date ?imdb ?tmdb ?art WHERE { { ?m wdt:P179 wd:${id} } UNION 
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } }`);
         const by = new Map(); rows.forEach(r => { const q = qidOf(r.m.value), x = by.get(q) || {q, t:r.mLabel?.value || q, d:'', imdb:'', tmdb:'', art:artTitle(r.art?.value), s:'movie'};
           const dt = (r.date?.value || '').slice(0, 10); if(dt && (!x.d || dt < x.d)) x.d = dt; if(r.imdb) x.imdb = r.imdb.value; if(r.tmdb) x.tmdb = r.tmdb.value; by.set(q, x); });
-        items = [...by.values()].filter(x => !/^Q\d+$/.test(x.t)).map(x => ({...x, y:+x.d.slice(0, 4) || null, st:(x.imdb && ownIm.has(x.imdb)) || (x.tmdb && ownTm.has(x.tmdb)) ? 'own' : (!x.d || x.d > today) ? 'up' : 'miss'}));
+        items = [...by.values()].filter(x => !/^Q\d+$/.test(x.t)).map(x => ({...x, y:+x.d.slice(0, 4) || null, st:ownQ.has(x.q) || ownedItem({t:x.t, y:+x.d.slice(0, 4) || null, s:'movie'}) ? 'own' : (!x.d || x.d > today) ? 'up' : 'miss'}));
       }catch{}
     }
-    const seenF = new Set(items.filter(x => x.st === 'own').map(x => x.imdb || x.tmdb));
-    own.forEach(x => { const k = x.ids?.imdb || x.ids?.tmdb; if(k && seenF.has(k)) return; seenF.add(k); items.push({q:'own:' + x.key, t:x.t, y:x.y, st:'own', s:'movie', art:null, img:x.img}); });
+    const seenF = new Set(items.map(x => x.q));
+    own.forEach(x => { const k = x.q; if(seenF.has(k)) return; seenF.add(k); items.push({q:'own:' + x.key, t:x.t, y:x.y, st:'own', s:'movie', art:null, img:x.img}); });
     items.sort((a, b) => (a.y || 9999) - (b.y || 9999));
     if(CUR !== me) return;
     const el = $('#colFilms'); if(!el) return;
     el.innerHTML = items.length ? items.map(x => x.img && !x.art ? miniHTML(x).replace('<div class="ph"', `<img class="ld" src="${esc(x.img)}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1"><div class="ph"`) : miniHTML(x)).join('') : '<p class="gpnote">No films found.</p>';
     loadPosters(el);
   })();
-  await colServerLoad(true); if(CUR !== me) return; colMakeRender(g);
+  await Promise.all([colServerLoad(true), own.some(x => !x.srv) ? uwLoad() : null]); if(CUR !== me) return;
+  g.own = colOwned(g0); colMakeRender(g);
 }
 function colMakeRender(g){
   const el = $('#colMake'); if(!el) return;
@@ -6810,9 +6833,12 @@ function colMakeRender(g){
   });
   g._parts = parts;
   const all = parts.flatMap(p => p.groups), made = all.filter(x => x.ex), todo = all.filter(x => !x.ex);
+  if(!all.length){ el.innerHTML = `<h3 class="bebas">Make it a collection</h3><p class="gpnote">${UW.busy ? 'Still reading your server…' : `Couldn't find these films on your server to add them${UW.errs?.length ? ` (${esc(UW.errs.join(' · ').slice(0, 200))})` : ''}.`}</p><button class="btn" data-colretry>↻ Try again</button>`; COL.cur = g; return; }
+  const unk = g.own.filter(x => !x.srv).map(x => x.q).filter(q => !g.own.some(o => o.srv && o.q === q)).length;
   el.innerHTML = `<h3 class="bebas">Make it a collection</h3>
     <div class="colname field"><label>Name<input type="text" id="colName" value="${esc(name)}" maxlength="80"></label></div>
     <ul class="colwhere">${all.map(x => `<li>${x.ex ? '✓' : '○'} <b>${esc(x.libName || 'Jellyfin')}</b> · ${x.items.length} film${x.items.length === 1 ? '' : 's'}${x.ex ? ` · already a collection${x.ex.n ? ` (${x.ex.n})` : ''}` : ''}</li>`).join('')}</ul>
+    ${unk ? `<p class="gpnote">${unk} film${unk === 1 ? '' : 's'} couldn't be found on the server and will be left out.</p>` : ''}
     ${all.length > 1 && parts.some(p => p.label === 'Plex') ? '<p class="gpnote">Plex keeps collections per library, so YAMZ makes one in each library these films are in.</p>' : ''}
     <div class="colbtns"><button class="btn pri" data-colmake ${g._busy ? 'disabled' : ''}>${g._busy ? 'Working…' : todo.length && made.length ? 'Create the rest and update' : todo.length ? `Create collection in ${uniq(parts.map(p => p.label)).join(' & ')}` : 'Update with any new films'}</button></div>`;
   COL.cur = g;
@@ -6850,6 +6876,7 @@ document.addEventListener('click', e => {
   if(state.s !== 'collections') return;
   const c = e.target.closest('[data-col]'); if(c){ openCollection(c.dataset.col); return; }
   const k = e.target.closest('[data-colkind]'); if(k){ COLV.kind = k.dataset.colkind; store.set('zn:colv', {kind:COLV.kind, sort:COLV.sort, min:COLV.min}); renderColSide(); renderCollections(); scrollTo(0, 0); return; }
+  if(e.target.closest('[data-colretry]') && COL.cur){ const g = COL.cur, g0 = (COL.groups || []).find(x => x.id === g.id); $('#colMake').innerHTML = '<div class="loading"><div class="spin"></div>Checking your servers…</div>'; uwLoad(true).then(() => { if(g0){ g.own = colOwned(g0); colMakeRender(g); } }); return; }
   if(e.target.closest('[data-colrefresh]')){ COL.err = null; colLoad(true).then(() => { renderColSide(); renderCollections(); }); colServerLoad(true); renderColSide(); renderCollections(); }
 });
 document.addEventListener('change', e => { const sel = e.target.closest?.('[data-colsel]'); if(!sel) return; COLV[sel.dataset.colsel] = sel.dataset.colsel === 'min' ? +sel.value : sel.value; store.set('zn:colv', {kind:COLV.kind, sort:COLV.sort, min:COLV.min}); renderColSide(); renderCollections(); });
