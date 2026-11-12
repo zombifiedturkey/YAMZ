@@ -12,6 +12,7 @@
 - In the list, delete a title with the bin, or press **Select** to tick several and see their total size in the bar at the bottom, then delete them together. It works exactly like Activity → Unwatched: titles Radarr or Sonarr manage are deleted through them, titles added by hand through Plex or Jellyfin (with **Allow media deletion** on), and every delete is confirmed first.
 
 **Fixes**
+- Media → List and Activity → Unwatched no longer get stuck on "Reading file names and sizes…" when another tab (like Collections) was already reading the library.
 - Long file names in the Unwatched list no longer show their leading numbers at the end when clipped.
 
 ## 1.4.0 — 12 November 2026

@@ -6369,8 +6369,14 @@ async function uwLoad(force){
       }
     }
     Object.assign(UW, {items:out, at:Date.now(), err:out.length ? null : err, busy:null});
-  })();
+  })().catch(e => { Object.assign(UW, {items:UW.items || [], at:Date.now(), err:e, busy:null}); });
   return UW.busy;
+}
+/* run cb once when the current (or a new) library read finishes, whoever started it */
+function uwWhen(tag, cb, force){
+  uwLoad(force); const pr = UW.busy; if(!pr) return;
+  UW.wait ||= {}; if(UW.wait[tag] === pr) return;
+  UW.wait[tag] = pr; pr.then(() => { if(UW.wait[tag] === pr) delete UW.wait[tag]; cb(); });
 }
 /* everyone's plays (all time) on top of the owner's own watched flags */
 function uwMerged(){
@@ -6410,7 +6416,9 @@ function renderUnwatched(){
   $('#title').textContent = UWV.mode === 'never' ? 'Never watched' : `Not watched in ${(UW_SINCE.find(x => x[0] === UWV.since) || UW_SINCE[1])[1]}`; $('#count').textContent = '';
   if(!actServers().length){ g.innerHTML = `<div class="mpanel"><p>Connect a Plex or Jellyfin server to see what's never been watched.</p></div>`; return; }
   const needH = HIST.since == null || HIST.since > 0 || Date.now() - HIST.at > 10 * 60e3, needL = !UW.items || Date.now() - UW.at > 10 * 60e3;
-  if((needH && !HIST.busy) || (needL && !UW.busy)){ Promise.all([needH ? histLoad(false, 0) : null, needL ? uwLoad() : null]).then(() => { if(state.s === 'activity' && actSec() === 'Unwatched'){ renderUwSide(); renderUnwatched(); } }); }
+  const uwRe = () => { if(state.s === 'activity' && actSec() === 'Unwatched'){ renderUwSide(); renderUnwatched(); } };
+  if(needH){ histLoad(false, 0); const hp = HIST.busy; if(hp && HIST.waitUw !== hp){ HIST.waitUw = hp; hp.then(uwRe); } }
+  if(needL || UW.busy) uwWhen('unwatched', uwRe);
   if(!UW.items || HIST.since == null || HIST.since > 0){ g.innerHTML = `<div class="loading"><div class="spin"></div>Reading your library and all-time play history…</div>`; return; }
   if(UW.err && !UW.items.length){ g.innerHTML = `<div class="actidle"><b>Couldn't read your library</b><p>${esc(UW.err.message || '')}</p></div>`; return; }
   const {list, total} = uwList(), now = Date.now(), size = list.reduce((a, x) => a + x.size, 0);
@@ -6432,8 +6440,8 @@ function renderUnwatched(){
 function uwRerender(){ if(uwCtx() === 'media'){ const sy = scrollY; render(); scrollTo(0, sy); } else if(uwCtx() === 'unwatched') renderUnwatched(); }
 function mediaListRender(list){
   const g = $('#grid'); g.className = 'mview';
-  if(!UW.items){ g.innerHTML = `<div class="loading"><div class="spin"></div>Reading file names and sizes from your server…</div>`; if(!UW.busy) uwLoad().then(() => uwCtx() === 'media' && uwRerender()); return; }
-  if(Date.now() - UW.at > 10 * 60e3 && !UW.busy) uwLoad(true).then(() => uwCtx() === 'media' && uwRerender());
+  if(!UW.items){ g.innerHTML = `<div class="loading"><div class="spin"></div>Reading file names and sizes from your server…</div>`; uwWhen('media', () => uwCtx() === 'media' && uwRerender()); return; }
+  if(Date.now() - UW.at > 10 * 60e3) uwWhen('media', () => uwCtx() === 'media' && uwRerender(), true);
   uwArrIndex();
   const idx = new Map(); uwMerged().forEach(x => { const k = x.kind + '|' + fold(x.t); idx.set(k + '|' + (x.y || ''), x); if(!idx.has(k)) idx.set(k, x); });
   const now = Date.now(), rows = list.map(d => idx.get(d.s + '|' + fold(d.t) + '|' + (d.y || '')) || idx.get(d.s + '|' + fold(d.t)) || {key:'d:' + keyOf(d), fake:true, kind:d.s, t:d.t, y:d.y, lib:'', added:0, last:0, plays:0, size:0, img:null, file:''});
