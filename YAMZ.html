@@ -4350,7 +4350,7 @@ function gfloatSet(on){
   if(on){ const g = $('#gfInner'), c = g.querySelector('.gchip.on'); g.scrollLeft = c ? Math.max(0, c.offsetLeft - (g.clientWidth - c.offsetWidth) / 2) : 0; }   // centre the picked genre without moving the page
 }
 function gdockCheck(){
-  const d = $('#gdock'); if(d.hidden || state.q.trim() || !['discover', 'movie', 'tv'].includes(state.s)) return gfloatSet(false);
+  const d = $('#gdock'); if(d.hidden || state.q.trim() || !['discover', 'movie', 'tv', 'collections'].includes(state.s)) return gfloatSet(false);
   const hb = document.querySelector('body > header')?.getBoundingClientRect().bottom || 0;
   gfloatSet(d.getBoundingClientRect().bottom < hb + 4);
 }
@@ -4367,6 +4367,9 @@ document.addEventListener('click', e => {
   } else if(state.s === 'movie' || state.s === 'tv'){
     if(g === state.c) return;
     state.c = g;
+  } else if(state.s === 'collections'){
+    if(g === COLV.kind) return;
+    COLV.kind = g; store.set('zn:colv', {kind:COLV.kind, sort:COLV.sort, min:COLV.min});
   } else return;
   renderSide(); render();
   if(floating) scrollTo({top:0, behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
@@ -6745,10 +6748,7 @@ function colList(){
     .sort({owned:(a, b) => b.has - a.has || a.name.localeCompare(b.name), az:(a, b) => sortKey(a.name).localeCompare(sortKey(b.name)), done:(a, b) => pct(b) - pct(a) || b.has - a.has}[COLV.sort] || ((a, b) => b.has - a.has));
 }
 function renderColSide(){
-  const all = (COL.groups || []).map(g => ({...g, ...colFilmsOwned(g)})).filter(g => g.has >= Math.max(COLV.min, 1)), cnt = k => all.filter(g => k === 'all' || g.kind === k).length;
-  $('#side').innerHTML = `<h4>Collections</h4>
-    ${['all', 'series', 'universe', 'studio'].map(k => `<button class="cat ${COLV.kind === k ? 'on' : ''}" data-colkind="${k}">${k === 'all' ? 'All' : COL_KINDS[k]}<span>${COL.groups ? cnt(k) : '–'}</span></button>`).join('')}
-    <h4>Sort</h4><div class="side-seg"><select data-colsel="sort" aria-label="Sort">${[['owned', 'Most films owned'], ['done', 'Most complete'], ['az', 'A → Z']].map(([v, l]) => `<option value="${v}" ${COLV.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+  $('#side').innerHTML = `<h4>Sort</h4><div class="side-seg"><select data-colsel="sort" aria-label="Sort">${[['owned', 'Most films owned'], ['done', 'Most complete'], ['az', 'A → Z']].map(([v, l]) => `<option value="${v}" ${COLV.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
     <h4>You own at least</h4><div class="side-seg"><select data-colsel="min" aria-label="You own at least">${[[2, '2 films'], [3, '3 films'], [5, '5 films'], [10, '10 films']].map(([v, l]) => `<option value="${v}" ${+COLV.min === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
     <div class="side-foot">Found from your movies on Wikidata: film series, shared universes (like the Marvel Cinematic Universe) and the studios behind them.${COL.at ? ` Last checked ${ago(COL.at)}.` : ''}
       <button class="btn" data-colrefresh style="margin-top:10px" ${COL.busy ? 'disabled' : ''}>${COL.busy ? 'Looking…' : '↻ Look again'}</button></div>`;
@@ -6757,8 +6757,13 @@ function colMosaic(g, own){
   const imgs = uniq(own.map(x => x.img).filter(Boolean)).slice(0, 4), h = hue(g.name);
   return `<div class="colmos n${imgs.length}" style="background:linear-gradient(160deg,hsl(${h} 45% 24%),hsl(${(h + 40) % 360} 50% 9%))">${imgs.map(u => `<img src="${esc(u)}" alt="" loading="lazy" onerror="this.remove()">`).join('')}${imgs.length ? '' : `<i>${esc(g.name)}</i>`}</div>`;
 }
+function colDockRender(){
+  const all = (COL.groups || []).map(g => ({...g, ...colFilmsOwned(g)})).filter(g => g.has >= Math.max(COLV.min, 1)), cnt = k => all.filter(g => k === 'all' || g.kind === k).length;
+  gdockFill(['all', 'series', 'universe', 'studio'].map(k => [k, k === 'all' ? 'All' : COL_KINDS[k], COL.groups ? cnt(k) : null]), COLV.kind);
+}
 function renderCollections(){
   const g = $('#grid'); g.className = 'mview'; $('#sort').style.display = 'none';
+  if(COL.groups) colDockRender();
   $('#title').textContent = COLV.kind === 'all' ? 'Collections' : COL_KINDS[COLV.kind]; $('#count').textContent = '';
   if(!actServers().length){ g.innerHTML = `<div class="mpanel"><p>Connect a Plex or Jellyfin server to find and build collections.</p></div>`; return; }
   const need = !COL.groups;

@@ -6,6 +6,7 @@
 - A new **Collections** tab, between Gaps and Discover, shows every group your movies belong to as one poster: franchises (Mad Max, The Terminator), shared universes (the Marvel Cinematic Universe) and studios (Pixar, Walt Disney Pictures). They're found on Wikidata from your movies' IMDb and TMDB ids. Filter by kind, sort by most owned, most complete or A → Z, and choose how many films you must own for a group to show.
 - Click a collection for its pop-up: a summary from Wikipedia, how many films you own and their size, and the full film list with owned, missing and upcoming films. Missing films have the Radarr button.
 - **Make it a collection** creates the collection in Plex (one in each library the films are in) or Jellyfin, with a name you can change. If it already exists, the button adds any films that aren't in it yet, and the poster shows a ✓ badge.
+- Collections has the same centred chips as the Media genres (**All · Franchises · Universes · Studios**, with counts), which float under the top bar as you scroll.
 - Collections finds your movies on Wikidata the same way Gaps does, from your library titles, and shares those matches with Gaps, so it works on any library and doesn't wait for the server's file details. The first look shows progress and can take a few minutes on a big library.
 
 **Media: list view, delete and select**
