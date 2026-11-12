@@ -13,6 +13,8 @@ const crypto = require('node:crypto');
 const { Readable } = require('node:stream');
 
 const VERSION = require('../package.json').version;
+/* release notes for the in-app "What's new" pop-up (CHANGELOG.md ships in the image) */
+const CHANGELOG = (() => { try{ return require('fs').readFileSync(require('path').join(__dirname, '..', 'CHANGELOG.md'), 'utf8'); }catch{ return ''; } })();
 const env = (k, d) => (process.env[k] ?? '').trim() || d;
 const bool = (k, d) => /^(1|true|yes|on)$/i.test(env(k, d ? 'true' : 'false'));
 const PORT = +env('PORT', '7979');
@@ -235,6 +237,7 @@ async function handle(req, res){
   if(!sess) return needAuth(res);
 
   if(p === '/api/me') return json(res, 200, {user:sess.user, auth:AUTH, version:VERSION});
+  if(p === '/api/changelog') return send(res, CHANGELOG ? 200 : 404, CHANGELOG || 'No changelog', 'text/markdown; charset=utf-8', {'Cache-Control':'no-cache'});
   if(p === '/api/state'){
     if(method === 'GET') return json(res, 200, STATE.data, {'Cache-Control':'no-store'});
     if(method === 'PATCH' || method === 'POST'){

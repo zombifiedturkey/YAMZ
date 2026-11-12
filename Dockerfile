@@ -11,7 +11,7 @@ LABEL org.opencontainers.image.title="YAMZ" \
 RUN apk add --no-cache su-exec tzdata
 
 WORKDIR /app
-COPY package.json ./
+COPY package.json CHANGELOG.md ./
 COPY server ./server
 COPY public ./public
 COPY YAMZ.html ./public/index.html

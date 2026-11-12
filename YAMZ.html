@@ -809,6 +809,24 @@ button.sc:hover{transform:translateY(-1px);box-shadow:0 0 0 2px var(--accent)}
 
 #fov{z-index:65}
 .fmodal{max-width:720px;padding:28px 30px 24px}
+.setver{margin:-6px 0 14px;font-size:12.5px;color:var(--muted)} .setver .linkbtn{padding:0;font-size:inherit}
+.wnmodal{max-width:680px;padding:0;display:flex;flex-direction:column;max-height:min(84vh,860px);overflow:hidden}
+.wnhead{padding:28px 30px 14px;background:linear-gradient(180deg,rgba(var(--acc-rgb),.14),transparent)}
+.wnkick{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-t);margin-bottom:6px}
+.wnhead h2{margin:0;font-size:30px;line-height:1.1;letter-spacing:-.01em}
+.wnhead p{margin:8px 0 0;color:var(--muted);font-size:13.5px}
+.wnbody{padding:4px 30px 10px;overflow:auto;flex:1;font-size:14px;line-height:1.55}
+.wnbody section + section{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.wnbody .wnver{font-size:17px;margin:12px 0 4px}
+.wnbody .wndate{color:var(--dim);font-size:12.5px;margin:0 0 4px}
+.wnbody h4{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
+.wnbody p{margin:6px 0}
+.wnbody ul{margin:4px 0;padding-left:20px}
+.wnbody li{margin:4px 0}
+.wnbody li::marker{color:var(--accent-t)}
+.wnbody code{font-size:12.5px;background:var(--bg3);padding:1px 5px;border-radius:4px}
+.wnbody a{color:var(--accent-t)}
+.wnfoot{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 30px 20px;border-top:1px solid var(--line)}
 .fstep{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-t);font-weight:700}
 .fmodal h2{margin:4px 0 6px;font-size:42px;line-height:1}
 .fmodal p{color:var(--muted);line-height:1.6;margin:6px 0}
@@ -1291,6 +1309,7 @@ body > header > *{--rk:var(--rk-panel,1)}   /* the bar's buttons, tabs and searc
   <div class="modal smodal">
     <button class="x" data-close="sov">×</button>
     <h2 class="bebas">Settings</h2>
+    <p class="setver" id="setVer" hidden></p>
     <h4>Appearance</h4>
     <div class="field" id="brandField"><label>Name &amp; icon <span class="swname">— what the top bar says, for every device</span></label>
       <div class="brandrow"><input type="text" id="brandName" maxlength="40" placeholder="YAMZ" aria-label="Name"><input type="text" id="brandSub" maxlength="48" placeholder="Yet Another Media Zombie" aria-label="Tagline"></div>
@@ -1355,6 +1374,7 @@ body > header > *{--rk:var(--rk-panel,1)}   /* the bar's buttons, tabs and searc
 <div class="lpop" id="lpop"></div>
 <input type="file" id="dirPick" webkitdirectory directory multiple hidden>
 <div class="ov" id="fov"><div class="modal fmodal" id="fmodal"></div></div>
+<div class="ov" id="wnov"><div class="modal wnmodal" id="wnmodal" role="dialog" aria-modal="true" aria-labelledby="wnTitle"></div></div>
 
 <script>
 let DATA = [];
@@ -6513,6 +6533,50 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('change', e => { const o = e.target.closest?.('[data-uwdopt]'); if(o){ UWDEL[o.dataset.uwdopt] = o.checked; const sy = scrollY; renderUnwatched(); scrollTo(0, sy); } });
 document.addEventListener('change', e => { const sel = e.target.closest?.('[data-uwsel]'); if(!sel || state.s !== 'activity') return; UWV[sel.dataset.uwsel] = sel.value; UWV.show = 120; uwSave(); renderUwSide(); renderUnwatched(); });
+/* ---------- What's new: after an update, show the release notes for every version since the one this person last saw ---------- */
+const verCmp = (a, b) => { const x = String(a).split('.').map(Number), y = String(b).split('.').map(Number); for(let i = 0; i < 3; i++){ const d = (x[i] || 0) - (y[i] || 0); if(d) return d; } return 0; };
+function mdLite(md){   // just enough Markdown for the changelog: headings, bullets (nested), bold, italics, code, links
+  const inl = t => esc(t).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<i>$2</i>')
+    .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, (m, t2, u) => `<a href="${u.replace(/"/g, '&quot;')}" target="_blank" rel="noopener">${t2}</a>`);
+  const out = []; let depth = 0;
+  const close = d => { while(depth > d){ out.push('</ul>'); depth--; } };
+  md.split('\n').forEach(line => {
+    const li = /^(\s*)[-*] (.*)$/.exec(line), h = /^(#{2,4})\s+(.*)$/.exec(line);
+    if(li){ const d = Math.floor(li[1].length / 2) + 1; while(depth < d){ out.push('<ul>'); depth++; } close(d); out.push(`<li>${inl(li[2])}</li>`); return; }
+    close(0);
+    if(h) out.push(`<h${h[1].length + 1}>${inl(h[2])}</h${h[1].length + 1}>`);
+    else if(line.trim()) out.push(`<p>${inl(line.trim())}</p>`);
+  });
+  close(0); return out.join('');
+}
+function wnSections(text, from, to){   // "## 1.4.0 — 12 November 2026" blocks newer than `from`, up to `to`
+  const parts = text.split(/^## /m).slice(1).map(b => { const nl = b.indexOf('\n'), head = b.slice(0, nl).trim(), v = (/^(\d+\.\d+\.\d+)/.exec(head) || [])[1]; return {v, head, body:b.slice(nl + 1).trim()}; }).filter(x => x.v);
+  return parts.filter(x => (!from || verCmp(x.v, from) > 0) && verCmp(x.v, to) <= 0).sort((a, b) => verCmp(b.v, a.v));
+}
+async function whatsNew(force){
+  if(!YSRV) return;
+  const cur = YSRV.version || ''; if(!/^\d+\.\d+\.\d+$/.test(cur)) return;
+  const seen = store.get('zn:seenver');
+  if(!force){ if(!seen){ store.set('zn:seenver', cur); return; } if(verCmp(seen, cur) >= 0) return; }
+  let text = ''; try{ const r = await fetch('api/changelog', {credentials:'same-origin', cache:'no-cache'}); if(r.ok) text = await r.text(); }catch{}
+  const secs = text ? wnSections(text, force ? null : seen, cur).slice(0, force ? 1 : 6) : [];
+  if(!secs.length){ if(!force) store.set('zn:seenver', cur); else toast("Couldn't load the release notes."); return; }
+  if(!force && document.querySelector('.ov.open')){ setTimeout(() => whatsNew(), 3000); return; }   // wait until setup or another pop-up is closed
+  const m = $('#wnmodal');
+  m.innerHTML = `<button class="x" data-wnclose aria-label="Close">×</button>
+    <div class="wnhead"><span class="wnkick">${force ? 'Release notes' : 'Updated'}</span><h2 id="wnTitle">What's new in YAMZ ${esc(cur)}</h2>${!force && seen ? `<p>You were on ${esc(seen)}.${secs.length > 1 ? ` Here's everything since then.` : ''}</p>` : ''}</div>
+    <div class="wnbody">${secs.map((x, i) => `<section>${secs.length > 1 || force ? `<h3 class="wnver">${esc(x.head)}</h3>` : `<p class="wndate">${esc(x.head.replace(/^\S+\s*[—-]\s*/, ''))}</p>`}${mdLite(x.body)}</section>`).join('')}</div>
+    <div class="wnfoot"><a href="https://github.com/zombifiedturkey/YAMZ/blob/main/CHANGELOG.md" target="_blank" rel="noopener" class="linkbtn">Full changelog ↗</a><button class="btn pri" data-wnclose>Got it</button></div>`;
+  $('#wnov').classList.add('open'); document.body.style.overflow = 'hidden';
+}
+function wnClose(){ $('#wnov').classList.remove('open'); document.body.style.overflow = ''; if(YSRV?.version) store.set('zn:seenver', YSRV.version); }
+document.addEventListener('click', e => {
+  if(e.target.closest('[data-whatsnew]')){ closeOv('sov'); whatsNew(true); return; }
+  if(e.target.closest('[data-wnclose]') || e.target.id === 'wnov') wnClose();
+});
+document.addEventListener('keydown', e => { if(e.key === 'Escape' && $('#wnov').classList.contains('open')) wnClose(); });
+setTimeout(() => whatsNew(), 1800);
+if(YSRV?.version && /^\d/.test(YSRV.version)){ const v = $('#setVer'); v.hidden = false; v.innerHTML = `YAMZ ${esc(YSRV.version)} · <button class="linkbtn" data-whatsnew>What's new</button>`; }
 function renderStats(){
   const g = $('#grid'); histNeed();
   $('#title').textContent = 'Stats'; $('#count').textContent = '';
