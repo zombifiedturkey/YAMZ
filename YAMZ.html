@@ -343,6 +343,8 @@ button.dastat:hover b{text-decoration:underline}
 .uwsize{flex:none;width:72px;text-align:right;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
 .uwdel{opacity:.55}
 .uwmultitog{margin:10px 0 4px;font-size:13px}
+.mvtool{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin:0 0 10px;padding:6px 6px 6px 12px;border:1px solid var(--line);border-radius:calc(10px * var(--rk,1));background:var(--bg2)}
+.mvtool.bad{color:var(--bad-t);border-color:color-mix(in srgb,var(--bad-t) 40%,transparent)} .mvtool .spin.sm{width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:-2px;margin:0 6px 0 0}
 .colbar{margin:0 0 18px} #colQ{max-width:360px}
 #colFilms{flex-wrap:wrap;overflow:visible;gap:18px 14px} #colFilms .mini.own .poster{opacity:1;filter:none} #colFilms .mini.miss .poster,#colFilms .mini.up .poster{opacity:.55;filter:grayscale(.6)}
 .colgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:26px 18px}
@@ -3246,8 +3248,8 @@ const PLEX = {
   async identity(url, token){ const m = (await jget(`${url}/identity?X-Plex-Token=${encodeURIComponent(token)}`, {headers:{Accept:'application/json'}}, 6000)).MediaContainer || {}; return {machine:m.machineIdentifier, name:m.friendlyName}; },
   async libs(s){ return ((await this.get(s, '/library/sections')).Directory || []).filter(x => x.type==='movie' || x.type==='show').map(x => ({key:String(x.key), name:x.title, kind:x.type==='movie' ? 'movie' : 'tv', scan:(+x.scannedAt || +x.updatedAt || 0) * 1000})); },
   async lastScan(s){ return {at:Math.max(0, ...s.libs.filter(l => l.on).map(l => l.scan || 0)) || null, how:'scan'}; },
-  async paged(s, path, params, each, prog){
-    let start = 0; const size = 2000;
+  async paged(s, path, params, each, prog, size = 2000){
+    let start = 0;
     for(;;){
       const mc = await this.get(s, path, {...params, 'X-Plex-Container-Start':start, 'X-Plex-Container-Size':size}, 60000);
       const md = mc.Metadata || []; md.forEach(each); start += md.length; prog?.(start, mc.totalSize);
@@ -3304,8 +3306,8 @@ const JF = {
     const list = s.user ? (await this.get(s, `/Users/${s.user}/Views`)).Items || [] : (await this.get(s, '/Library/VirtualFolders')).map(v => ({Id:v.ItemId, Name:v.Name, CollectionType:v.CollectionType}));
     return list.filter(x => x.CollectionType==='movies' || x.CollectionType==='tvshows').map(x => ({key:x.Id, name:x.Name, kind:x.CollectionType==='movies' ? 'movie' : 'tv'}));
   },
-  async paged(s, params, each, prog){
-    let start = 0; const size = 2000;
+  async paged(s, params, each, prog, size = 2000){
+    let start = 0;
     for(;;){
       const r = await this.get(s, '/Items', {...params, Recursive:true, StartIndex:start, Limit:size, userId:s.user || ''}, 60000);
       const items = r.Items || []; items.forEach(each); start += items.length; prog?.(start, r.TotalRecordCount);
@@ -6345,33 +6347,32 @@ async function uwLoad(force){
   if(UW.busy) return UW.busy;
   if(!force && UW.items && Date.now() - UW.at < 10 * 60e3) return;
   UW.busy = (async () => {
-    const out = []; let err = null;
+    const out = [], errs = []; let err = null; UW.prog = null;
     for(const s of actServers()){
       for(const L of (s.libs || []).filter(l => l.on)){
         const tv = L.kind !== 'movie';
         try{
           if(s.type === 'jellyfin'){
-            const r = await JF.get(s, '/Items', {ParentId:L.key, Recursive:true, IncludeItemTypes:tv ? 'Series' : 'Movie', Fields:'DateCreated,MediaSources,RecursiveItemCount,Path,ProviderIds', userId:s.user || '', EnableImages:false}, 60000);
-            (r.Items || []).forEach(it => out.push({key:s.id + ':' + it.Id, kind:tv ? 'tv' : 'movie', t:it.Name, y:it.ProductionYear || null, lib:L.name, libKey:L.key, srv:s.id, id:it.Id,
+            await JF.paged(s, {ParentId:L.key, IncludeItemTypes:tv ? 'Series' : 'Movie', Fields:'DateCreated,MediaSources,RecursiveItemCount,Path,ProviderIds', EnableImages:false}, it => out.push({key:s.id + ':' + it.Id, kind:tv ? 'tv' : 'movie', t:it.Name, y:it.ProductionYear || null, lib:L.name, libKey:L.key, srv:s.id, id:it.Id,
               file:(tv ? it.Path : it.MediaSources?.[0]?.Path || it.Path) || '', ids:{imdb:it.ProviderIds?.Imdb || '', tmdb:it.ProviderIds?.Tmdb || '', tvdb:it.ProviderIds?.Tvdb || ''},
               added:Date.parse(it.DateCreated || '') || 0, last:Date.parse(it.UserData?.LastPlayedDate || '') || 0, plays:+it.UserData?.PlayCount || (it.UserData?.Played ? 1 : 0),
-              size:tv ? 0 : +(it.MediaSources?.[0]?.Size || 0), img:JF.img(s, it.Id), eps:tv ? [null, +it.RecursiveItemCount || null] : null}));
+              size:tv ? 0 : +(it.MediaSources?.[0]?.Size || 0), img:JF.img(s, it.Id), eps:tv ? [null, +it.RecursiveItemCount || null] : null}), (n, tot) => { UW.prog = {lib:L.name, n, tot}; uwProg(); }, 300);
           } else {
-            const mc = await PLEX.get(s, `/library/sections/${L.key}/all`, {type:tv ? 2 : 1, includeGuids:1}, 60000);
-            (mc.Metadata || []).forEach(m => { const gid = k => ((m.Guid || []).find(g => g.id?.startsWith(k + '://'))?.id || '').slice(k.length + 3);
+            await PLEX.paged(s, `/library/sections/${L.key}/all`, {type:tv ? 2 : 1, includeGuids:1}, m => { const gid = k => ((m.Guid || []).find(g => g.id?.startsWith(k + '://'))?.id || '').slice(k.length + 3);
               out.push({key:s.id + ':' + m.ratingKey, kind:tv ? 'tv' : 'movie', t:m.title, y:+m.year || null, lib:L.name, libKey:L.key, srv:s.id, id:m.ratingKey,
               file:tv ? (m.Location?.[0]?.path || '') : (m.Media?.[0]?.Part?.[0]?.file || ''), ids:{imdb:gid('imdb'), tmdb:gid('tmdb'), tvdb:gid('tvdb')},
               added:(+m.addedAt || 0) * 1000, last:(+m.lastViewedAt || 0) * 1000, plays:+m.viewCount || 0,
               size:tv ? 0 : (m.Media || []).reduce((a, md) => a + (md.Part || []).reduce((b, p) => b + (+p.size || 0), 0), 0), img:PLEX.img(s, m.thumb),
-              eps:tv ? [+m.viewedLeafCount || 0, +m.leafCount || null] : null}); });
+              eps:tv ? [+m.viewedLeafCount || 0, +m.leafCount || null] : null}); }, (n, tot) => { UW.prog = {lib:L.name, n, tot}; uwProg(); }, 300);
           }
-        }catch(e){ err = e; }
+        }catch(e){ err = e; errs.push(`${L.name}: ${e.message || e}`); }
       }
     }
-    Object.assign(UW, {items:out, at:Date.now(), err:out.length ? null : err, busy:null});
-  })().catch(e => { Object.assign(UW, {items:UW.items || [], at:Date.now(), err:e, busy:null}); });
+    Object.assign(UW, {items:out, at:Date.now(), err:out.length ? null : err, errs, busy:null, prog:null});
+  })().catch(e => { Object.assign(UW, {items:UW.items || [], at:Date.now(), err:e, errs:[String(e.message || e)], busy:null, prog:null}); });
   return UW.busy;
 }
+function uwProg(){ const el = $('#uwProg'); if(el && UW.prog) el.textContent = `${UW.prog.lib}: ${UW.prog.n.toLocaleString()}${UW.prog.tot ? ' of ' + (+UW.prog.tot).toLocaleString() : ''}`; }
 /* run cb once when the current (or a new) library read finishes, whoever started it */
 function uwWhen(tag, cb, force){
   uwLoad(force); const pr = UW.busy; if(!pr) return;
@@ -6440,16 +6441,21 @@ function renderUnwatched(){
 function uwRerender(){ if(uwCtx() === 'media'){ const sy = scrollY; render(); scrollTo(0, sy); } else if(uwCtx() === 'unwatched') renderUnwatched(); }
 function mediaListRender(list){
   const g = $('#grid'); g.className = 'mview';
-  if(!UW.items){ g.innerHTML = `<div class="loading"><div class="spin"></div>Reading file names and sizes from your server…</div>`; uwWhen('media', () => uwCtx() === 'media' && uwRerender()); return; }
-  if(Date.now() - UW.at > 10 * 60e3) uwWhen('media', () => uwCtx() === 'media' && uwRerender(), true);
+  if(!UW.items || (UW.busy && !UW.items.length)){ g.innerHTML = `<div class="loading"><div class="spin"></div>Reading file names and sizes from your server…<small id="uwProg" style="display:block;margin-top:6px;color:var(--muted)"></small></div>`; uwProg(); uwWhen('media', () => uwCtx() === 'media' && uwRerender()); return; }
+  if(Date.now() - UW.at > (UW.errs?.length ? 60e3 : 10 * 60e3)) uwWhen('media', () => uwCtx() === 'media' && uwRerender(), true);
   uwArrIndex();
   const idx = new Map(); uwMerged().forEach(x => { const k = x.kind + '|' + fold(x.t); idx.set(k + '|' + (x.y || ''), x); if(!idx.has(k)) idx.set(k, x); });
   const now = Date.now(), rows = list.map(d => idx.get(d.s + '|' + fold(d.t) + '|' + (d.y || '')) || idx.get(d.s + '|' + fold(d.t)) || {key:'d:' + keyOf(d), fake:true, kind:d.s, t:d.t, y:d.y, lib:'', added:0, last:0, plays:0, size:0, img:null, file:''});
   const shown = rows.slice(0, MEDIAV.show), size = rows.reduce((a, x) => a + (x.size || 0), 0);
   UW.list = shown.filter(x => !x.fake); [...UWSEL].forEach(k => { if(!rows.some(x => x.key === k)) UWSEL.delete(k); });
   if(size) $('#count').insertAdjacentHTML('beforeend', `<span class="cntnote">· ${fmtBytes(size)}</span>`);
-  g.innerHTML = rows.length ? `<div class="uwlist">${shown.map(x => uwRowHTML(x, now)).join('')}</div>${rows.length > MEDIAV.show ? `<div class="hmore"><button class="btn" data-mvmore>Show ${Math.min(400, rows.length - MEDIAV.show)} more</button></div>` : ''}${UWMULTI ? '<div class="uwpad" style="height:120px"></div>' : ''}` : `<div class="empty">Nothing matches that.</div>`;
-  setTimeout(uwBarRender, 0);
+  const mine = UW.items.filter(x => x.kind === KIND).length, miss = rows.filter(x => x.fake).length;
+  const bar = `<div class="mvtool ${UW.errs?.length || (!mine && rows.length) ? 'bad' : ''}"><span>${UW.busy ? `<span class="spin sm"></span> Reading file details… <small id="uwProg"></small>`
+      : UW.errs?.length ? `Couldn't read some file details: ${esc(UW.errs.join(' · ').slice(0, 220))}`
+      : !mine ? 'No file details came back from your server.' : `File details read ${(m => m < 1 ? 'just now' : m < 60 ? m + ' min ago' : Math.round(m / 60) + ' h ago')(Math.floor((Date.now() - UW.at) / 60e3))}${miss ? ` · ${miss.toLocaleString()} title${miss === 1 ? '' : 's'} not matched` : ''}`}</span>
+    <button class="hbtn" data-mvrefresh ${UW.busy ? 'disabled' : ''}>↻ Refresh file details</button></div>`;
+  g.innerHTML = bar + (rows.length ? `<div class="uwlist">${shown.map(x => uwRowHTML(x, now)).join('')}</div>${rows.length > MEDIAV.show ? `<div class="hmore"><button class="btn" data-mvmore>Show ${Math.min(400, rows.length - MEDIAV.show)} more</button></div>` : ''}${UWMULTI ? '<div class="uwpad" style="height:120px"></div>' : ''}` : `<div class="empty">Nothing matches that.</div>`);
+  uwProg(); setTimeout(uwBarRender, 0);
 }
 $('#mviewSeg').onclick = e => { const b = e.target.closest('[data-mview]'); if(!b || b.dataset.mview === MEDIAV.view) return; MEDIAV.view = b.dataset.mview; MEDIAV.show = 200; store.set('zn:mview', {view:MEDIAV.view}); if(MEDIAV.view !== 'list'){ UWMULTI = false; UWSEL.clear(); } render(); };
 $('#mselBtn').onclick = () => { UWMULTI = !UWMULTI; if(!UWMULTI){ UWSEL.clear(); UWB.ask = false; } uwRerender(); };
@@ -6600,6 +6606,7 @@ document.addEventListener('click', e => {
   const dg = e.target.closest('[data-uwdgo]'); if(dg && !UWDEL.busy){ uwDelete(dg.dataset.uwdgo); return; }
   const b = e.target.closest('.uwseg button'); if(b){ UWV[b.closest('[data-uw]').dataset.uw] = b.dataset.v; UWV.show = 120; if(!['old', 'new', 'az', 'big', 'lib'].includes(UWV.sort)) UWV.sort = 'old'; uwSave(); renderUwSide(); renderUnwatched(); return; }
   if(e.target.closest('[data-uwmore]')){ UWV.show += 240; renderUnwatched(); return; }
+  if(e.target.closest('[data-mvrefresh]')){ UW.wait = {}; uwWhen('media', () => uwCtx() === 'media' && uwRerender(), true); uwRerender(); return; }
   if(e.target.closest('[data-uwrefresh]')){ UW.at = 0; HIST.at = 0; renderUwSide(); renderUnwatched(); }
 });
 document.addEventListener('change', e => { const o = e.target.closest?.('[data-uwdopt]'); if(o){ UWDEL[o.dataset.uwdopt] = o.checked; const sy = scrollY; uwRerender(); scrollTo(0, sy); } });
