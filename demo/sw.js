@@ -101,6 +101,20 @@ WL.forEach(([t, y]) => DEMOY[t] = y);
 
 /* ---------------- fake outside services ---------------- */
 let plexPolls = 0;
+const PCOLS = [];   // Plex collections made in this demo session
+const DCOLS = [   // franchises, a universe and studios for the demo's Collections tab
+  {id:'Q60001', k:'series', name:'Mad Max', re:/^Mad Max|Fury Road/, total:5, desc:'Australian post-apocalyptic action film series', more:[['Furiosa: A Mad Max Saga', 2024]]},
+  {id:'Q60002', k:'series', name:'Alien', re:/^Aliens?$|^Alien 3|Alien: /, total:7, desc:'science fiction horror media franchise', more:[['Alien', 1979], ['Alien 3', 1992], ['Alien Resurrection', 1997], ['Prometheus', 2012], ['Alien: Romulus', 2024]]},
+  {id:'Q60003', k:'series', name:'The Terminator', re:/Terminator/, total:6, desc:'American science fiction action franchise', more:[['Terminator 3: Rise of the Machines', 2003], ['Terminator Salvation', 2009], ['Terminator Genisys', 2015], ['Terminator: Dark Fate', 2019]]},
+  {id:'Q60004', k:'series', name:'Evil Dead', re:/Evil Dead|Army of Darkness/, total:5, desc:'American horror franchise', more:[['The Evil Dead', 1981], ['Army of Darkness', 1992], ['Evil Dead', 2013], ['Evil Dead Rise', 2023]]},
+  {id:'Q60005', k:'series', name:'Die Hard', re:/Die Hard/, total:5, desc:'American action film series', more:[['Die Hard 2', 1990], ['Die Hard with a Vengeance', 1995], ['Live Free or Die Hard', 2007], ['A Good Day to Die Hard', 2013]]},
+  {id:'Q60006', k:'series', name:'The Fast and the Furious', re:/Fast|Furious/, total:11, desc:'American action media franchise centred on street racing and heists', more:[['Fast & Furious', 2009], ['Fast Five', 2011], ['Furious 7', 2015], ['Fast X', 2023]]},
+  {id:'Q60007', k:'series', name:'Back to the Future', re:/Back to the Future/, total:3, desc:'American science fiction comedy franchise', more:[['Back to the Future Part II', 1989], ['Back to the Future Part III', 1990]]},
+  {id:'Q60008', k:'universe', name:'Alien vs. Predator', re:/^Aliens?$|Predator/, desc:'shared universe of the Alien and Predator franchises'},
+  {id:'Q60010', k:'studio', name:'Universal Pictures', test:i => i % 3 === 0, re:/^$/, desc:'American film production and distribution company'},
+  {id:'Q60011', k:'studio', name:'20th Century Studios', test:i => i % 3 === 1, re:/^$/, desc:'American film studio'},
+  {id:'Q60012', k:'studio', name:'Warner Bros. Pictures', test:i => i % 3 === 2, re:/^$/, desc:'American film studio'},
+];
 const QGONE = new Set();   // queue items removed in this demo session
 const ARRADD = {radarr:[], sonarr:[]};
 function plexTv(u){
@@ -113,6 +127,7 @@ function plexTv(u){
 function plexServer(u){
   const P = u.searchParams;
   if(u.pathname === '/identity') return J({MediaContainer:{machineIdentifier:'mach1', friendlyName:'Crypt'}});
+  { const m = /^\/library\/sections\/(\d+)\/collections$/.exec(u.pathname); if(m) return J({MediaContainer:{Metadata:PCOLS.filter(c => c.sec === m[1]).map(c => ({ratingKey:c.ratingKey, title:c.title, childCount:c.kids.size}))}}); }
   if(u.pathname === '/library/sections') return J({MediaContainer:{Directory:[{key:'1', title:'Movies', type:'movie', scannedAt:Math.floor(Date.now() / 1000) - 2 * 3600}, {key:'2', title:'TV Shows', type:'show', scannedAt:Math.floor(Date.now() / 1000) - 3 * 3600}]}});
   if(u.pathname === '/library/sections/1/all') return J({MediaContainer:{totalSize:PLEXMOV.length, Metadata:PLEXMOV}});
   if(u.pathname === '/library/sections/2/all' && P.get('type') === '4') return J({MediaContainer:{totalSize:PLEXEPS.length, Metadata:PLEXEPS}});
@@ -307,6 +322,19 @@ const B = o => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, {value:v
 async function sparql(req){
   const body = req.method === 'POST' ? await req.text() : new URL(req.url).search;
   const q = decodeURIComponent(body.replace(/^\??query=/, '').replace(/\+/g, ' '));
+  if(q.includes('#yamz:cols')){
+    const out = []; [...q.matchAll(/"(tt\d+)"/g)].forEach(([, im]) => { const i = +im.slice(2) - 9000000, t = MOV[i]?.[0]; if(!t) return;
+      DCOLS.forEach(c => { if(c.k === 'studio' ? c.test(i) : c.re.test(t)) out.push(B({imdb:im, s:E + c.id, sLabel:c.name, k:c.k})); }); });
+    return J({results:{bindings:out}});
+  }
+  if(q.includes('#yamz:colcount')) return J({results:{bindings:DCOLS.filter(c => c.total && q.includes('wd:' + c.id)).map(c => B({s:E + c.id, n:String(c.total)}))}});
+  if(q.includes('#yamz:colmembers')){
+    const c = DCOLS.find(x => q.includes('wd:' + x.id)); if(!c) return J({results:{bindings:[]}});
+    const own = MOV.map((m, i) => [m, i]).filter(([m]) => c.re.test(m[0])).map(([m, i]) => B({m:E + 'Q77' + i, mLabel:m[0], date:m[1] + '-06-01T00:00:00Z', imdb:'tt' + (9000000 + i), art:'https://en.wikipedia.org/wiki/' + encodeURIComponent(m[0])}));
+    const miss = (c.more || []).map(([t, y], j) => B({m:E + 'Q88' + j + c.id.slice(1), mLabel:t, date:y + '-06-01T00:00:00Z', art:'https://en.wikipedia.org/wiki/' + encodeURIComponent(t)}));
+    return J({results:{bindings:[...own, ...miss]}});
+  }
+  if(/schema:description \?d/.test(q)){ const c = DCOLS.find(x => q.includes('wd:' + x.id)); return J({results:{bindings:c ? [B({d:c.desc})] : []}}); }
   { const im = /wdt:P345 "(tt\d+)"/.exec(q); if(im) return J({results:{bindings:[B({f:E + QID(im[1])})]}}); }
   if(q.includes('#yamz:crit')){
     const id = /wd:(Q\d+) p:P444/.exec(q)?.[1] || 'Q1', h = hash(id), slug = 'demo_' + id.toLowerCase();
@@ -357,6 +385,11 @@ async function outside(url, req){
   if(h === 'img.demo') return images(u);
   if(h === 'plex.tv') return plexTv(u);
   if(h === 'discover.provider.plex.tv' || h === 'metadata.provider.plex.tv') return plexDiscover(u, req);
+  if(u.host === '192.168.1.20:32400' && /^\/library\/collections/.test(u.pathname) && (req.method === 'POST' || req.method === 'PUT')){
+    const ids = (u.searchParams.get('uri') || '').split('/metadata/')[1]?.split(',') || [];
+    if(req.method === 'POST'){ const rk = String(9000 + PCOLS.length); PCOLS.push({ratingKey:rk, title:u.searchParams.get('title'), sec:u.searchParams.get('sectionId'), kids:new Set(ids)}); return J({MediaContainer:{Metadata:[{ratingKey:rk}]}}); }
+    const c = PCOLS.find(x => x.ratingKey === u.pathname.split('/')[3]); if(c) ids.forEach(i => c.kids.add(i)); return J({MediaContainer:{}});
+  }
   if(u.host === '192.168.1.20:32400' && req.method === 'DELETE') return new Response('', {status:200, headers:{'Access-Control-Allow-Origin':'*'}});   // Plex "Allow media deletion" is on in the demo
   if(u.host === '192.168.1.20:32400') return plexServer(u);
   if(u.host === '192.168.1.20:7878') return arr('radarr', u, req);

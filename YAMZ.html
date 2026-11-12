@@ -343,6 +343,33 @@ button.dastat:hover b{text-decoration:underline}
 .uwsize{flex:none;width:72px;text-align:right;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
 .uwdel{opacity:.55}
 .uwmultitog{margin:10px 0 4px;font-size:13px}
+.colbar{margin:0 0 18px} #colQ{max-width:360px}
+#colFilms{flex-wrap:wrap;overflow:visible;gap:18px 14px} #colFilms .mini.own .poster{opacity:1;filter:none} #colFilms .mini.miss .poster,#colFilms .mini.up .poster{opacity:.55;filter:grayscale(.6)}
+.colgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:26px 18px}
+.colc{display:flex;flex-direction:column;gap:3px;border:0;background:none;padding:0;color:inherit;text-align:left;cursor:pointer;min-width:0}
+.colp{position:relative;aspect-ratio:2/3;border-radius:var(--pr);overflow:hidden;box-shadow:0 8px 22px rgba(0,0,0,.4);margin-bottom:8px;transition:transform .18s}
+.colc:hover .colp{transform:translateY(-3px)}
+.colmos{position:absolute;inset:0;display:grid;gap:2px}
+.colmos.n2{grid-template-columns:1fr 1fr} .colmos.n3{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr} .colmos.n3 img:first-child{grid-row:span 2} .colmos.n4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.colmos img{width:100%;height:100%;object-fit:cover;display:block;min-height:0}
+.colmos i{position:absolute;inset:14px;display:flex;align-items:center;justify-content:center;text-align:center;font-style:normal;font-weight:800;font-size:16px}
+.colp::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(0,0,0,.55));pointer-events:none}
+.colkind{position:absolute;left:8px;top:8px;z-index:1;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:var(--rp,999px);background:rgba(0,0,0,.7);color:#fff}
+.colin{position:absolute;right:8px;bottom:8px;z-index:1;font-size:11px;font-weight:700;padding:3px 8px;border-radius:var(--rp,999px);background:var(--accent);color:var(--on-accent)}
+.colc b{font-size:14px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.colc small{font-size:12px;color:var(--muted)}
+.colprog{height:4px;border-radius:2px;background:var(--bg3);overflow:hidden;margin-top:3px} .colprog i{display:block;height:100%;background:var(--accent)} .colprog.full i{background:var(--ok-t)}
+.colhero{display:flex;gap:24px;padding:28px 30px 10px;background:linear-gradient(180deg,hsl(var(--h) 40% 18% / .55),transparent)}
+.colhero .colmos{position:relative;inset:auto;width:170px;aspect-ratio:2/3;flex:none;border-radius:var(--pr);overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.colhero .colkind{position:static;display:inline-block;margin-bottom:6px}
+.colhtxt{min-width:0;flex:1}
+.colhtxt h2{font-size:46px;line-height:1;margin:0 0 8px}
+.colstats{font-size:14px;color:var(--text2);margin-bottom:10px} .colstats b{font-size:18px;color:var(--text)}
+.colsum{font-size:14px;line-height:1.6;color:var(--text2);margin:0} .colsum a{color:var(--accent-t)} .colsum .dim{color:var(--dim)}
+.colmake .colname label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);max-width:420px}
+.colwhere{list-style:none;padding:0;margin:12px 0;font-size:13px;color:var(--text2);display:flex;flex-direction:column;gap:4px}
+.colbtns{display:flex;gap:10px;margin-top:6px}
+@media (max-width:600px){ .colhero{flex-direction:column;padding:22px 18px 6px} .colhero .colmos{width:130px} .colhtxt h2{font-size:36px} .colgrid{grid-template-columns:repeat(2,minmax(0,1fr))} }
 .mviewseg{flex:none} .mviewseg[hidden],#mselBtn[hidden]{display:none}
 .mviewseg button{padding:6px 12px}
 #mselBtn.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
@@ -1275,6 +1302,7 @@ body > header > *{--rk:var(--rk-panel,1)}   /* the bar's buttons, tabs and searc
     <button data-s="dash">Dashboard</button>
     <button data-s="media" class="on">Media</button>
     <button data-s="missing">Gaps</button>
+    <button data-s="collections">Collections</button>
     <button data-s="discover">Discover</button>
     <button data-s="lists">Lists</button>
     <button data-s="calendar">Calendar</button>
@@ -1949,6 +1977,7 @@ function render(){
   }
   if(state.s==='lists' && !state.q.trim()) return renderLists();
   if(state.s==='missing' && !state.q.trim()) return renderMissing();
+  if(state.s==='collections' && !state.q.trim()) return renderCollections();
   if((state.s==='movie' || state.s==='tv') && !state.q.trim()) mediaDockRender();
   const list = visible();
   const q = state.q.trim();
@@ -1992,6 +2021,7 @@ function renderSide(){
   if(state.s==='discover' && !state.q) return renderDiscoverSide();
   if(state.s==='lists' && !state.q) return renderListsSide();
   if(state.s==='missing' && !state.q) return renderMissingSide();
+  if(state.s==='collections' && !state.q) return renderColSide();
   const counts = {}, items = DATA.filter(d => d.s===state.s);
   items.forEach(d => { const g = genresOf(d); if(g && g.length) g.forEach(x => counts[x] = (counts[x]||0)+1); else if(cached(d)) counts.Uncategorised = (counts.Uncategorised||0)+1; });
   const total = items.length, pending = items.filter(d => !genresOf(d) && !cached(d)?.none).length;
@@ -6610,6 +6640,204 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => { if(e.key === 'Escape' && $('#wnov').classList.contains('open')) wnClose(); });
 setTimeout(() => whatsNew(), 1800);
 if(YSRV?.version && /^\d/.test(YSRV.version)){ const v = $('#setVer'); v.hidden = false; v.innerHTML = `YAMZ ${esc(YSRV.version)} · <button class="linkbtn" data-whatsnew>What's new</button>`; }
+/* ---------- Collections: film series, shared universes and studios found in your movie library, and making them into Plex / Jellyfin collections ---------- */
+const COL = Object.assign({groups:null, at:0}, store.get('zn:cols') || {}); COL.busy = null; COL.err = null; COL.srvCols = null;
+const COLV = Object.assign({kind:'all', sort:'owned', min:2}, store.get('zn:colv') || {});
+const COL_KINDS = {series:'Franchises', universe:'Universes', studio:'Studios'};
+const colName = n => String(n || '').replace(/\s*\((?:film|movie) (?:series|franchise)\)$/i, '').replace(/\s+(?:film|movie) (?:series|franchise|trilogy)$/i, '').replace(/\s+franchise$/i, '').replace(/\s+films$/i, '').trim();
+async function colLoad(force){
+  if(COL.busy) return COL.busy;
+  if(!force && COL.groups && Date.now() - COL.at < 7 * DAY) return;
+  COL.busy = (async () => {
+    try{
+      await uwLoad();
+      const mv = (UW.items || []).filter(x => x.kind === 'movie');
+      const imdb = uniq(mv.map(x => x.ids?.imdb).filter(v => /^tt\d+$/.test(v))), tmdb = uniq(mv.filter(x => !x.ids?.imdb && /^\d+$/.test(x.ids?.tmdb || '')).map(x => x.ids.tmdb));
+      const G = new Map(), add = (r, k) => { const id = qidOf(r.s.value), f = r.imdb?.value || ('tmdb:' + r.tmdb?.value); const g = G.get(id) || {id, kind:k, name:r.sLabel?.value || id, films:new Set()}; g.films.add(f); G.set(id, g); };
+      const run = async (vals, prop) => { for(const c of chunk(vals, 180)){ const rows = await sparql(`#yamz:cols
+SELECT ?${prop} ?s ?sLabel ?k WHERE { VALUES ?${prop} { ${c.map(v => '"' + v + '"').join(' ')} } ?f wdt:${prop === 'imdb' ? 'P345' : 'P4947'} ?${prop} .
+  { ?f wdt:P179 ?s . BIND("series" AS ?k) } UNION { ?f wdt:P1434 ?s . BIND("universe" AS ?k) } UNION { ?f wdt:P272 ?s . BIND("studio" AS ?k) }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } }`); rows.forEach(r => add(r, r.k.value)); } };
+      await run(imdb, 'imdb'); if(tmdb.length) await run(tmdb, 'tmdb');
+      const min = {series:2, universe:2, studio:4};
+      let groups = [...G.values()].filter(g => g.films.size >= min[g.kind] && !/^Q\d+$/.test(g.name)).map(g => ({id:g.id, kind:g.kind, name:colName(g.name), films:[...g.films]}));
+      const sig = g => g.films.slice().sort().join(','); const seen = new Set();   // a universe or studio with exactly the same films as a series adds nothing
+      groups.sort((a, b) => ({series:0, universe:1, studio:2}[a.kind] - {series:0, universe:1, studio:2}[b.kind])).forEach(g => { g.dup = seen.has(sig(g)); seen.add(sig(g)); });
+      groups = groups.filter(g => !g.dup).map(({dup, ...g}) => g);
+      for(const c of chunk(groups.filter(g => g.kind !== 'studio').map(g => g.id), 40)){   // how many films each franchise / universe has in total
+        try{ const rows = await sparql(`#yamz:colcount
+SELECT ?s (COUNT(DISTINCT ?m) AS ?n) WHERE { VALUES ?s { ${c.map(q => 'wd:' + q).join(' ')} } { ?m wdt:P179 ?s } UNION { ?m wdt:P1434 ?s } ?m wdt:P31 ?ft . ${FTYPES} } GROUP BY ?s`);
+          rows.forEach(r => { const g = groups.find(x => x.id === qidOf(r.s.value)); if(g) g.n = +r.n.value; }); }catch{}
+      }
+      Object.assign(COL, {groups, at:Date.now(), err:null}); store.set('zn:cols', {groups, at:COL.at});
+    }catch(e){ COL.err = e; }
+    COL.busy = null;
+  })();
+  return COL.busy;
+}
+/* your copies of a group's films (every library they're in, so each Plex library gets its own collection) */
+function colOwned(g){
+  const want = new Set(g.films); return (UW.items || []).filter(x => x.kind === 'movie' && ((x.ids?.imdb && want.has(x.ids.imdb)) || (x.ids?.tmdb && want.has('tmdb:' + x.ids.tmdb))));
+}
+const colFilmsOwned = g => { const own = colOwned(g); return {own, has:new Set(own.map(x => x.ids?.imdb || x.ids?.tmdb || x.key)).size}; };
+/* what collections already exist on your servers, by name */
+async function colServerLoad(force){
+  if(COL.srvBusy) return COL.srvBusy;
+  if(!force && COL.srvCols && Date.now() - COL.srvAt < 3 * 60e3) return;
+  COL.srvBusy = (async () => {
+    const out = new Map(), key = n => fold(colName(n));
+    for(const s of actServers()){
+      try{
+        if(s.type === 'jellyfin'){ const r = await JF.get(s, '/Items', {IncludeItemTypes:'BoxSet', Recursive:true, Fields:'ChildCount', userId:s.user || ''}, 20000);
+          (r.Items || []).forEach(c => { const k = key(c.Name); out.set(k, [...(out.get(k) || []), {srv:s.id, type:'jellyfin', id:c.Id, title:c.Name, n:c.ChildCount || null}]); });
+        } else for(const L of (s.libs || []).filter(l => l.on && l.kind === 'movie')){
+          const m = await PLEX.get(s, `/library/sections/${L.key}/collections`, {}, 15000).catch(() => ({}));
+          (m.Metadata || []).forEach(c => { const k = key(c.title); out.set(k, [...(out.get(k) || []), {srv:s.id, type:'plex', lib:L.key, libName:L.name, id:c.ratingKey, title:c.title, n:+c.childCount || null}]); });
+        }
+      }catch{}
+    }
+    COL.srvCols = out; COL.srvAt = Date.now(); COL.srvBusy = null;
+  })();
+  return COL.srvBusy;
+}
+const colOnServer = name => COL.srvCols?.get(fold(colName(name))) || [];
+function colList(){
+  const q = fold(COLV.q || '');
+  const pct = g => g.has / Math.max(g.n || g.has, g.has, 1);
+  return (COL.groups || []).map(g => ({...g, ...colFilmsOwned(g)})).filter(g => g.has >= Math.max(COLV.min, 1) && (COLV.kind === 'all' || g.kind === COLV.kind) && (!q || fold(g.name).includes(q)))
+    .sort({owned:(a, b) => b.has - a.has || a.name.localeCompare(b.name), az:(a, b) => sortKey(a.name).localeCompare(sortKey(b.name)), done:(a, b) => pct(b) - pct(a) || b.has - a.has}[COLV.sort] || ((a, b) => b.has - a.has));
+}
+function renderColSide(){
+  const all = (COL.groups || []).map(g => ({...g, ...colFilmsOwned(g)})).filter(g => g.has >= Math.max(COLV.min, 1)), cnt = k => all.filter(g => k === 'all' || g.kind === k).length;
+  $('#side').innerHTML = `<h4>Collections</h4>
+    ${['all', 'series', 'universe', 'studio'].map(k => `<button class="cat ${COLV.kind === k ? 'on' : ''}" data-colkind="${k}">${k === 'all' ? 'All' : COL_KINDS[k]}<span>${COL.groups ? cnt(k) : '–'}</span></button>`).join('')}
+    <h4>Sort</h4><div class="side-seg"><select data-colsel="sort" aria-label="Sort">${[['owned', 'Most films owned'], ['done', 'Most complete'], ['az', 'A → Z']].map(([v, l]) => `<option value="${v}" ${COLV.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+    <h4>You own at least</h4><div class="side-seg"><select data-colsel="min" aria-label="You own at least">${[[2, '2 films'], [3, '3 films'], [5, '5 films'], [10, '10 films']].map(([v, l]) => `<option value="${v}" ${+COLV.min === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+    <div class="side-foot">Found from your movies on Wikidata: film series, shared universes (like the Marvel Cinematic Universe) and the studios behind them.${COL.at ? ` Last checked ${ago(COL.at)}.` : ''}
+      <button class="btn" data-colrefresh style="margin-top:10px" ${COL.busy ? 'disabled' : ''}>${COL.busy ? 'Looking…' : '↻ Look again'}</button></div>`;
+}
+function colMosaic(g, own){
+  const imgs = uniq(own.map(x => x.img).filter(Boolean)).slice(0, 4), h = hue(g.name);
+  return `<div class="colmos n${imgs.length}" style="background:linear-gradient(160deg,hsl(${h} 45% 24%),hsl(${(h + 40) % 360} 50% 9%))">${imgs.map(u => `<img src="${esc(u)}" alt="" loading="lazy" onerror="this.remove()">`).join('')}${imgs.length ? '' : `<i>${esc(g.name)}</i>`}</div>`;
+}
+function renderCollections(){
+  const g = $('#grid'); g.className = 'mview'; $('#sort').style.display = 'none';
+  $('#title').textContent = COLV.kind === 'all' ? 'Collections' : COL_KINDS[COLV.kind]; $('#count').textContent = '';
+  if(!actServers().length){ g.innerHTML = `<div class="mpanel"><p>Connect a Plex or Jellyfin server to find and build collections.</p></div>`; return; }
+  const need = !COL.groups || !UW.items;
+  if(!COL.busy && (need || Date.now() - COL.at > 7 * DAY)) colLoad().then(() => { if(state.s === 'collections'){ renderColSide(); renderCollections(); } });
+  if(!COL.srvCols && !COL.srvBusy) colServerLoad().then(() => state.s === 'collections' && renderCollections());
+  if(need){ g.innerHTML = COL.err ? `<div class="actidle"><b>Couldn't look up your collections</b><p>${esc(COL.err.message || '')}</p><button class="btn" data-colrefresh>Try again</button></div>` : `<div class="loading"><div class="spin"></div>Matching your movies to film series, universes and studios…</div>`; return; }
+  const list = colList();
+  $('#count').innerHTML = `${list.length} collection${list.length === 1 ? '' : 's'}${COL.busy ? ' · <span class="cntnote">updating…</span>' : ''}`;
+  g.innerHTML = `<div class="colbar field"><input type="text" id="colQ" placeholder="Filter collections…" value="${esc(COLV.q || '')}" aria-label="Filter collections"></div>
+    ${list.length ? `<div class="colgrid">${list.map(c => { const on = colOnServer(c.name);
+      return `<button class="colc" data-col="${esc(c.id)}"><div class="colp">${colMosaic(c, c.own)}<span class="colkind">${COL_KINDS[c.kind].replace(/s$/, '')}</span>${on.length ? `<span class="colin" title="Already a collection on ${esc(on.map(o => o.libName || 'Jellyfin').join(', '))}">✓ ${on[0].type === 'jellyfin' ? 'Jellyfin' : 'Plex'}</span>` : ''}</div>
+        <b>${esc(c.name)}</b><small>${c.has}${c.n && c.n > c.has ? ` of ${c.n}` : ''} film${(c.n || c.has) === 1 ? '' : 's'}${c.n && c.has >= c.n ? ' · complete' : ''}</small>
+        ${c.n && c.kind !== 'studio' ? `<div class="colprog ${c.has >= c.n ? 'full' : ''}"><i style="width:${Math.min(100, c.has / c.n * 100).toFixed(0)}%"></i></div>` : ''}</button>`; }).join('')}</div>`
+      : `<div class="actidle"><b>No collections${COLV.q ? ' match that' : ' yet'}</b><p>${COLV.min > 2 ? 'Try a lower "You own at least".' : ''}</p></div>`}`;
+  const qi = $('#colQ'); qi.oninput = () => { COLV.q = qi.value; const pos = qi.selectionStart; renderCollections(); const n = $('#colQ'); n.focus(); n.setSelectionRange(pos, pos); };
+}
+async function openCollection(id){
+  const g0 = (COL.groups || []).find(x => x.id === id); if(!g0) return;
+  const {own, has} = colFilmsOwned(g0), g = {...g0, own}, n = has;
+  const md = $('#modal'); $('#ov').classList.add('open'); document.body.style.overflow = 'hidden'; CUR = {col:id};
+  const me = CUR, h = hue(g.name);
+  const size = uniq(own.map(x => x.key)).reduce((a, k) => a + (own.find(x => x.key === k)?.size || 0), 0);
+  md.innerHTML = `<button class="x" data-close="ov">×</button>
+    <div class="colhero" style="--h:${h}">${colMosaic(g, own)}<div class="colhtxt"><span class="colkind">${COL_KINDS[g.kind].replace(/s$/, '')}</span><h2 class="bebas">${esc(g.name)}</h2>
+      <div class="colstats"><b>${n}</b> film${n === 1 ? '' : 's'} in your library${g.n ? ` of ${g.n}` : ''}${size ? ` · ${fmtBytes(size)}` : ''}</div>
+      <p class="colsum" id="colSum"><span class="dim">Loading summary…</span></p></div></div>
+    <div class="mbody">
+      <div class="sec colmake" id="colMake"><div class="loading"><div class="spin"></div>Checking your servers…</div></div>
+      <div class="sec"><h3 class="bebas">${g.kind === 'studio' ? 'Your films from this studio' : 'Films'}</h3><div class="mrow colfilms" id="colFilms"><div class="loading"><div class="spin"></div></div></div></div>
+    </div>`;
+  /* summary */
+  sparql(`SELECT ?d ?art WHERE { OPTIONAL { wd:${id} schema:description ?d FILTER(lang(?d) = "en") } OPTIONAL { ?art schema:about wd:${id} ; schema:isPartOf <https://en.wikipedia.org/> } } LIMIT 1`).then(async rows => {
+    const art = artTitle(rows[0]?.art?.value), desc = rows[0]?.d?.value || '';
+    let ext = '';
+    if(art){ try{ const j = await wq({action:'query', prop:'extracts', exintro:'1', explaintext:'1', exsentences:'4', titles:art, redirects:'1'}); ext = j.query?.pages?.[0]?.extract || ''; }catch{} }
+    if(CUR !== me) return; const el = $('#colSum'); if(el) el.innerHTML = ext ? esc(ext) + (art ? ` <a href="https://en.wikipedia.org/wiki/${encodeURIComponent(art)}" target="_blank" rel="noopener">Wikipedia ↗</a>` : '') : desc ? esc(desc[0].toUpperCase() + desc.slice(1)) + '.' : '';
+  }).catch(() => { const el = $('#colSum'); if(el) el.textContent = ''; });
+  /* films: whole franchise / universe from Wikidata, or the ones you own for a studio */
+  (async () => {
+    let items = [];
+    const ownIm = new Set(own.map(x => x.ids?.imdb).filter(Boolean)), ownTm = new Set(own.map(x => x.ids?.tmdb).filter(Boolean));
+    if(g.kind !== 'studio'){
+      try{ const rows = await sparql(`#yamz:colmembers
+SELECT ?m ?mLabel ?date ?imdb ?tmdb ?art WHERE { { ?m wdt:P179 wd:${id} } UNION { ?m wdt:P1434 wd:${id} } ?m wdt:P31 ?ft . ${FTYPES}
+  OPTIONAL { ?m wdt:P577 ?date } OPTIONAL { ?m wdt:P345 ?imdb } OPTIONAL { ?m wdt:P4947 ?tmdb } OPTIONAL { ?art schema:about ?m ; schema:isPartOf <https://en.wikipedia.org/> }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". } }`);
+        const by = new Map(); rows.forEach(r => { const q = qidOf(r.m.value), x = by.get(q) || {q, t:r.mLabel?.value || q, d:'', imdb:'', tmdb:'', art:artTitle(r.art?.value), s:'movie'};
+          const dt = (r.date?.value || '').slice(0, 10); if(dt && (!x.d || dt < x.d)) x.d = dt; if(r.imdb) x.imdb = r.imdb.value; if(r.tmdb) x.tmdb = r.tmdb.value; by.set(q, x); });
+        items = [...by.values()].filter(x => !/^Q\d+$/.test(x.t)).map(x => ({...x, y:+x.d.slice(0, 4) || null, st:(x.imdb && ownIm.has(x.imdb)) || (x.tmdb && ownTm.has(x.tmdb)) ? 'own' : (!x.d || x.d > today) ? 'up' : 'miss'}));
+      }catch{}
+    }
+    const seenF = new Set(items.filter(x => x.st === 'own').map(x => x.imdb || x.tmdb));
+    own.forEach(x => { const k = x.ids?.imdb || x.ids?.tmdb; if(k && seenF.has(k)) return; seenF.add(k); items.push({q:'own:' + x.key, t:x.t, y:x.y, st:'own', s:'movie', art:null, img:x.img}); });
+    items.sort((a, b) => (a.y || 9999) - (b.y || 9999));
+    if(CUR !== me) return;
+    const el = $('#colFilms'); if(!el) return;
+    el.innerHTML = items.length ? items.map(x => x.img && !x.art ? miniHTML(x).replace('<div class="ph"', `<img class="ld" src="${esc(x.img)}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1"><div class="ph"`) : miniHTML(x)).join('') : '<p class="gpnote">No films found.</p>';
+    loadPosters(el);
+  })();
+  await colServerLoad(true); if(CUR !== me) return; colMakeRender(g);
+}
+function colMakeRender(g){
+  const el = $('#colMake'); if(!el) return;
+  const on = colOnServer(g.name), name = g.title || g.name;
+  const srvs = actServers().filter(s => g.own.some(x => x.srv === s.id));
+  const parts = srvs.map(s => {
+    const mine = g.own.filter(x => x.srv === s.id), ex = on.filter(o => o.srv === s.id);
+    if(s.type === 'jellyfin') return {s, label:'Jellyfin', groups:[{lib:null, libName:'', items:mine, ex:ex[0] || null}]};
+    const libs = uniq(mine.map(x => x.libKey)).map(k => ({lib:k, libName:mine.find(x => x.libKey === k)?.lib || k, items:mine.filter(x => x.libKey === k), ex:ex.find(o => o.lib === k) || null}));
+    return {s, label:SRV(s).label, groups:libs};
+  });
+  g._parts = parts;
+  const all = parts.flatMap(p => p.groups), made = all.filter(x => x.ex), todo = all.filter(x => !x.ex);
+  el.innerHTML = `<h3 class="bebas">Make it a collection</h3>
+    <div class="colname field"><label>Name<input type="text" id="colName" value="${esc(name)}" maxlength="80"></label></div>
+    <ul class="colwhere">${all.map(x => `<li>${x.ex ? '✓' : '○'} <b>${esc(x.libName || 'Jellyfin')}</b> · ${x.items.length} film${x.items.length === 1 ? '' : 's'}${x.ex ? ` · already a collection${x.ex.n ? ` (${x.ex.n})` : ''}` : ''}</li>`).join('')}</ul>
+    ${all.length > 1 && parts.some(p => p.label === 'Plex') ? '<p class="gpnote">Plex keeps collections per library, so YAMZ makes one in each library these films are in.</p>' : ''}
+    <div class="colbtns"><button class="btn pri" data-colmake ${g._busy ? 'disabled' : ''}>${g._busy ? 'Working…' : todo.length && made.length ? 'Create the rest and update' : todo.length ? `Create collection in ${uniq(parts.map(p => p.label)).join(' & ')}` : 'Update with any new films'}</button></div>`;
+  COL.cur = g;
+}
+async function colMake(){
+  const g = COL.cur; if(!g?._parts) return;
+  const title = ($('#colName')?.value || g.name).trim() || g.name; g.title = title;
+  g._busy = true; colMakeRender(g);
+  let made = 0, added = 0; const fails = [];
+  for(const p of g._parts){
+    const s = p.s;
+    for(const part of p.groups){
+      const ids = uniq(part.items.map(x => x.id));
+      try{
+        if(s.type === 'jellyfin'){
+          if(part.ex){ const r = await fetchT(`${s.url}/Collections/${part.ex.id}/Items?${qs({Ids:ids.join(',')})}`, {method:'POST', headers:JF.hdr(s.token)}, 20000); if(!r.ok) throw new Error('HTTP ' + r.status); added++; }
+          else { const r = await fetchT(`${s.url}/Collections?${qs({Name:title, Ids:ids.join(',')})}`, {method:'POST', headers:JF.hdr(s.token)}, 20000); if(!r.ok) throw new Error('HTTP ' + r.status); made++; }
+        } else {
+          s.machine ||= (await PLEX.identity(s.url, s.token)).machine;
+          const uri = `server://${s.machine}/com.plexapp.plugins.library/library/metadata/${ids.join(',')}`;
+          const url = part.ex ? `${s.url}/library/collections/${part.ex.id}/items?${qs({uri, 'X-Plex-Token':s.token})}` : `${s.url}/library/collections?${qs({type:1, title, smart:0, sectionId:part.lib, uri, 'X-Plex-Token':s.token})}`;
+          const r = await fetchT(url, {method:part.ex ? 'PUT' : 'POST', headers:{Accept:'application/json'}}, 20000);
+          if(!r.ok) throw new Error(r.status === 401 || r.status === 403 ? 'Plex refused: YAMZ needs the server owner’s sign-in to make collections.' : 'HTTP ' + r.status);
+          part.ex ? added++ : made++;
+        }
+      }catch(e){ fails.push(`${part.libName || 'Jellyfin'}: ${e.message || 'failed'}`); }
+    }
+  }
+  g._busy = false;
+  toast(fails.length ? `${made + added ? `Done in ${made + added}, but ` : ''}${fails.length} didn't work — ${fails[0]}` : `✓ “${title}” ${made ? `created in ${made} ${made === 1 ? 'library' : 'libraries'}` : ''}${made && added ? ' and ' : ''}${added ? `updated in ${added}` : ''}.`);
+  await colServerLoad(true); colMakeRender(g); if(state.s === 'collections') renderCollections();
+}
+document.addEventListener('click', e => {
+  if(e.target.closest('[data-colmake]')){ colMake(); return; }
+  if(state.s !== 'collections') return;
+  const c = e.target.closest('[data-col]'); if(c){ openCollection(c.dataset.col); return; }
+  const k = e.target.closest('[data-colkind]'); if(k){ COLV.kind = k.dataset.colkind; store.set('zn:colv', {kind:COLV.kind, sort:COLV.sort, min:COLV.min}); renderColSide(); renderCollections(); scrollTo(0, 0); return; }
+  if(e.target.closest('[data-colrefresh]')){ COL.err = null; colLoad(true).then(() => { renderColSide(); renderCollections(); }); colServerLoad(true); renderColSide(); renderCollections(); }
+});
+document.addEventListener('change', e => { const sel = e.target.closest?.('[data-colsel]'); if(!sel) return; COLV[sel.dataset.colsel] = sel.dataset.colsel === 'min' ? +sel.value : sel.value; store.set('zn:colv', {kind:COLV.kind, sort:COLV.sort, min:COLV.min}); renderColSide(); renderCollections(); });
 function renderStats(){
   const g = $('#grid'); histNeed();
   $('#title').textContent = 'Stats'; $('#count').textContent = '';
