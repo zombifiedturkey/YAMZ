@@ -336,12 +336,17 @@ button.dastat:hover b{text-decoration:underline}
 .uwsrc{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:1px 7px;border-radius:var(--rp,999px);background:var(--bg3);color:var(--muted);flex:none}
 .uwsrc.radarr{background:rgba(255,194,48,.16);color:#ffc230} .uwsrc.sonarr{background:rgba(53,197,244,.16);color:#35c5f4} .uwsrc.man{background:rgba(199,67,47,.14);color:var(--bad-t)}
 .uwmeta{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:12px;color:var(--muted)}
+.uwfile bdi{direction:ltr;unicode-bidi:isolate}
 .uwfile{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:rtl;text-align:left}
 .uwage{flex:none;font-size:12px;font-weight:700;padding:3px 9px;border-radius:var(--rp,999px);background:var(--bg3);color:var(--text2);white-space:nowrap}
 .uwage.mid{background:rgba(214,140,30,.2);color:#e8a23a} .uwage.old{background:rgba(199,67,47,.2);color:var(--bad-t)}
 .uwsize{flex:none;width:72px;text-align:right;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
 .uwdel{opacity:.55}
 .uwmultitog{margin:10px 0 4px;font-size:13px}
+.mviewseg{flex:none} .mviewseg[hidden],#mselBtn[hidden]{display:none}
+.mviewseg button{padding:6px 12px}
+#mselBtn.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+#grid.mview{display:block}
 body:has(#uwbar) .toast{bottom:110px}
 .uwchk{flex:none;width:18px;height:18px;accent-color:var(--accent);pointer-events:none}
 .uwrow[data-uwsel-k]{cursor:pointer}
@@ -1292,6 +1297,8 @@ body > header > *{--rk:var(--rk-panel,1)}   /* the bar's buttons, tabs and searc
       <div class="count" id="count"></div>
       <div class="progress" id="progress"></div>
       <button class="hbtn attn" id="attnBtn" title="Show only titles with missing or wrong details">⚠ Needs attention <b id="attnN">0</b></button>
+      <div class="seg mviewseg" id="mviewSeg" role="group" aria-label="View" hidden><button data-mview="grid">Posters</button><button data-mview="list">List</button></div>
+      <button class="hbtn" id="mselBtn" hidden>Select</button>
       <select id="sort" aria-label="Sort">
         <option value="az">A → Z</option>
         <option value="new">Newest first</option>
@@ -1436,6 +1443,17 @@ let cfg = store.get('vault:cfg') || {prov:'free', key:'', pin:''};
 
 /* ---------- state ---------- */
 let state = { s:store.get('zn:mediakind') === 'tv' ? 'tv' : 'movie', c:'All', q:'', sort:'az', attn:false };
+/* Unwatched and the Media list view share these (declared early: the first render can use them) */
+const UW = {items:null, busy:null, at:0, err:null};
+const UWV = Object.assign({mode:'never', age:'0', since:'365', sort:'old', show:120, lib:'all', view:'grid'}, store.get('zn:uw') || {}); UWV.show = 120;
+const uwSave = () => store.set('zn:uw', {mode:UWV.mode, age:UWV.age, since:UWV.since, sort:UWV.sort, lib:UWV.lib, view:UWV.view});
+const DAY = 864e5;
+const MEDIAV = Object.assign({view:'grid'}, store.get('zn:mview') || {}); MEDIAV.show = 200;
+const uwCtx = () => (state.q || '').trim() ? null : (state.s === 'activity' && state.c === 'Unwatched') ? 'unwatched' : ((state.s === 'movie' || state.s === 'tv') && MEDIAV.view === 'list') ? 'media' : null;
+const UWA = {radarr:null, sonarr:null, at:0, busy:null};
+const UWDEL = {key:null, files:true, excl:false, busy:false};
+const UWSEL = new Set(); let UWMULTI = false;
+const UWB = {ask:false, files:true, excl:false, busy:false, done:0, total:0};
 let cats = {movie:[], tv:[]};
 
 /* ---------- providers ---------- */
@@ -1890,7 +1908,7 @@ const sortKey = t => t.toLowerCase().replace(/^(the|a|an) /,'');
 function visible(){
   const q = state.q.trim().toLowerCase();
   let list = q ? DATA.filter(d => (d.t+' '+d.n).toLowerCase().includes(q))
-               : DATA.filter(d => d.s===state.s && (state.c==='All' || (state.c==='Uncategorised' ? (cached(d) && !(genresOf(d)||[]).length) : (genresOf(d)||[]).includes(state.c))));
+               : DATA.filter(d => !d.gone && d.s===state.s && (state.c==='All' || (state.c==='Uncategorised' ? (cached(d) && !(genresOf(d)||[]).length) : (genresOf(d)||[]).includes(state.c))));
   if(state.attn) list = list.filter(needsFix);
   if(q || state.c==='All'){ const seen = new Set(); list = list.filter(d => { const k = d.s+d.t+d.y; if(seen.has(k)) return false; seen.add(k); return true; }); }
   const by = {az:(a,b)=>sortKey(a.t).localeCompare(sortKey(b.t)), new:(a,b)=>(b.y||0)-(a.y||0), old:(a,b)=>(a.y||9999)-(b.y||9999)}[state.sort];
@@ -1912,7 +1930,9 @@ function cardHTML(d, showCat){
 let io;
 function render(){
   $('#gdock').hidden = true; gfloatSet(false);
-  if(!(state.s === 'activity' && state.c === 'Unwatched')) $('#uwbar')?.remove();
+  { const media = (state.s === 'movie' || state.s === 'tv') && !state.q.trim(); $('#mviewSeg').hidden = !media; $('#mselBtn').hidden = !media || MEDIAV.view !== 'list';
+    $('#mviewSeg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.mview === MEDIAV.view)); $('#mselBtn').textContent = UWMULTI ? 'Done' : 'Select'; $('#mselBtn').classList.toggle('on', UWMULTI); }
+  if(!uwCtx()) $('#uwbar')?.remove();
   if(!state.q.trim()){ $('#libHead').hidden = true; $('#xres').hidden = true; }
   $('#grid').className = 'grid'; $('#sort').style.display = ''; $('#attnBtn').style.display = 'none';
   if(state.s==='calendar') return renderCalendar();
@@ -1937,6 +1957,7 @@ function render(){
   if(!q) $('#count').insertAdjacentHTML('beforeend', mediaNoteHTML());
   updateAttn();
   $('#libHead').hidden = !q; $('#libHead').textContent = list.length ? 'In your library' : 'Nothing in your library matches';
+  if(!q && MEDIAV.view === 'list') return mediaListRender(list);
   $('#grid').innerHTML = list.length ? list.map(d => cardHTML(d, !!q)).join('') : q ? '' : `<div class="empty">Nothing matches that.</div>`;
   if(q) xSearch(q);
   io?.disconnect();
@@ -6283,10 +6304,6 @@ function renderDash(){
 }
 document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible' && state.s === 'dash') dashTick(); });
 /* ---------- Unwatched: never watched (and for how long it's been on the server), or not watched for a while ---------- */
-const UW = {items:null, busy:null, at:0, err:null};
-const UWV = Object.assign({mode:'never', age:'0', since:'365', sort:'old', show:120, lib:'all', view:'grid'}, store.get('zn:uw') || {}); UWV.show = 120;
-const uwSave = () => store.set('zn:uw', {mode:UWV.mode, age:UWV.age, since:UWV.since, sort:UWV.sort, lib:UWV.lib, view:UWV.view});
-const DAY = 864e5;
 function uwAge(ms){
   const d = Math.max(0, Math.floor(ms / DAY));
   if(d < 1) return 'today'; if(d < 14) return d + ' day' + (d === 1 ? '' : 's');
@@ -6381,8 +6398,26 @@ function renderUnwatched(){
   if(UWV.view === 'list'){ uwArrIndex(); g.innerHTML = `<div class="uwlist">${list.slice(0, UWV.show).map(x => uwRowHTML(x, now)).join('')}</div>${list.length > UWV.show ? `<div class="hmore"><button class="btn" data-uwmore>Show ${Math.min(240, list.length - UWV.show)} more</button></div>` : ''}`; return; }
   g.innerHTML = `<div class="uwgrid">${list.slice(0, UWV.show).map(card).join('')}</div>${list.length > UWV.show ? `<div class="hmore"><button class="btn" data-uwmore>Show ${Math.min(240, list.length - UWV.show)} more</button></div>` : ''}`;
 }
+/* ---- the same list, delete and select tools on the Media tab ---- */
+function uwRerender(){ if(uwCtx() === 'media'){ const sy = scrollY; render(); scrollTo(0, sy); } else if(uwCtx() === 'unwatched') renderUnwatched(); }
+function mediaListRender(list){
+  const g = $('#grid'); g.className = 'mview';
+  if(!UW.items){ g.innerHTML = `<div class="loading"><div class="spin"></div>Reading file names and sizes from your server…</div>`; if(!UW.busy) uwLoad().then(() => uwCtx() === 'media' && uwRerender()); return; }
+  if(Date.now() - UW.at > 10 * 60e3 && !UW.busy) uwLoad(true).then(() => uwCtx() === 'media' && uwRerender());
+  uwArrIndex();
+  const idx = new Map(); uwMerged().forEach(x => { const k = x.kind + '|' + fold(x.t); idx.set(k + '|' + (x.y || ''), x); if(!idx.has(k)) idx.set(k, x); });
+  const now = Date.now(), rows = list.map(d => idx.get(d.s + '|' + fold(d.t) + '|' + (d.y || '')) || idx.get(d.s + '|' + fold(d.t)) || {key:'d:' + keyOf(d), fake:true, kind:d.s, t:d.t, y:d.y, lib:'', added:0, last:0, plays:0, size:0, img:null, file:''});
+  const shown = rows.slice(0, MEDIAV.show), size = rows.reduce((a, x) => a + (x.size || 0), 0);
+  UW.list = shown.filter(x => !x.fake); [...UWSEL].forEach(k => { if(!rows.some(x => x.key === k)) UWSEL.delete(k); });
+  if(size) $('#count').insertAdjacentHTML('beforeend', `<span class="cntnote">· ${fmtBytes(size)}</span>`);
+  g.innerHTML = rows.length ? `<div class="uwlist">${shown.map(x => uwRowHTML(x, now)).join('')}</div>${rows.length > MEDIAV.show ? `<div class="hmore"><button class="btn" data-mvmore>Show ${Math.min(400, rows.length - MEDIAV.show)} more</button></div>` : ''}${UWMULTI ? '<div class="uwpad" style="height:120px"></div>' : ''}` : `<div class="empty">Nothing matches that.</div>`;
+  setTimeout(uwBarRender, 0);
+}
+$('#mviewSeg').onclick = e => { const b = e.target.closest('[data-mview]'); if(!b || b.dataset.mview === MEDIAV.view) return; MEDIAV.view = b.dataset.mview; MEDIAV.show = 200; store.set('zn:mview', {view:MEDIAV.view}); if(MEDIAV.view !== 'list'){ UWMULTI = false; UWSEL.clear(); } render(); };
+$('#mselBtn').onclick = () => { UWMULTI = !UWMULTI; if(!UWMULTI){ UWSEL.clear(); UWB.ask = false; } uwRerender(); };
+document.addEventListener('click', e => { if(e.target.closest('[data-mvmore]')){ MEDIAV.show += 400; uwRerender(); } });
+function mediaGone(x){ DATA.forEach(d => { if(d.s === x.kind && fold(d.t) === fold(x.t) && (!x.y || !d.y || d.y === x.y)) d.gone = true; }); }
 /* which Radarr / Sonarr entry a library title belongs to: by IMDb / TMDB / TheTVDB id, then by folder name */
-const UWA = {radarr:null, sonarr:null, at:0, busy:null};
 const fname = p => String(p || '').split(/[\\/]/).filter(Boolean).pop() || '';
 const dname = p => { const a = String(p || '').split(/[\\/]/).filter(Boolean); return a.length > 1 ? a[a.length - 2] : ''; };
 function uwArrIndex(force){
@@ -6396,7 +6431,7 @@ function uwArrIndex(force){
         UWA[svc] = by; }catch{ UWA[svc] = null; }
     }
     UWA.at = Date.now(); UWA.busy = null;
-    if(state.s === 'activity' && actSec() === 'Unwatched' && UWV.view === 'list') renderUnwatched();
+    if(uwCtx() === 'media' || (uwCtx() === 'unwatched' && UWV.view === 'list')) uwRerender();
   })();
   return UWA.busy;
 }
@@ -6406,11 +6441,11 @@ function uwArrOf(x){
     || by.dir.get(fold(x.kind === 'movie' ? dname(x.file) : fname(x.file)));
   return m ? {svc, id:m.id, title:m.title} : null;
 }
-const UWDEL = {key:null, files:true, excl:false, busy:false};
 function uwRowHTML(x, now){
   const tv = x.kind === 'tv', h = hue(x.t), arr = uwArrOf(x), srv = (LIB.servers || []).find(s => s.id === x.srv), plexish = srv ? SRV(srv).label : 'Plex';
-  const age = UWV.mode === 'never' ? now - x.added : now - x.last, tone = age > 730 * DAY ? 'old' : age > 365 * DAY ? 'mid' : '';
-  const src = arr ? `<span class="uwsrc ${arr.svc}">${ARR_DEF[arr.svc].name}</span>` : (UWA.at ? `<span class="uwsrc man" title="Not found in ${tv ? 'Sonarr' : 'Radarr'}">Added by hand</span>` : `<span class="uwsrc">…</span>`);
+  const stale = uwCtx() === 'unwatched' && UWV.mode !== 'never';
+  const age = stale ? now - x.last : now - x.added, tone = uwCtx() === 'media' ? '' : age > 730 * DAY ? 'old' : age > 365 * DAY ? 'mid' : '';
+  const src = x.fake ? '' : arr ? `<span class="uwsrc ${arr.svc}">${ARR_DEF[arr.svc].name}</span>` : (UWA.at ? `<span class="uwsrc man" title="Not found in ${tv ? 'Sonarr' : 'Radarr'}">Added by hand</span>` : `<span class="uwsrc">…</span>`);
   const open = UWDEL.key === x.key;
   const ask = !open ? '' : `<div class="uwask">${arr
       ? `<b>Delete “${esc(x.t)}${x.y ? ` (${x.y})` : ''}” through ${ARR_DEF[arr.svc].name}?</b>
@@ -6420,15 +6455,15 @@ function uwRowHTML(x, now){
       : `<b>Delete “${esc(x.t)}${x.y ? ` (${x.y})` : ''}” through ${plexish}?</b>
         <small>It isn't in ${tv ? 'Sonarr' : 'Radarr'}, so YAMZ asks ${plexish} to delete it, which removes ${tv ? 'every episode file' : 'the file'} from disk${x.size ? ` (${fmtBytes(x.size)})` : ''}. ${srv?.type === 'jellyfin' ? 'Your Jellyfin account needs permission to delete media (Dashboard → Users → your user → Allow media deletion).' : 'Plex only allows this when <b>Settings → Library → Allow media deletion</b> is turned on, using the server owner’s sign-in.'} This can't be undone.</small>`}
       <div class="dqbtns"><button class="btn" data-uwdno>Cancel</button><button class="btn danger" data-uwdgo="${esc(x.key)}" ${UWDEL.busy || (arr && !UWDEL.files) ? '' : ''} ${UWDEL.busy ? 'disabled' : ''}>${UWDEL.busy ? 'Deleting…' : arr && !UWDEL.files ? `Remove from ${ARR_DEF[arr.svc].name}` : 'Delete'}</button></div></div>`;
-  return `<div class="uwitem ${open ? 'open' : ''} ${UWSEL.has(x.key) ? 'sel' : ''}"><div class="uwrow" ${UWMULTI ? `data-uwsel-k="${esc(x.key)}"` : ''}>
-    ${UWMULTI ? `<input type="checkbox" class="uwchk" ${UWSEL.has(x.key) ? 'checked' : ''} aria-label="Select ${esc(x.t)}" tabindex="-1">` : ''}
+  return `<div class="uwitem ${open ? 'open' : ''} ${UWSEL.has(x.key) ? 'sel' : ''}"><div class="uwrow" ${UWMULTI && !x.fake ? `data-uwsel-k="${esc(x.key)}"` : ''}>
+    ${UWMULTI && !x.fake ? `<input type="checkbox" class="uwchk" ${UWSEL.has(x.key) ? 'checked' : ''} aria-label="Select ${esc(x.t)}" tabindex="-1">` : ''}
     <button class="uwthumb" data-st-t="${esc(x.t)}" data-st-k="${x.kind}" data-st-y="${x.y || ''}" style="background:linear-gradient(160deg,hsl(${h} 45% 26%),hsl(${(h+40)%360} 50% 10%))">${x.img ? `<img src="${esc(x.img)}" alt="" loading="lazy" onerror="this.remove()">` : ''}</button>
     <div class="uwinfo"><div class="uwt"><button class="linkbtn" data-st-t="${esc(x.t)}" data-st-k="${x.kind}" data-st-y="${x.y || ''}"><b>${esc(x.t)}</b></button>${x.y ? `<small>${x.y}</small>` : ''}${src}</div>
-      <div class="uwmeta"><span>${esc(x.lib)}</span><span>Added ${x.added ? new Date(x.added).toLocaleDateString([], {day:'numeric', month:'short', year:'numeric'}) : '—'}</span>${x.last ? `<span>Last watched ${new Date(x.last).toLocaleDateString([], {day:'numeric', month:'short', year:'numeric'})}${x.plays > 1 ? ` · ${x.plays}×` : ''}</span>` : ''}${tv && x.eps?.[1] ? `<span>${x.eps[0] || 0}/${x.eps[1]} episodes watched</span>` : ''}</div>
-      ${x.file ? `<div class="uwfile" title="${esc(x.file)}">${esc(tv ? x.file : fname(x.file))}</div>` : ''}</div>
-    <span class="uwage ${tone}">${UWV.mode === 'never' ? '' : 'last '}${esc(uwAge(age))}${UWV.mode === 'never' ? '' : ' ago'}</span>
+      <div class="uwmeta">${x.fake ? '<span>No file details from the server for this one</span>' : ''}${x.lib ? `<span>${esc(x.lib)}</span>` : ''}${x.added ? `<span>Added ${new Date(x.added).toLocaleDateString([], {day:'numeric', month:'short', year:'numeric'})}</span>` : ''}${x.last ? `<span>Last watched ${new Date(x.last).toLocaleDateString([], {day:'numeric', month:'short', year:'numeric'})}${x.plays > 1 ? ` · ${x.plays}×` : ''}</span>` : ''}${tv && x.eps?.[1] ? `<span>${x.eps[0] || 0}/${x.eps[1]} episodes watched</span>` : ''}</div>
+      ${x.file ? `<div class="uwfile" title="${esc(x.file)}"><bdi>${esc(tv ? x.file : fname(x.file))}</bdi></div>` : ''}</div>
+    ${x.added ? `<span class="uwage ${tone}" title="${stale ? 'Since last watched' : 'Time on the server'}">${stale ? 'last ' : ''}${esc(uwAge(age))}${stale ? ' ago' : ''}</span>` : ''}
     <span class="uwsize">${x.size ? fmtBytes(x.size) : tv ? '' : '–'}</span>
-    <button class="dqx uwdel" data-uwdask="${esc(x.key)}" title="Delete…" aria-label="Delete ${esc(x.t)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+    ${x.fake ? '' : `<button class="dqx uwdel" data-uwdask="${esc(x.key)}" title="Delete…" aria-label="Delete ${esc(x.t)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>`}
   </div>${ask}</div>`;
 }
 /* delete one title: through Radarr / Sonarr when they manage it, otherwise through Plex / Jellyfin. Throws with a readable message. */
@@ -6451,22 +6486,20 @@ function uwRescan(srv, libKey){
 }
 async function uwDelete(key){
   const x = (UW.items || []).find(i => i.key === key); if(!x) return;
-  UWDEL.busy = true; renderUnwatched();
+  UWDEL.busy = true; uwRerender();
   try{
     const r = await uwDeleteOne(x, UWDEL);
     if(r.arr && !r.gone) toast(`✓ Removed “${x.t}” from ${ARR_DEF[r.arr.svc].name}. The files are still on disk.`);
-    else { UW.items = UW.items.filter(i => i.key !== key); UWSEL.delete(key); toast(`✓ Deleted “${x.t}”${x.size ? `, freeing ${fmtBytes(x.size)}` : ''}.`); }
+    else { UW.items = UW.items.filter(i => i.key !== key); UWSEL.delete(key); mediaGone(x); toast(`✓ Deleted “${x.t}”${x.size ? `, freeing ${fmtBytes(x.size)}` : ''}.`); }
     if(r.arr) UWA.at = 0;
     UWDEL.key = null;
   }catch(e){ toast(e.message || 'Delete failed'); }
-  UWDEL.busy = false; renderUnwatched();
+  UWDEL.busy = false; uwRerender();
 }
 /* ---- select several: tick titles, see their total size, delete them together ---- */
-const UWSEL = new Set(); let UWMULTI = false;
-const UWB = {ask:false, files:true, excl:false, busy:false, done:0, total:0};
 function uwBarRender(){
   let bar = $('#uwbar');
-  const on = UWMULTI && state.s === 'activity' && actSec() === 'Unwatched' && !state.q.trim();
+  const on = UWMULTI && !!uwCtx();
   if(!on){ if(bar) bar.remove(); return; }
   if(!bar){ bar = document.createElement('div'); bar.id = 'uwbar'; bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'Selection'); document.body.appendChild(bar); }
   const shown = UW.list || [], sel = shown.filter(x => UWSEL.has(x.key)), size = sel.reduce((a, x) => a + x.size, 0);
@@ -6494,28 +6527,28 @@ async function uwBulkDelete(){
   let ok = 0, freed = 0, kept = 0; const fails = [], rescan = new Map();
   for(const x of sel){
     try{ const r = await uwDeleteOne(x, UWB, false);
-      if(r.gone){ ok++; freed += x.size; UW.items = UW.items.filter(i => i.key !== x.key); } else kept++;
+      if(r.gone){ ok++; freed += x.size; UW.items = UW.items.filter(i => i.key !== x.key); mediaGone(x); } else kept++;
       UWSEL.delete(x.key); if(r.arr && UWB.files){ const srv = (LIB.servers || []).find(s => s.id === x.srv); rescan.set(x.srv + ':' + x.libKey, [srv, x.libKey]); }
     }catch(e){ fails.push(`${x.t}: ${e.message || 'failed'}`); }
     UWB.done++; uwBarRender();
   }
   rescan.forEach(([srv, k]) => uwRescan(srv, k)); UWA.at = 0;
   UWB.busy = false; UWB.ask = false;
+  setTimeout(uwRerender, 0);
   toast(fails.length ? `Deleted ${ok}${freed ? ` (${fmtBytes(freed)})` : ''}. ${fails.length} couldn't be deleted — ${fails[0]}` : `✓ Deleted ${ok} title${ok === 1 ? '' : 's'}${freed ? `, freeing ${fmtBytes(freed)}` : ''}${kept ? `. ${kept} removed from Radarr/Sonarr only, files kept` : ''}.`);
-  renderUnwatched();
 }
 document.addEventListener('click', e => {
   if(!e.target.closest('#uwbar')) return;
-  if(e.target.closest('[data-uwmultioff]')){ UWMULTI = false; UWSEL.clear(); UWB.ask = false; renderUwSide(); renderUnwatched(); return; }
-  if(e.target.closest('[data-uwball]')){ const shown = UW.list || [], all = shown.length && shown.every(x => UWSEL.has(x.key)); if(all) UWSEL.clear(); else shown.forEach(x => UWSEL.add(x.key)); renderUnwatched(); return; }
-  if(e.target.closest('[data-uwclear]')){ UWSEL.clear(); UWB.ask = false; renderUnwatched(); return; }
+  if(e.target.closest('[data-uwmultioff]')){ UWMULTI = false; UWSEL.clear(); UWB.ask = false; if(uwCtx() === 'unwatched') renderUwSide(); uwRerender(); return; }
+  if(e.target.closest('[data-uwball]')){ const shown = UW.list || [], all = shown.length && shown.every(x => UWSEL.has(x.key)); if(all) UWSEL.clear(); else shown.forEach(x => UWSEL.add(x.key)); uwRerender(); return; }
+  if(e.target.closest('[data-uwclear]')){ UWSEL.clear(); UWB.ask = false; uwRerender(); return; }
   if(e.target.closest('[data-uwbask]')){ UWB.ask = !UWB.ask; UWB.files = true; UWB.excl = false; uwBarRender(); return; }
   if(e.target.closest('[data-uwbno]')){ UWB.ask = false; uwBarRender(); return; }
   if(e.target.closest('[data-uwbgo]') && !UWB.busy) uwBulkDelete();
 });
-document.addEventListener('change', e => { const o = e.target.closest?.('[data-uwbopt]'); if(o){ UWB[o.dataset.uwbopt] = o.checked; return; } const m = e.target.closest?.('[data-uwmulti]'); if(m){ UWMULTI = m.checked; if(!UWMULTI){ UWSEL.clear(); UWB.ask = false; } renderUnwatched(); } });
+document.addEventListener('change', e => { const o = e.target.closest?.('[data-uwbopt]'); if(o){ UWB[o.dataset.uwbopt] = o.checked; return; } const m = e.target.closest?.('[data-uwmulti]'); if(m){ UWMULTI = m.checked; if(!UWMULTI){ UWSEL.clear(); UWB.ask = false; } uwRerender(); } });
 document.addEventListener('click', e => {
-  if(state.s !== 'activity' || actSec() !== 'Unwatched' || !UWMULTI) return;
+  if(!uwCtx() || !UWMULTI) return;
   const r = e.target.closest('[data-uwsel-k]'); if(!r || e.target.closest('[data-uwdask],.uwask')) return;
   e.preventDefault(); e.stopImmediatePropagation();
   const k = r.dataset.uwselK; UWSEL.has(k) ? UWSEL.delete(k) : UWSEL.add(k);
@@ -6523,15 +6556,15 @@ document.addEventListener('click', e => {
   uwBarRender();
 }, true);
 document.addEventListener('click', e => {
-  if(state.s !== 'activity' || actSec() !== 'Unwatched') return;
-  const da = e.target.closest('[data-uwdask]'); if(da){ UWDEL.key = UWDEL.key === da.dataset.uwdask ? null : da.dataset.uwdask; UWDEL.files = true; UWDEL.excl = false; renderUnwatched(); return; }
-  if(e.target.closest('[data-uwdno]')){ UWDEL.key = null; renderUnwatched(); return; }
+  if(!uwCtx()) return;
+  const da = e.target.closest('[data-uwdask]'); if(da){ UWDEL.key = UWDEL.key === da.dataset.uwdask ? null : da.dataset.uwdask; UWDEL.files = true; UWDEL.excl = false; uwRerender(); return; }
+  if(e.target.closest('[data-uwdno]')){ UWDEL.key = null; uwRerender(); return; }
   const dg = e.target.closest('[data-uwdgo]'); if(dg && !UWDEL.busy){ uwDelete(dg.dataset.uwdgo); return; }
   const b = e.target.closest('.uwseg button'); if(b){ UWV[b.closest('[data-uw]').dataset.uw] = b.dataset.v; UWV.show = 120; if(!['old', 'new', 'az', 'big', 'lib'].includes(UWV.sort)) UWV.sort = 'old'; uwSave(); renderUwSide(); renderUnwatched(); return; }
   if(e.target.closest('[data-uwmore]')){ UWV.show += 240; renderUnwatched(); return; }
   if(e.target.closest('[data-uwrefresh]')){ UW.at = 0; HIST.at = 0; renderUwSide(); renderUnwatched(); }
 });
-document.addEventListener('change', e => { const o = e.target.closest?.('[data-uwdopt]'); if(o){ UWDEL[o.dataset.uwdopt] = o.checked; const sy = scrollY; renderUnwatched(); scrollTo(0, sy); } });
+document.addEventListener('change', e => { const o = e.target.closest?.('[data-uwdopt]'); if(o){ UWDEL[o.dataset.uwdopt] = o.checked; const sy = scrollY; uwRerender(); scrollTo(0, sy); } });
 document.addEventListener('change', e => { const sel = e.target.closest?.('[data-uwsel]'); if(!sel || state.s !== 'activity') return; UWV[sel.dataset.uwsel] = sel.value; UWV.show = 120; uwSave(); renderUwSide(); renderUnwatched(); });
 /* ---------- What's new: after an update, show the release notes for every version since the one this person last saw ---------- */
 const verCmp = (a, b) => { const x = String(a).split('.').map(Number), y = String(b).split('.').map(Number); for(let i = 0; i < 3; i++){ const d = (x[i] || 0) - (y[i] || 0); if(d) return d; } return 0; };

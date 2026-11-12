@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+**Media: list view, delete and select**
+- The Media tab has a **Posters / List** switch next to the sort menu. The list shows each title's poster, library, date added, last watched, file name (hover for the full path), time on the server and size, and the count line adds up the size of what's showing. It follows the genre buttons and sort like the posters do.
+- In the list, delete a title with the bin, or press **Select** to tick several and see their total size in the bar at the bottom, then delete them together. It works exactly like Activity → Unwatched: titles Radarr or Sonarr manage are deleted through them, titles added by hand through Plex or Jellyfin (with **Allow media deletion** on), and every delete is confirmed first.
+
+**Fixes**
+- Long file names in the Unwatched list no longer show their leading numbers at the end when clipped.
+
 ## 1.4.0 — 12 November 2026
 
 Find what nobody watches and clear it out, search everything from one box, and see what's new after every update.
