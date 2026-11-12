@@ -1,20 +1,28 @@
 # Changelog
 
-## Unreleased
+## 1.4.0 — 12 November 2026
 
-**Activity → Unwatched** (new)
-- **Never watched**: movies or shows nobody has played, each with how long it's been on the server (amber after a year, red after two), the date it was added and its size. Filter to titles on the server for 1 month, 6 months, 1 year or 2 years or more, and sort by oldest or newest added, biggest, or A → Z. The count line totals the size, handy for freeing up space.
-- **Not lately**: titles that have been watched before, but not by anyone in the last 6 months, 1, 2 or 3 years, with when they were last watched and how many times.
-- Uses everyone's all-time play history plus the server owner's watched marks, for Plex and Jellyfin. The Movies / TV switch in the top bar picks which. Click a poster for its details.
-- **Library** filter, and a **By library** sort when showing all of them.
-- **List view**: poster, title, library, date added, last watched, the file name (hover for the full path), how long it's sat there and its size.
-- **Delete** from the list: YAMZ first checks whether Radarr or Sonarr manages the title (by IMDb / TMDB / TheTVDB id, then folder name) and shows **Radarr**, **Sonarr** or **Added by hand**. Managed titles are deleted through Radarr's or Sonarr's documented API, with the files, optionally adding an import list exclusion, and YAMZ asks Plex or Jellyfin to rescan. Titles added by hand are deleted through Plex or Jellyfin, which only works when Plex's **Allow media deletion** setting is on (owner's sign-in) or the Jellyfin account may delete media; YAMZ says so if the server refuses. Every delete is confirmed first.
-- **Select several**: tick titles in the list or on the posters and a bar at the bottom totals their size (and how many are in Radarr, Sonarr or added by hand), with **Select all**, **Clear** and **Delete N…** to remove them together, with the same choices and a progress bar.
+Find what nobody watches and clear it out, search everything from one box, and see what's new after every update.
 
-**Search**
-- The search in the top bar now finds everything: titles in your library come first under **In your library**, then any other **movies** and **TV shows** that match, each ready to add to a list, your Plex Watchlist, Radarr or Sonarr, or open for details. It uses TMDB when you have a key, otherwise Wikipedia and Wikidata.
-- Gaps → **Search & add** is gone, since the top bar search now does the same job from anywhere.
-- The side menu hides while search results are showing, so they get the full width.
+### Activity → Unwatched (new)
+
+- **Never watched**: movies or shows nobody has played, with how long each has been on the server (amber after a year, red after two), when it was added and its size. Filter to titles on the server for 1 month, 6 months, 1 year or 2 years or more.
+- **Not lately**: titles watched before, but not by anyone in the last 6 months, 1, 2 or 3 years, with when they were last watched and how many times.
+- Filter by **library**, and sort by oldest or newest added, biggest, A → Z or library. The count line totals the size, handy for freeing up space.
+- **List view** with the poster, library, date added, last watched, file name (hover for the full path) and size.
+- **Delete** from the list. YAMZ checks whether Radarr or Sonarr manages the title and tags it **Radarr**, **Sonarr** or **Added by hand**. Managed titles are deleted through Radarr's or Sonarr's documented API, files and all, optionally with an import list exclusion, and Plex or Jellyfin is asked to rescan. Titles added by hand are deleted through Plex or Jellyfin, which needs Plex's **Allow media deletion** setting (owner's sign-in) or a Jellyfin account allowed to delete media. Every delete is confirmed first.
+- **Select several**: tick titles and a bar at the bottom totals their size, with **Select all**, **Clear** and **Delete N…** to remove them together.
+- Counts everyone's all-time plays plus the server owner's watched marks, for Plex and Jellyfin. The Movies / TV switch in the top bar picks which.
+
+### Search
+
+- The search in the top bar now finds everything: your library first under **In your library**, then any other **movies** and **TV shows** that match, ready to add to a list, your Plex Watchlist, Radarr or Sonarr. Uses TMDB when you have a key, otherwise Wikipedia and Wikidata.
+- Gaps → **Search & add** is gone, since the top bar search does the same job from anywhere.
+- The side menu hides while results are showing, so they get the full width.
+
+### What's new
+
+- After an update, YAMZ shows a pop-up with the release notes for everything since the version you last saw. Open them any time with **What's new** under the Settings title, next to the version number.
 
 ## 1.3.0 — 29 October 2026
 
