@@ -165,12 +165,60 @@ module.exports = function createShield({STATE, CONFIG, log, json, send, env}){
     return xcache.busy ||= buildExtras().then(d => { xcache = {at:Date.now(), data:d, busy:null}; return d; }, e => { xcache.busy = null; throw e; });
   };
 
+
+  /* ---------- continue watching (Plex On Deck + Jellyfin Resume/Next Up), merged and newest first ---------- */
+  async function plexContinue(s){
+    const mc = (await get(`${s.url}/library/onDeck?X-Plex-Container-Start=0&X-Plex-Container-Size=30&X-Plex-Token=${encodeURIComponent(s.token)}`, {}, 10000)).MediaContainer || {};
+    const pu = p => p ? imgUrl(`${s.url}${p}?X-Plex-Token=${encodeURIComponent(s.token)}`) : null;
+    return (mc.Metadata || []).filter(m => m.type === 'movie' || m.type === 'episode').map(m => {
+      const ep = m.type === 'episode';
+      return {src:'plex', title:ep ? (m.grandparentTitle || m.title) : m.title,
+        sub:ep ? `S${pad2(m.parentIndex)}E${pad2(m.index)}` : String(m.year || ''), kind:ep ? 'tv' : 'movie',
+        progress:m.duration && m.viewOffset ? Math.min(1, +m.viewOffset / +m.duration) : 0,
+        at:(+m.lastViewedAt || +m.addedAt || 0) * 1000, poster:pu(ep ? (m.grandparentThumb || m.parentThumb || m.thumb) : m.thumb)};
+    });
+  }
+  async function jfContinue(s){
+    const h = jfAuth(s.token);
+    let uid = s.user;
+    if(!uid){ try{ uid = (await get(`${s.url}/Users/Me`, h)).Id; }catch{} }
+    if(!uid) return [];
+    const [resume, next] = await Promise.all([
+      get(`${s.url}/Users/${uid}/Items/Resume?Limit=20&MediaTypes=Video&Fields=UserData`, h, 10000).catch(() => ({Items:[]})),
+      get(`${s.url}/Shows/NextUp?userId=${uid}&Limit=20&Fields=UserData`, h, 10000).catch(() => ({Items:[]}))
+    ]);
+    const mk = it => {
+      const ep = it.Type === 'Episode', id = ep ? (it.SeriesId || it.Id) : it.Id;
+      const pos = +it.UserData?.PlaybackPositionTicks || 0, dur = +it.RunTimeTicks || 0;
+      return {src:'jellyfin', title:ep ? (it.SeriesName || it.Name) : it.Name,
+        sub:ep ? `S${pad2(it.ParentIndexNumber)}E${pad2(it.IndexNumber)}` : String(it.ProductionYear || ''), kind:ep ? 'tv' : 'movie',
+        progress:dur && pos ? Math.min(1, pos / dur) : 0, at:Date.parse(it.UserData?.LastPlayedDate || it.DateCreated) || 0,
+        poster:imgUrl(`${s.url}/Items/${id}/Images/Primary?fillHeight=450&fillWidth=300&quality=85`, h)};
+    };
+    return [...(resume.Items || []), ...(next.Items || [])].map(mk);
+  }
+  async function buildContinue(){
+    const lib = STATE.data['zn:lib'] || {};
+    const servers = (lib.servers || []).filter(s => (s.type === 'plex' || s.type === 'jellyfin') && s.url && s.token);
+    const errors = [], all = [];
+    await Promise.all(servers.map(async s => { try{ all.push(...await (s.type === 'plex' ? plexContinue(s) : jfContinue(s))); }catch(e){ errors.push(`${s.name || s.type}: ${e.message}`); } }));
+    const seen = new Set();
+    const items = all.sort((a, b) => b.at - a.at).filter(r => { const k = r.title.toLowerCase(); if(seen.has(k)) return false; seen.add(k); return true; }).slice(0, 20);
+    return {updated:Date.now(), items, errors};
+  }
+  let ccache = {at:0, data:null, busy:null};
+  const cont = () => {
+    if(ccache.data && Date.now() - ccache.at < 30000) return Promise.resolve(ccache.data);
+    return ccache.busy ||= buildContinue().then(d => { ccache = {at:Date.now(), data:d, busy:null}; return d; }, e => { ccache.busy = null; throw e; });
+  };
+
   /* returns true if it handled the request */
   return async function shield(req, res, p, q){
     if(!p.startsWith('/api/shield/')) return false;
     if(req.method !== 'GET') return json(res, 405, {error:'Use GET.'}), true;
     if(!authed(req)) return json(res, 401, {error:'Bad or missing shield token.'}), true;
     if(p === '/api/shield/dashboard') return json(res, 200, await dashboard(), {'Cache-Control':'no-store'}), true;
+    if(p === '/api/shield/continue') return json(res, 200, await cont(), {'Cache-Control':'no-store'}), true;
     if(p === '/api/shield/extras') return json(res, 200, await extras(), {'Cache-Control':'no-store'}), true;
     if(p === '/api/shield/img'){
       const it = IMGS.get(q.get('i') || '');
