@@ -345,6 +345,17 @@ button.dastat:hover b{text-decoration:underline}
 .uwmultitog{margin:10px 0 4px;font-size:13px}
 .mvtool{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin:0 0 10px;padding:6px 6px 6px 12px;border:1px solid var(--line);border-radius:calc(10px * var(--rk,1));background:var(--bg2)}
 .mvtool.bad{color:var(--bad-t);border-color:color-mix(in srgb,var(--bad-t) 40%,transparent)} .mvtool .spin.sm{width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:-2px;margin:0 6px 0 0}
+.ppbtns{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 10px} .ppbtns label.btn{cursor:pointer}
+.ppnote{color:var(--text2)} .ppdrop:empty{display:none} .ppdrop{border:1.5px dashed var(--line);border-radius:calc(10px * var(--rk,1));padding:18px;text-align:center;color:var(--muted);font-size:13px;margin:6px 0 10px}
+#colPP.drag{outline:2px dashed var(--accent);outline-offset:6px;border-radius:8px}
+.pprow{display:grid;grid-template-columns:170px minmax(0,1fr);gap:14px;align-items:start;padding:10px 0;border-top:1px solid var(--line)}
+.pplab{display:flex;flex-direction:column;gap:2px;min-width:0} .pplab b{font-size:13.5px;overflow:hidden;text-overflow:ellipsis} .pplab small{font-size:12px;color:var(--muted)} .pplab .linkbtn{align-self:flex-start;font-size:12px;margin-top:4px}
+.ppopts{display:flex;gap:8px;overflow-x:auto;padding:3px 3px 8px;scrollbar-width:thin}
+.ppt{position:relative;flex:none;width:78px;aspect-ratio:2/3;padding:0;border:0;border-radius:var(--prs,6px);overflow:hidden;background:var(--bg3);cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.35);transition:transform .15s,box-shadow .15s}
+.ppt img{width:100%;height:100%;object-fit:cover;display:block} .ppt:hover{transform:translateY(-2px)}
+.ppt span{position:absolute;left:4px;bottom:4px;font-size:9.5px;font-weight:800;letter-spacing:.04em;padding:1px 5px;border-radius:4px;background:rgba(0,0,0,.72);color:#fff}
+.ppt.on{box-shadow:0 0 0 3px var(--accent),0 6px 16px rgba(0,0,0,.5)} .ppt.on::after{content:'✓';position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--on-accent);font:800 12px/20px Inter,sans-serif;text-align:center}
+@media (max-width:600px){ .pprow{grid-template-columns:1fr;gap:6px} }
 .colbar{margin:0 0 18px} #colQ{max-width:360px}
 #colFilms{flex-wrap:wrap;overflow:visible;gap:18px 14px} #colFilms .mini.own .poster{opacity:1;filter:none} #colFilms .mini.miss .poster,#colFilms .mini.up .poster{opacity:.55;filter:grayscale(.6)}
 .colgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:26px 18px}
@@ -6792,6 +6803,7 @@ async function openCollection(id){
       <p class="colsum" id="colSum"><span class="dim">Loading summary…</span></p></div></div>
     <div class="mbody">
       <div class="sec colmake" id="colMake"><div class="loading"><div class="spin"></div>Checking your servers…</div></div>
+      <div class="sec colpp" id="colPP"></div>
       <div class="sec"><h3 class="bebas">${g.kind === 'studio' ? 'Your films from this studio' : 'Films'}</h3><div class="mrow colfilms" id="colFilms"><div class="loading"><div class="spin"></div></div></div></div>
     </div>`;
   /* summary */
@@ -6818,13 +6830,14 @@ SELECT ?m ?mLabel ?date ?imdb ?tmdb ?art WHERE { { ?m wdt:P179 wd:${id} } UNION 
     const seenF = new Set(items.map(x => x.q));
     own.forEach(x => { const k = x.q; if(seenF.has(k)) return; seenF.add(k); items.push({q:'own:' + x.key, t:x.t, y:x.y, st:'own', s:'movie', art:null, img:x.img}); });
     items.sort((a, b) => (a.y || 9999) - (b.y || 9999));
+    g.members = items.filter(x => /^Q\d+$/.test(x.q));
     if(CUR !== me) return;
     const el = $('#colFilms'); if(!el) return;
     el.innerHTML = items.length ? items.map(x => x.img && !x.art ? miniHTML(x).replace('<div class="ph"', `<img class="ld" src="${esc(x.img)}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1"><div class="ph"`) : miniHTML(x)).join('') : '<p class="gpnote">No films found.</p>';
     loadPosters(el);
   })();
   await Promise.all([colServerLoad(true), own.some(x => !x.srv) ? uwLoad() : null]); if(CUR !== me) return;
-  g.own = colOwned(g0); colMakeRender(g);
+  g.own = colOwned(g0); colMakeRender(g); colPPRender(g);
 }
 function colMakeRender(g){
   const el = $('#colMake'); if(!el) return;
@@ -6874,8 +6887,140 @@ async function colMake(){
   }
   g._busy = false;
   toast(fails.length ? `${made + added ? `Done in ${made + added}, but ` : ''}${fails.length} didn't work — ${fails[0]}` : `✓ “${title}” ${made ? `created in ${made} ${made === 1 ? 'library' : 'libraries'}` : ''}${made && added ? ' and ' : ''}${added ? `updated in ${added}` : ''}.`);
-  await colServerLoad(true); colMakeRender(g); if(state.s === 'collections') renderCollections();
+  await colServerLoad(true); colMakeRender(g); colPPRender(g); if(state.s === 'collections') renderCollections();
 }
+/* ---- Collection posters: a themed set from ThePosterDB (you download its ZIP there) or TMDB's posters, pushed to Plex / Jellyfin ---- */
+async function unzipImages(file){
+  const buf = new Uint8Array(await file.arrayBuffer()), dv = new DataView(buf.buffer), out = [];
+  let e = -1; for(let i = buf.length - 22; i >= Math.max(0, buf.length - 65557); i--) if(dv.getUint32(i, true) === 0x06054b50){ e = i; break; }
+  if(e < 0) throw new Error("That doesn't look like a ZIP file.");
+  let p = dv.getUint32(e + 16, true); const n = dv.getUint16(e + 10, true), dec = new TextDecoder();
+  for(let k = 0; k < n && dv.getUint32(p, true) === 0x02014b50; k++){
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true), nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), lo = dv.getUint32(p + 42, true);
+    const name = dec.decode(buf.subarray(p + 46, p + 46 + nl)); p += 46 + nl + xl + cl;
+    const base = name.split('/').pop(), ext = (base.match(/\.(jpe?g|png|webp)$/i) || [])[1];
+    if(!ext || /(^|\/)__MACOSX\//.test(name) || base.startsWith('.')) continue;
+    const ds = lo + 30 + dv.getUint16(lo + 26, true) + dv.getUint16(lo + 28, true), raw = buf.subarray(ds, ds + csize);
+    let data;
+    if(method === 0) data = raw;
+    else if(method === 8) data = new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    else continue;
+    const type = /png/i.test(ext) ? 'image/png' : /webp/i.test(ext) ? 'image/webp' : 'image/jpeg';
+    out.push({name:base.replace(/\.[^.]+$/, ''), blob:new Blob([data], {type})});
+  }
+  return out;
+}
+/* which film (or the collection itself) a poster file is for, from names like "Venom (2018)" and "Venom Collection" */
+function ppMatch(name, g, films){
+  const m = /^(.*?)\s*\((\d{4})\)/.exec(name), t = fold((m ? m[1] : name).replace(/\s*[-–]\s*(poster|textless|alt.*)$/i, '')), y = m ? +m[2] : null;
+  if(!m && (/\bcollection\b|\bfranchise\b|\btrilogy\b|\bsaga\b/i.test(name) || t === fold(g.name) || t === fold(g.title || ''))) return 'col';
+  const near = f => !y || !f.y || Math.abs(f.y - y) <= 1;
+  const hit = films.find(f => fold(f.t) === t && near(f)) || (y && films.find(f => near(f) && f.y && (fold(f.t).startsWith(t) || t.startsWith(fold(f.t))) && Math.min(t.length, fold(f.t).length) >= 4));
+  if(hit) return hit.q;
+  if(!m && (/\bcollection\b/i.test(name))) return 'col';
+  return (g.members || []).some(x => fold(x.t) === t && (!y || !x.y || Math.abs(x.y - y) <= 1)) ? 'notown' : null;
+}
+const ppFilms = g => uniq(g.own.map(x => x.q)).map(q => { const x = g.own.find(o => o.q === q); return {q, t:x.t, y:x.y, copies:g.own.filter(o => o.q === q && o.srv)}; });
+function colPPRender(g){
+  const el = $('#colPP'); if(!el) return;
+  const P = g.pp ||= {files:[], tmdb:{}, pick:{}, note:''};
+  const films = ppFilms(g), on = colOnServer(g.title || g.name).filter(o => actServers().some(s => s.id === o.srv));
+  const targets = [{q:'col', label:'Collection poster', sub:on.length ? `on ${uniq(on.map(o => o.libName || 'Jellyfin')).join(', ')}` : 'make the collection first'}, ...films.map(f => ({q:f.q, label:f.t, sub:f.y || '', ok:f.copies.length}))];
+  const unmatched = P.files.filter(f => !f.target);
+  const opts = q => [...P.files.filter(f => f.target === q).map(f => ({k:'z' + P.files.indexOf(f), img:f.url, tag:'ZIP', title:f.name})),
+    ...unmatched.map(f => ({k:'z' + P.files.indexOf(f), img:f.url, tag:'ZIP?', title:f.name + ' (not matched)'})),
+    ...(P.tmdb[q] || []).map((u, i) => ({k:'t' + i, img:IMG + 'w185' + u, tag:'TMDB', title:'TMDB'}))];
+  const shown = targets.filter(t => opts(t.q).length), picks = Object.keys(P.pick).filter(q => targets.some(t => t.q === q)).length;
+  const svc = uniq(actServers().filter(s => g.own.some(x => x.srv === s.id) || on.some(o => o.srv === s.id)).map(s => SRV(s).label)).join(' & ') || 'your server';
+  el.innerHTML = `<h3 class="bebas">Posters</h3>
+    <p class="gpnote">Give the whole collection a matching look. Find a set on ThePosterDB, sign in there and press <b>Download set</b>, then drop the ZIP here: YAMZ matches each poster to your films by its file name. Or pick from TMDB's posters.</p>
+    <div class="ppbtns"><a class="btn" href="https://theposterdb.com/search?${qs({term:g.title || g.name, section:'sets'})}" target="_blank" rel="noopener">Find a set on ThePosterDB ↗</a>
+      <label class="btn">Upload set ZIP<input type="file" accept=".zip,image/jpeg,image/png,image/webp" multiple hidden data-ppfile></label>
+      <button class="btn" data-pptmdb ${P.tbusy ? 'disabled' : ''}>${P.tbusy ? 'Loading TMDB…' : Object.keys(P.tmdb).length ? '↻ TMDB posters' : 'Browse TMDB posters'}</button></div>
+    ${P.note ? `<p class="gpnote ppnote">${P.note}</p>` : ''}
+    <div class="ppdrop" data-ppdrop>${shown.length ? '' : 'Drop a ZIP or poster images here'}</div>
+    ${shown.map(t => { const o = opts(t.q), cur = P.pick[t.q];
+      return `<div class="pprow"><div class="pplab"><b>${esc(t.label)}</b><small>${esc(String(t.sub))}${t.q !== 'col' && !t.ok ? ' · not found on the server' : ''}</small>${cur ? `<button class="linkbtn" data-ppunpick="${esc(t.q)}">Keep current</button>` : ''}</div>
+        <div class="ppopts">${o.map(x => `<button class="ppt ${cur === x.k ? 'on' : ''}" data-pp="${esc(t.q)}" data-ppk="${x.k}" title="${esc(x.title)}"><img src="${esc(x.img)}" alt="" loading="lazy"><span>${x.tag}</span></button>`).join('')}</div></div>`; }).join('')}
+    ${shown.length ? `<div class="colbtns"><button class="btn pri" data-ppapply ${!picks || P.busy ? 'disabled' : ''}>${P.busy ? 'Uploading…' : `Apply ${picks || ''} poster${picks === 1 ? '' : 's'} in ${svc}`}</button><button class="btn" data-ppclear>Clear</button></div>` : ''}`;
+}
+async function ppAddFiles(g, list){
+  const P = g.pp ||= {files:[], tmdb:{}, pick:{}, note:''}, films = ppFilms(g);
+  const imgs = [];
+  try{
+    for(const f of list){ if(/\.zip$/i.test(f.name) || f.type === 'application/zip' || f.type === 'application/x-zip-compressed') imgs.push(...await unzipImages(f)); else if(/^image\//.test(f.type)) imgs.push({name:f.name.replace(/\.[^.]+$/, ''), blob:f}); }
+  }catch(e){ P.note = esc(e.message || "Couldn't read that file."); colPPRender(g); return; }
+  let mine = 0, notown = 0, col = false;
+  imgs.forEach(x => { const t = ppMatch(x.name, g, films); if(t === 'notown'){ notown++; return; }
+    const f = {...x, url:URL.createObjectURL(x.blob), target:t}; P.files.push(f);
+    if(t){ if(t === 'col') col = true; else mine++; if(!P.pick[t]) P.pick[t] = 'z' + (P.files.length - 1); } });
+  const un = P.files.filter(f => !f.target).length;
+  P.note = imgs.length ? `${imgs.length} poster${imgs.length === 1 ? '' : 's'} read: ${mine} matched to your films${col ? ', 1 for the collection' : ''}${notown ? `, ${notown} for films you don't have (skipped)` : ''}${un ? `, ${un} not matched — pick where they go` : ''}.` : 'No posters found in that file.';
+  colPPRender(g);
+}
+async function ppTmdb(g){
+  const P = g.pp ||= {files:[], tmdb:{}, pick:{}, note:''};
+  if(!tmdbOn()){ P.note = 'TMDB posters need a TMDB key: Settings → Metadata source.'; colPPRender(g); return; }
+  P.tbusy = true; colPPRender(g);
+  try{
+    const films = ppFilms(g), ids = {};
+    for(const f of films){
+      const own = g.own.find(o => o.q === f.q && o.ids?.tmdb), mem = (g.members || []).find(x => x.q === f.q && x.tmdb);
+      ids[f.q] = own?.ids.tmdb || mem?.tmdb || (await TMDB.search({s:'movie', q:f.t, y:f.y}).catch(() => ({})))?.id || null;
+    }
+    const posters = async path => ((await getJSON(TMDB.url(path, {include_image_language:'en,null'}), TMDB.opts()).catch(() => ({}))).posters || []).sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0)).slice(0, 14).map(x => x.file_path);
+    let cid = null;
+    for(const f of films){ if(!ids[f.q]) continue; P.tmdb[f.q] = await posters(`/movie/${ids[f.q]}/images`);
+      if(!cid){ const d = await getJSON(TMDB.url(`/movie/${ids[f.q]}`), TMDB.opts()).catch(() => null); cid = d?.belongs_to_collection?.id || null; } }
+    if(cid) P.tmdb.col = await posters(`/collection/${cid}/images`);
+    P.note = `TMDB posters loaded${cid ? ', including the collection’s own' : ''}. Click one to pick it.`;
+  }catch(e){ P.note = esc(`Couldn't load TMDB posters: ${e.message || e}`); }
+  P.tbusy = false; colPPRender(g);
+}
+const b64 = blob => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(String(r.result).split(',')[1]); r.onerror = no; r.readAsDataURL(blob); });
+async function ppPush(s, id, lib, type, src){
+  if(s.type === 'jellyfin'){
+    const r = src.url ? await fetchT(`${s.url}/Items/${id}/RemoteImages/Download?${qs({Type:'Primary', ImageUrl:src.url})}`, {method:'POST', headers:JF.hdr(s.token)}, 30000)
+      : await fetchT(`${s.url}/Items/${id}/Images/Primary`, {method:'POST', headers:JF.hdr(s.token, {'Content-Type':src.blob.type || 'image/jpeg'}), body:await b64(src.blob)}, 60000);
+    if(!r.ok) throw new Error(r.status === 401 || r.status === 403 ? 'Jellyfin refused: it needs an admin sign-in.' : 'HTTP ' + r.status);
+    return;
+  }
+  const r = await fetchT(`${s.url}/library/metadata/${id}/posters?${qs({...(src.url ? {url:src.url} : {}), 'X-Plex-Token':s.token})}`, {method:'POST', ...(src.url ? {} : {body:src.blob})}, 60000);
+  if(!r.ok) throw new Error(r.status === 401 || r.status === 403 ? 'Plex refused: it needs the server owner’s sign-in.' : 'HTTP ' + r.status);
+  if(lib) await fetchT(`${s.url}/library/sections/${lib}/all?${qs({type, id, 'thumb.locked':1, 'X-Plex-Token':s.token})}`, {method:'PUT'}, 15000).catch(() => {});   // keep it from being replaced on the next metadata refresh
+}
+async function ppApply(g){
+  const P = g.pp; if(!P || P.busy) return;
+  const films = ppFilms(g), on = colOnServer(g.title || g.name);
+  const src = k => k[0] === 'z' ? {blob:P.files[+k.slice(1)].blob} : null;
+  P.busy = true; colPPRender(g);
+  let done = 0; const fails = [], skipped = [];
+  for(const [q, k] of Object.entries(P.pick)){
+    const s0 = k[0] === 't' ? {url:IMG + 'original' + P.tmdb[q][+k.slice(1)]} : src(k); if(!s0) continue;
+    const dest = q === 'col' ? on.map(o => ({srv:o.srv, id:o.id, lib:o.lib || '', type:18, label:'collection'})) : (films.find(f => f.q === q)?.copies || []).map(x => ({srv:x.srv, id:x.id, lib:x.libKey || '', type:1, label:x.t}));
+    if(!dest.length){ skipped.push(q === 'col' ? 'the collection (make it first)' : films.find(f => f.q === q)?.t || q); continue; }
+    for(const d of dest){ const s = actServers().find(x => x.id === d.srv); if(!s) continue;
+      try{ await ppPush(s, d.id, d.lib, d.type, s0); done++; }catch(e){ fails.push(`${d.label}: ${e.message || 'failed'}`); } }
+  }
+  P.busy = false;
+  if(!fails.length && done){ P.pick = {}; }
+  P.note = `${done ? `✓ ${done} poster${done === 1 ? '' : 's'} uploaded. Plex and Jellyfin may take a moment to show them.` : ''}${skipped.length ? ` Skipped ${esc(skipped.join(', '))}.` : ''}${fails.length ? ` ${fails.length} failed: ${esc(fails[0])}` : ''}`.trim();
+  toast(fails.length ? `${fails.length} poster${fails.length === 1 ? '' : 's'} didn't upload — ${fails[0]}` : done ? `✓ ${done} poster${done === 1 ? '' : 's'} uploaded` : 'Nothing to upload');
+  colPPRender(g); if(done){ UW.at = 0; }
+}
+document.addEventListener('click', e => {
+  const g = COL.cur; if(!g || !e.target.closest('#colPP')) return;
+  const t = e.target.closest('[data-pp]'); if(t){ const P = g.pp; P.pick[t.dataset.pp] = P.pick[t.dataset.pp] === t.dataset.ppk ? undefined : t.dataset.ppk; if(!P.pick[t.dataset.pp]) delete P.pick[t.dataset.pp];
+    const k = t.dataset.ppk; if(k[0] === 'z'){ const f = g.pp.files[+k.slice(1)]; if(!f.target){ f.target = t.dataset.pp; } } colPPRender(g); return; }
+  const u = e.target.closest('[data-ppunpick]'); if(u){ delete g.pp.pick[u.dataset.ppunpick]; colPPRender(g); return; }
+  if(e.target.closest('[data-pptmdb]')){ ppTmdb(g); return; }
+  if(e.target.closest('[data-ppapply]')){ ppApply(g); return; }
+  if(e.target.closest('[data-ppclear]')){ (g.pp?.files || []).forEach(f => URL.revokeObjectURL(f.url)); g.pp = null; colPPRender(g); }
+});
+document.addEventListener('change', e => { const i = e.target.closest?.('[data-ppfile]'); if(i && COL.cur){ ppAddFiles(COL.cur, [...i.files]); i.value = ''; } });
+document.addEventListener('dragover', e => { const d = e.target.closest?.('#colPP'); if(d){ e.preventDefault(); d.classList.add('drag'); } });
+document.addEventListener('dragleave', e => { const d = e.target.closest?.('#colPP'); if(d && !d.contains(e.relatedTarget)) d.classList.remove('drag'); });
+document.addEventListener('drop', e => { const d = e.target.closest?.('#colPP'); if(!d || !COL.cur) return; e.preventDefault(); d.classList.remove('drag'); ppAddFiles(COL.cur, [...(e.dataTransfer?.files || [])]); });
 document.addEventListener('click', e => {
   if(e.target.closest('[data-colmake]')){ colMake(); return; }
   if(state.s !== 'collections') return;

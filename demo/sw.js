@@ -101,6 +101,7 @@ WL.forEach(([t, y]) => DEMOY[t] = y);
 
 /* ---------------- fake outside services ---------------- */
 let plexPolls = 0;
+const PPUP = [];   // poster uploads in this demo session
 const PCOLS = [];   // Plex collections made in this demo session
 const DCOLS = [   // franchises, a universe and studios for the demo's Collections tab
   {id:'Q60001', k:'series', name:'Mad Max', re:/^Mad Max|Fury Road/, total:5, desc:'Australian post-apocalyptic action film series', more:[['Furiosa: A Mad Max Saga', 2024]]},
@@ -392,6 +393,8 @@ async function outside(url, req){
     if(req.method === 'POST'){ const rk = String(9000 + PCOLS.length); PCOLS.push({ratingKey:rk, title:u.searchParams.get('title'), sec:u.searchParams.get('sectionId'), kids:new Set(ids)}); return J({MediaContainer:{Metadata:[{ratingKey:rk}]}}); }
     const c = PCOLS.find(x => x.ratingKey === u.pathname.split('/')[3]); if(c) ids.forEach(i => c.kids.add(i)); return J({MediaContainer:{}});
   }
+  if(u.host === '192.168.1.20:32400' && ((req.method === 'POST' && /^\/library\/metadata\/\d+\/posters$/.test(u.pathname)) || (req.method === 'PUT' && /^\/library\/sections\/\d+\/all$/.test(u.pathname)))){   // poster uploads and locks
+    PPUP.push(req.method + ' ' + u.pathname + (u.searchParams.get('url') ? ' url' : '')); return new Response('', {status:200, headers:{'Access-Control-Allow-Origin':'*'}}); }
   if(u.host === '192.168.1.20:32400' && req.method === 'DELETE') return new Response('', {status:200, headers:{'Access-Control-Allow-Origin':'*'}});   // Plex "Allow media deletion" is on in the demo
   if(u.host === '192.168.1.20:32400') return plexServer(u);
   if(u.host === '192.168.1.20:7878') return arr('radarr', u, req);
