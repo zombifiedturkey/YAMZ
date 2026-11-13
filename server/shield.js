@@ -101,12 +101,77 @@ module.exports = function createShield({STATE, CONFIG, log, json, send, env}){
     return cache.busy ||= build().then(d => { cache = {at:Date.now(), data:d, busy:null}; return d; }, e => { cache.busy = null; throw e; });
   };
 
+
+  /* ---------- slower "extras": recently added, most-watched shows, TMDB trending (cached 10 min) ---------- */
+  async function plexRecent(s){
+    const mc = (await get(`${s.url}/library/recentlyAdded?X-Plex-Container-Start=0&X-Plex-Container-Size=40&X-Plex-Token=${encodeURIComponent(s.token)}`, {}, 10000)).MediaContainer || {};
+    const pu = p => p ? imgUrl(`${s.url}${p}?X-Plex-Token=${encodeURIComponent(s.token)}`) : null;
+    return (mc.Metadata || []).map(m => {
+      if(m.type === 'movie') return {title:m.title, sub:String(m.year || ''), kind:'movie', added:(+m.addedAt || 0) * 1000, poster:pu(m.thumb)};
+      if(m.type === 'season') return {title:m.parentTitle || m.title, sub:m.title, kind:'tv', added:(+m.addedAt || 0) * 1000, poster:pu(m.parentThumb || m.thumb)};
+      if(m.type === 'episode') return {title:m.grandparentTitle || m.title, sub:`S${pad2(m.parentIndex)}E${pad2(m.index)}`, kind:'tv', added:(+m.addedAt || 0) * 1000, poster:pu(m.grandparentThumb || m.thumb)};
+      if(m.type === 'show') return {title:m.title, sub:'New show', kind:'tv', added:(+m.addedAt || 0) * 1000, poster:pu(m.thumb)};
+      return null;
+    }).filter(Boolean);
+  }
+  async function jfRecent(s){
+    const h = jfAuth(s.token);
+    const r = await get(`${s.url}/Items?SortBy=DateCreated&SortOrder=Descending&Recursive=true&IncludeItemTypes=Movie,Series&Limit=30${s.user ? `&userId=${s.user}` : ''}`, h, 10000);
+    return (r.Items || []).map(it => ({title:it.Name, sub:it.Type === 'Movie' ? String(it.ProductionYear || '') : 'New show', kind:it.Type === 'Movie' ? 'movie' : 'tv',
+      added:Date.parse(it.DateCreated) || 0, poster:imgUrl(`${s.url}/Items/${it.Id}/Images/Primary?fillHeight=450&fillWidth=300&quality=85`, h)}));
+  }
+  async function plexTopShows(s, days = 30){
+    const since = Math.floor(Date.now() / 1000) - days * 86400;
+    const mc = (await get(`${s.url}/status/sessions/history/all?viewedAt%3E=${since}&sort=viewedAt:desc&X-Plex-Container-Start=0&X-Plex-Container-Size=3000&X-Plex-Token=${encodeURIComponent(s.token)}`, {}, 20000)).MediaContainer || {};
+    const by = new Map();
+    for(const m of mc.Metadata || []){
+      if(m.type !== 'episode' || !m.grandparentTitle) continue;
+      const k = m.grandparentTitle, e = by.get(k) || {title:k, plays:0, users:new Set(), thumb:m.grandparentThumb};
+      e.plays++; if(m.accountID != null) e.users.add(m.accountID); by.set(k, e);
+    }
+    return [...by.values()].sort((a, b) => b.plays - a.plays).slice(0, 10)
+      .map(e => ({title:e.title, plays:e.plays, viewers:e.users.size, poster:e.thumb ? imgUrl(`${s.url}${e.thumb}?X-Plex-Token=${encodeURIComponent(s.token)}`) : null}));
+  }
+  async function tmdbTrending(){
+    const c = STATE.data['vault:cfg'];
+    if(!c || c.prov !== 'tmdb' || !c.key) return null;
+    const bearer = c.key.length >= 60;
+    const one = async kind => {
+      const u = `https://api.themoviedb.org/3/trending/${kind}/week${bearer ? '' : `?api_key=${encodeURIComponent(c.key)}`}`;
+      const j = await get(u, bearer ? {Authorization:'Bearer ' + c.key} : {}, 10000);
+      return (j.results || []).slice(0, 12).map(r => ({title:r.title || r.name, year:String(r.release_date || r.first_air_date || '').slice(0, 4),
+        rating:r.vote_average ? Math.round(r.vote_average * 10) / 10 : null, poster:r.poster_path ? imgUrl(`https://image.tmdb.org/t/p/w342${r.poster_path}`) : null}));
+    };
+    const [movie, tv] = await Promise.all([one('movie'), one('tv')]);
+    return {movie, tv};
+  }
+  async function buildExtras(){
+    const lib = STATE.data['zn:lib'] || {};
+    const servers = (lib.servers || []).filter(s => (s.type === 'plex' || s.type === 'jellyfin') && s.url && s.token);
+    const errors = [], recent = [];
+    let topShows = [], popular = null;
+    await Promise.all([
+      ...servers.map(async s => { try{ recent.push(...await (s.type === 'plex' ? plexRecent(s) : jfRecent(s))); }catch(e){ errors.push(`recent ${s.name || s.type}: ${e.message}`); } }),
+      (async () => { const p = servers.find(s => s.type === 'plex'); if(p) try{ topShows = await plexTopShows(p); }catch(e){ errors.push(`top shows: ${e.message}`); } })(),
+      (async () => { try{ popular = await tmdbTrending(); }catch(e){ errors.push(`tmdb: ${e.message}`); } })()
+    ]);
+    const seen = new Set();
+    const rec = recent.sort((a, b) => b.added - a.added).filter(r => { const k = r.title + '|' + r.kind; if(seen.has(k)) return false; seen.add(k); return true; }).slice(0, 14);
+    return {updated:Date.now(), recent:rec, topShows, popular, errors};
+  }
+  let xcache = {at:0, data:null, busy:null};
+  const extras = () => {
+    if(xcache.data && Date.now() - xcache.at < 600000) return Promise.resolve(xcache.data);
+    return xcache.busy ||= buildExtras().then(d => { xcache = {at:Date.now(), data:d, busy:null}; return d; }, e => { xcache.busy = null; throw e; });
+  };
+
   /* returns true if it handled the request */
   return async function shield(req, res, p, q){
     if(!p.startsWith('/api/shield/')) return false;
     if(req.method !== 'GET') return json(res, 405, {error:'Use GET.'}), true;
     if(!authed(req)) return json(res, 401, {error:'Bad or missing shield token.'}), true;
     if(p === '/api/shield/dashboard') return json(res, 200, await dashboard(), {'Cache-Control':'no-store'}), true;
+    if(p === '/api/shield/extras') return json(res, 200, await extras(), {'Cache-Control':'no-store'}), true;
     if(p === '/api/shield/img'){
       const it = IMGS.get(q.get('i') || '');
       if(!it) return send(res, 404, 'Not found'), true;
