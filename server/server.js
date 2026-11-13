@@ -166,6 +166,8 @@ async function relay(req, res, url){
   Readable.fromWeb(r.body).on('error', () => res.destroy()).pipe(res);
 }
 
+const shield = require('./shield')({STATE, CONFIG, log, json, send, env});
+
 /* ---------------- routes ---------------- */
 async function handle(req, res){
   let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
@@ -222,6 +224,8 @@ async function handle(req, res){
     }
     return json(res, 404, {error:'Not found'});
   }
+
+  if(await shield(req, res, p, q)) return;   // TV launcher dashboard: token-protected, read-only
 
   const sess = sessionOf(req);
 
